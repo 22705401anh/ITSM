@@ -1,0 +1,231 @@
+{% extends "base.html" %}
+
+{% block title %}Problem Resolution Documentation - ITSM{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1"><i class="fas fa-tools"></i> Problem Resolution Documentation</h1>
+            <p class="text-muted">Document and share solutions to IT problems</p>
+        </div>
+        <a href="/documentation/problems/create" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Document Solution
+        </a>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2">Total Resolutions</p>
+                            <h3 class="mb-0" id="totalCount">0</h3>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x text-success opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2">Critical Issues</p>
+                            <h3 class="mb-0 text-danger" id="criticalCount">0</h3>
+                        </div>
+                        <i class="fas fa-exclamation-circle fa-2x text-danger opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2">This Month</p>
+                            <h3 class="mb-0 text-info" id="monthCount">0</h3>
+                        </div>
+                        <i class="fas fa-calendar fa-2x text-info opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2">Categories</p>
+                            <h3 class="mb-0 text-purple" id="categoryCount">0</h3>
+                        </div>
+                        <i class="fas fa-layer-group fa-2x text-purple opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Filters</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Category</label>
+                    <select id="filterCategory" class="form-select form-select-sm">
+                        <option value="">All Categories</option>
+                        <option value="network">Network</option>
+                        <option value="server">Server</option>
+                        <option value="software">Software</option>
+                        <option value="hardware">Hardware</option>
+                        <option value="security">Security</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Severity</label>
+                    <select id="filterSeverity" class="form-select form-select-sm">
+                        <option value="">All Severity</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" id="searchProblem" class="form-control form-control-sm" 
+                           placeholder="Search problems...">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button onclick="loadProblems()" class="btn btn-sm btn-primary w-100">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Problems List -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Severity</th>
+                        <th>Resolution Time</th>
+                        <th>Author</th>
+                        <th>Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="problemsList">
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            Loading problems...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadProblems() {
+    try {
+        const category = document.getElementById('filterCategory').value;
+        const severity = document.getElementById('filterSeverity').value;
+
+        let url = '/api/documentation/problems';
+        const params = new URLSearchParams();
+        if (category) params.append('category', category);
+        if (severity) params.append('severity', severity);
+        if (params.toString()) url += '?' + params.toString();
+
+        const res = await fetch(url);
+        const problems = await res.json();
+
+        const tbody = document.getElementById('problemsList');
+        if (!problems || problems.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No problems found</td></tr>';
+            updateStats([]);
+            return;
+        }
+
+        tbody.innerHTML = problems.map(p => `
+            <tr>
+                <td><strong>${p.title}</strong></td>
+                <td><span class="badge bg-info">${p.problem_category}</span></td>
+                <td><span class="badge bg-${getSeverityColor(p.severity)}">${p.severity}</span></td>
+                <td>${p.resolution_time || 'N/A'}</td>
+                <td>${p.resolved_by}</td>
+                <td>${new Date(p.created_at).toLocaleDateString()}</td>
+                <td>
+                    <a href="/documentation/problems/${p.id}" class="btn btn-sm btn-info" title="View">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <button onclick="deleteProblem(${p.id})" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        updateStats(problems);
+
+    } catch (e) {
+        console.error('Error:', e);
+    }
+}
+
+function getSeverityColor(severity) {
+    const colors = {
+        'critical': 'danger',
+        'high': 'warning',
+        'medium': 'info',
+        'low': 'success'
+    };
+    return colors[severity] || 'secondary';
+}
+
+function updateStats(problems) {
+    document.getElementById('totalCount').textContent = problems.length;
+    document.getElementById('criticalCount').textContent = problems.filter(p => p.severity === 'critical').length;
+
+    const now = new Date();
+    const monthAgo = new Date(now.getFullYear(), now.getMonth(), 1);
+    document.getElementById('monthCount').textContent = problems.filter(p => new Date(p.created_at) >= monthAgo).length;
+
+    const categories = new Set(problems.map(p => p.problem_category));
+    document.getElementById('categoryCount').textContent = categories.size;
+}
+
+async function deleteProblem(id) {
+    if (confirm('Delete this problem resolution?')) {
+        try {
+            await fetch(`/api/documentation/problems/${id}`, { method: 'DELETE' });
+            loadProblems();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadProblems);
+</script>
+{% endblock %}
