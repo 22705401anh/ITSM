@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+
+{% block title %}Hardware Timeline - ITSM Platform{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1"><i class="fas fa-history"></i> {{ asset_type|title }} Timeline</h1>
+            <p class="text-muted">Viewing history for asset ID: {{ asset_id }}</p>
+        </div>
+        <a href="/assets" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i> Back to Assets
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-stream"></i> Life Cycle & User Hand-offs</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="timeline" id="historyTimeline">
+                        <li class="p-5 text-center text-muted">
+                            <i class="fas fa-circle-notch fa-spin fa-2x"></i>
+                            <p>Loading chronological history...</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.timeline {
+    list-style-type: none;
+    padding: 0;
+    position: relative;
+}
+.timeline::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 20px;
+    width: 2px;
+    background-color: #dee2e6;
+}
+.timeline-item {
+    position: relative;
+    padding-left: 50px;
+    margin-bottom: 2rem;
+}
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 14px;
+    top: 5px;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background-color: #0d6efd;
+    border: 3px solid #fff;
+    box-shadow: 0 0 0 2px #0d6efd;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    const assetType = "{{ asset_type }}";
+    const assetId = "{{ asset_id }}";
+    const timeline = document.getElementById('historyTimeline');
+
+    try {
+        const response = await fetch(`/api/hardware/history/${assetType}/${assetId}`);
+        const data = await response.json();
+
+        if (data.length === 0) {
+            timeline.innerHTML = '<li class="p-4 text-center text-muted"><p>No assignment history available for this asset.</p></li>';
+            return;
+        }
+
+        timeline.innerHTML = data.map((entry, index) => {
+            const date = new Date(entry.assigned_date).toLocaleDateString();
+            const time = new Date(entry.assigned_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+            // Format returning logic
+            let returnText = entry.returned_date ? 
+                `<span class="text-secondary"><i class="fas fa-arrow-left"></i> Returned: ${new Date(entry.returned_date).toLocaleDateString()}</span>` : 
+                `<span class="badge bg-success">Currently Active</span>`;
+
+            return `
+                <li class="timeline-item">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="fw-bold text-primary">Assigned to ID ${entry.new_user_id || 'Unknown'}</span>
+                        <span class="text-muted"><i class="fas fa-calendar-alt"></i> ${date} ${time}</span>
+                    </div>
+                    <p class="mb-1 text-dark">
+                        Moved from User ID ${entry.previous_user_id || 'Inventory Stock'}. 
+                        ${returnText}
+                    </p>
+                    ${entry.notes ? `<small class="text-muted"><i>Notes: ${entry.notes}</i></small>` : ''}
+                </li>
+            `;
+        }).join('');
+
+    } catch (e) {
+        timeline.innerHTML = '<li class="p-4 text-danger"><p>Failed to load timeline. Please ensure the backend is reachable.</p></li>';
+    }
+});
+</script>
+{% endblock %}

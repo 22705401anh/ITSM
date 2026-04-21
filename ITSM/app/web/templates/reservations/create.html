@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}New Reservation - ITSM Platform{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <h1 class="h2">Create Reservation</h1>
+
+    <div class="card">
+        <div class="card-body">
+            <form hx-post="/api/reservations" hx-target="#formMessage">
+                <div class="mb-3">
+                    <label for="asset" class="form-label">Asset</label>
+                    <select class="form-control" id="asset" name="asset_id" required>
+                        <option selected disabled>Select an asset...</option>
+                        <option value="1">Server 01</option>
+                        <option value="2">Meeting Room - Projector</option>
+                        <option value="3">Conference Phone</option>
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label for="reason" class="form-label">Reason</label>
+                    <textarea class="form-control" id="reason" name="reason" rows="3"></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="startDate" class="form-label">Start Date</label>
+                            <input type="datetime-local" class="form-control" id="startDate" name="start_date" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label for="endDate" class="form-label">End Date</label>
+                            <input type="datetime-local" class="form-control" id="endDate" name="end_date" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="formMessage"></div>
+
+                <div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Create Reservation
+                    </button>
+                    <a href="/reservations" class="btn btn-outline-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

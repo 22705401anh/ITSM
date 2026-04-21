@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}General Documentation - ITSM{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1"><i class="fas fa-file-alt"></i> General Documentation</h1>
+            <p class="text-muted">Audits, Reports, Policies, and other documentation</p>
+        </div>
+        <a href="/documentation/general/create" class="btn btn-primary">
+            <i class="fas fa-plus-circle"></i> Create Document
+        </a>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2">Total Documents</p>
+                            <h3 class="mb-0" id="totalCount">0</h3>
+                        </div>
+                        <i class="fas fa-folder-open fa-2x text-primary opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2">Published</p>
+                            <h3 class="mb-0 text-success" id="publishedCount">0</h3>
+                        </div>
+                        <i class="fas fa-check-circle fa-2x text-success opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2">Drafts</p>
+                            <h3 class="mb-0 text-warning" id="draftCount">0</h3>
+                        </div>
+                        <i class="fas fa-edit fa-2x text-warning opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2">Confidential</p>
+                            <h3 class="mb-0 text-danger" id="confidentialCount">0</h3>
+                        </div>
+                        <i class="fas fa-lock fa-2x text-danger opacity-25"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-header bg-light">
+            <h5 class="mb-0"><i class="fas fa-filter"></i> Filters</h5>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Type</label>
+                    <select id="filterType" class="form-select form-select-sm">
+                        <option value="">All Types</option>
+                        <option value="audit">Audit</option>
+                        <option value="report">Report</option>
+                        <option value="policy">Policy</option>
+                        <option value="changelog">Change Log</option>
+                        <option value="sop">Standard Operating Procedure</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Status</label>
+                    <select id="filterStatus" class="form-select form-select-sm">
+                        <option value="">All Status</option>
+                        <option value="draft">Draft</option>
+                        <option value="published">Published</option>
+                        <option value="archived">Archived</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Search</label>
+                    <input type="text" id="searchDoc" class="form-control form-control-sm" 
+                           placeholder="Search documents...">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button onclick="loadDocuments()" class="btn btn-sm btn-primary w-100">
+                        <i class="fas fa-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Documents List -->
+    <div class="card">
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Title</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Author</th>
+                        <th>Created</th>
+                        <th>Expiry</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="documentsList">
+                    <tr>
+                        <td colspan="7" class="text-center py-4">
+                            <span class="spinner-border spinner-border-sm me-2"></span>
+                            Loading documents...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+async function loadDocuments() {
+    try {
+        const type = document.getElementById('filterType').value;
+        const status = document.getElementById('filterStatus').value;
+
+        let url = '/api/documentation/documents';
+        const params = new URLSearchParams();
+        if (type) params.append('document_type', type);
+        if (status) params.append('status', status);
+        if (params.toString()) url += '?' + params.toString();
+
+        const res = await fetch(url);
+        const documents = await res.json();
+
+        const tbody = document.getElementById('documentsList');
+        if (!documents || documents.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" class="text-center py-4 text-muted">No documents found</td></tr>';
+            updateStats([]);
+            return;
+        }
+
+        tbody.innerHTML = documents.map(d => `
+            <tr>
+                <td>
+                    <strong>${d.title}</strong>
+                    ${d.is_confidential ? '<i class="fas fa-lock text-danger ms-2" title="Confidential"></i>' : ''}
+                </td>
+                <td><span class="badge bg-info">${d.document_type}</span></td>
+                <td><span class="badge bg-${getStatusColor(d.status)}">${d.status}</span></td>
+                <td>${d.author_id}</td>
+                <td>${new Date(d.created_at).toLocaleDateString()}</td>
+                <td>${d.expiry_date ? new Date(d.expiry_date).toLocaleDateString() : 'N/A'}</td>
+                <td>
+                    <a href="/documentation/general/${d.id}" class="btn btn-sm btn-info" title="View">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                    <button onclick="deleteDocument(${d.id})" class="btn btn-sm btn-outline-danger">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+
+        updateStats(documents);
+
+    } catch (e) {
+        console.error('Error:', e);
+    }
+}
+
+function getStatusColor(status) {
+    const colors = {
+        'draft': 'warning',
+        'published': 'success',
+        'archived': 'secondary'
+    };
+    return colors[status] || 'secondary';
+}
+
+function updateStats(documents) {
+    document.getElementById('totalCount').textContent = documents.length;
+    document.getElementById('publishedCount').textContent = documents.filter(d => d.status === 'published').length;
+    document.getElementById('draftCount').textContent = documents.filter(d => d.status === 'draft').length;
+    document.getElementById('confidentialCount').textContent = documents.filter(d => d.is_confidential).length;
+}
+
+async function deleteDocument(id) {
+    if (confirm('Delete this document?')) {
+        try {
+            await fetch(`/api/documentation/documents/${id}`, { method: 'DELETE' });
+            loadDocuments();
+        } catch (e) {
+            alert('Error: ' + e.message);
+        }
+    }
+}
+
+document.addEventListener('DOMContentLoaded', loadDocuments);
+</script>
+{% endblock %}

@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+
+{% block title %}Active Directory Users - ITSM Platform{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1"><i class="fas fa-users-cog"></i> Active Directory Users</h1>
+            <p class="text-muted">Real-time live view of active users in the ma.kostal.int domain via LDAP</p>
+        </div>
+        <div class="d-flex gap-2">
+            <button id="syncBtn" class="btn btn-success" onclick="syncADUsers()">
+                <i class="fas fa-cloud-download-alt"></i> Sync AD Users to DB
+            </button>
+            <button id="refreshBtn" class="btn btn-primary" onclick="loadADUsers()">
+                <i class="fas fa-sync-alt"></i> Refresh from AD
+            </button>
+            <a href="/admin/users" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left"></i> Local Users
+            </a>
+        </div>
+    </div>
+
+    <!-- Search/Filter Bar -->
+    <div class="card mb-4 border-0 shadow-sm">
+        <div class="card-body">
+            <div class="row align-items-center">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white border-end-0">
+                            <i class="fas fa-search text-muted"></i>
+                        </span>
+                        <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Search by name, email, or department...">
+                    </div>
+                </div>
+                <div class="col-md-7 text-end text-muted small">
+                    Showing <span id="userCount" class="fw-bold text-dark">0</span> AD users
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Department</th>
+                            <th>Title</th>
+                            <th>Company</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adUsersList">
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Loading Active Directory...</span>
+                                </div>
+                                <p class="mt-3 text-muted">Querying LDAP server (ma.kostal.int)...</p>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let allUsers = [];
+
+async function loadADUsers() {
+    const tbody = document.getElementById('adUsersList');
+    const refreshBtn = document.getElementById('refreshBtn');
+
+    // UI Loading state
+    refreshBtn.disabled = true;
+    refreshBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Refreshing...';
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="7" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading Active Directory...</span>
+                </div>
+                <p class="mt-3 text-muted">Querying LDAP server (ma.kostal.int)...</p>
+            </td>
+        </tr>
+    `;
+
+    try {
+        console.log("Fetching AD users from /api/admin/ad-users");
+        const response = await fetch('/api/admin/ad-users', {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+
+        console.log("Response status:", response.status);
+        console.log("Response ok:", response.ok);
+
+        if (!response.ok) {
+            let error = null;
+            try {
+                error = await response.json();
+            } catch (e) {
+                error = { detail: `HTTP ${response.status}` };
+            }
+            throw new Error(error.detail || `Server error: ${response.status}`);
+        }
+
+        const rawData = await response.json();
+        console.log("Raw data received:", rawData);
+        console.log("Raw data length:", rawData ? rawData.length : 'null');
+
+        // Remove empty records, machines ($), and ones without a real name
+        allUsers = rawData.filter(u => {
+            if (!u || typeof u.username !== 'string' || typeof u.name !== 'string') return false;
+            return u.username && 
+                   u.username !== 'None' && 
+                   !u.username.endsWith('$') &&
+                   u.name && 
+                   u.name !== 'None';
+        });
+
+        console.log("Filtered users:", allUsers.length);
+        document.getElementById('userCount').textContent = allUsers.length.toLocaleString();
+        renderUsers(allUsers);
+
+    } catch (e) {
+        console.error("AD fetching error:", e);
+        console.error("Error stack:", e.stack);
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5 text-danger">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <h5>Error connecting to Active Directory</h5>
+                    <p class="text-muted">${e.message}</p>
+                    <p class="text-muted small mt-2">Check browser console for more details</p>
+                    <button class="btn btn-outline-danger mt-2" onclick="loadADUsers()">Try Again</button>
+                </td>
+            </tr>
+        `;
+    } finally {
+        refreshBtn.disabled = false;
+        refreshBtn.innerHTML = '<i class="fas fa-sync-alt"></i> Refresh from AD';
+    }
+}
+
+function renderUsers(users) {
+    const tbody = document.getElementById('adUsersList');
+
+    if (!users || users.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" class="text-center py-5">
+                    <div class="text-muted">
+                        <i class="fas fa-search fa-3x mb-3 opacity-50"></i>
+                        <p class="mb-0">No users found matching your search</p>
+                    </div>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = users.map(user => {
+        const uName = user.name === 'None' || !user.name ? '-' : user.name;
+        const init = uName !== '-' ? uName.charAt(0).toUpperCase() : '?';
+        return `
+        <tr>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 36px; height: 36px;">
+                        ${init}
+                    </div>
+                    <div>
+                        <div class="fw-bold">${uName}</div>
+                    </div>
+                </div>
+            </td>
+            <td><code>${user.username === 'None' ? '-' : (user.username || '-')}</code></td>
+            <td>
+                ${(user.email && user.email !== 'None') ? '<a href="mailto:' + user.email + '" class="text-decoration-none"><i class="fas fa-envelope text-muted me-1"></i>' + user.email + '</a>' : '<span class="text-muted">-</span>'}
+            </td>
+            <td>
+                ${(user.department && user.department !== 'None') ? '<span class="badge bg-secondary">' + user.department + '</span>' : '<span class="text-muted">-</span>'}
+            </td>
+            <td>${(user.title && user.title !== 'None') ? user.title : '<span class="text-muted">-</span>'}</td>
+            <td>${(user.company && user.company !== 'None') ? user.company : '<span class="text-muted">-</span>'}</td>
+            <td class="text-end">
+                <button class="btn btn-sm btn-outline-primary" title="Import User to ITSM" onclick="alert('Import feature coming soon!')">
+                    <i class="fas fa-download"></i> Import
+                </button>
+            </td>
+        </tr>
+        `}).join('');
+}
+
+// Handle search filtering
+document.getElementById('searchInput').addEventListener('input', (e) => {
+    const term = e.target.value.toLowerCase();
+
+    if (!term) {
+        renderUsers(allUsers);
+        document.getElementById('userCount').textContent = allUsers.length.toLocaleString();
+        return;
+    }
+
+    const filtered = allUsers.filter(u => {
+        const hasT = (val) => val && typeof val === 'string' && val !== 'None' && val.toLowerCase().includes(term);
+        return hasT(u.name) || hasT(u.email) || hasT(u.username) || hasT(u.department);
+    });
+
+    renderUsers(filtered);
+    document.getElementById('userCount').textContent = filtered.length.toLocaleString();
+});
+
+// Load immediately since the script is at the end of the template
+loadADUsers();
+
+async function syncADUsers() {
+    const syncBtn = document.getElementById('syncBtn');
+    
+    // UI Loading state
+    syncBtn.disabled = true;
+    syncBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing to DB...';
+    
+    try {
+        const response = await fetch('/api/admin/sync-ad-users', {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            let error = null;
+            try { error = await response.json(); } catch(e) {}
+            throw new Error((error && error.detail) || `Server error: ${response.status}`);
+        }
+        
+        const data = await response.json();
+        alert(`Success: ${data.message} (${data.synced_count} users updated or inserted.)`);
+    } catch (e) {
+        console.error("AD sync error:", e);
+        alert(`Error syncing AD users: ${e.message}`);
+    } finally {
+        syncBtn.disabled = false;
+        syncBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Sync AD Users to DB';
+    }
+}
+</script>
+{% endblock %}
