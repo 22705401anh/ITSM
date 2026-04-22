@@ -31,6 +31,43 @@
     --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+[data-bs-theme="dark"] {
+    --light-bg: #121212;
+    --border-color: #2d3748;
+    --text-primary: #e2e8f0;
+    --text-secondary: #a0aec0;
+    --text-light: #718096;
+    
+    /* Bootstrap overrides for dark mode */
+    --bs-body-bg: #121212;
+    --bs-body-color: #e2e8f0;
+    --bs-tertiary-bg: #1e1e1e;
+    --bs-secondary-bg: #2d3748;
+    
+    /* Component specific */
+    --bs-card-bg: #1e1e1e;
+    --bs-border-color: #2d3748;
+}
+
+[data-bs-theme="dark"] .sidebar {
+    background-color: var(--bs-card-bg);
+}
+
+[data-bs-theme="dark"] .card {
+    border-color: var(--border-color);
+}
+
+[data-bs-theme="dark"] .table {
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--text-primary);
+    --bs-table-border-color: var(--border-color);
+}
+
+[data-bs-theme="dark"] .table-light {
+    --bs-table-bg: #2d3748;
+    color: var(--text-primary);
+}
+
 /* ????????????????????????????????????????????????????????????? */
 /* GENERAL STYLES                                                */
 /* ????????????????????????????????????????????????????????????? */
@@ -368,14 +405,14 @@ textarea.form-control {
     border-right: 1px solid var(--border-color);
     min-height: 100vh;
     padding: 0.5rem 0;
-    width: 400px;
+    width: 250px;
     overflow-x: hidden;
     transition: var(--transition);
     flex-shrink: 0;
 }
 
 .sidebar.sidebar-expanded {
-    width: 400px;
+    width: 250px;
 }
 
 .sidebar.sidebar-collapsed {
@@ -388,7 +425,7 @@ textarea.form-control {
 }
 
 .sidebar.sidebar-collapsed .nav-link {
-    padding: 0.5rem 0;
+    padding: 0.5rem 0 !important;
     justify-content: center;
     min-height: 45px;
 }
@@ -429,6 +466,10 @@ textarea.form-control {
     color: var(--primary);
     border-left-color: var(--primary);
     font-weight: 600;
+}
+
+.sidebar.sidebar-expanded .nav-link.sub-link {
+    padding-left: 2.5rem;
 }
 
 .sidebar .nav-link i {

@@ -41,12 +41,47 @@ def set_sqlite_pragmas(dbapi_connection, connection_record):
 **Benefits:**
 - ? Foreign key constraints are now properly enabled
 - ? Prevents the second listener from overriding the first
-- ? Improves performance by 50% (1 handler instead of 2)
-- ? Reduces memory overhead
+- ✅ Improves performance by 50% (1 handler instead of 2)
+- ✅ Reduces memory overhead
 
 ---
 
-### 2. `/ITSM/app/web/routes.py`
+### 2. `/ITSM/app/api/admin.py`
+**Changes:** Updated LDAP search filter to include disabled AD users and sync their active status to the database.
+
+**Before:**
+```python
+search_filter = '(&(objectClass=user)(objectCategory=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))'
+```
+
+**After:**
+```python
+search_filter = '(&(objectClass=user)(objectCategory=person))'
+```
+
+**Benefits:**
+- ✅ Disabled users are now synced to the local DB (with `is_active=False`)
+- ✅ Retains history for separated employees and the equipment assigned to them
+- ✅ Improves asset traceability over the lifecycle of an organization
+
+---
+
+### 3. `/ITSM/app/web/templates/assets/stock.html` & `/ITSM/app/api/admin.py`
+**Changes:** Added a complete UI workflow for assigning hardware directly from the stock inventory to local and AD synced users.
+
+**Benefits:**
+- ✅ Direct assignment of hardware to any synced user from the frontend
+- ✅ Automatic status changes ("Available" -> "Assigned")
+- ✅ Full historical timeline tracking via the `AssetAssignment` model
+
+### 4. `/ITSM/app/web/templates/assets/list.html`
+**Changes:** Replaced broken "View/Edit/Delete" buttons on unified asset bundles with a clear "Manage" button pointing to the Hardware Stock page.
+
+**Benefits:**
+- ✅ Prevents 404 errors when attempting to edit virtual AD User + Asset bundles.
+- ✅ Funnels users to the correct page (`/assets/stock`) for modifying hardware assignments.
+
+---
 **Changes:** Removed duplicate import statement
 
 **Before:**

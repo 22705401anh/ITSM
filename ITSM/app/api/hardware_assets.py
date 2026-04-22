@@ -13,7 +13,7 @@ from datetime import datetime
 from app.db import get_db
 from app.models.user import User
 from app.models.hardware import PC, Monitor, DockingStation, Phone, AssetAssignment, StockAuditLog
-from app.schemas.hardware import AssetAssignmentSchema
+from app.schemas.hardware import AssetAssignmentSchema, ReturnAssetSchema, AssetStatusUpdateSchema
 
 router = APIRouter(prefix="/hardware", tags=["Hardware Asset Tracking"])
 
@@ -100,6 +100,32 @@ def assign_hardware(db: Session, hardware, new_user: User, asset_type: str, note
               serial_number=hardware.serial_number,
               model=hardware.model,
               details=f"Assigned to {new_user.full_name}" + (f" | Notes: {notes}" if notes else ""))
+
+
+def return_hardware(db: Session, hardware, asset_type: str, notes: str = None):
+    # 1. Close current assignment if exists
+    current_assignment_query = db.query(AssetAssignment).filter(
+        getattr(AssetAssignment, f"{asset_type}_id") == hardware.id,
+        AssetAssignment.is_active == True
+    )
+
+    current_assignment = current_assignment_query.first()
+
+    if current_assignment:
+        current_assignment.is_active = False
+        current_assignment.returned_date = datetime.utcnow()
+
+    # 2. Update hardware status
+    hardware.current_user_id = None
+    hardware.status = "Available"
+    db.add(hardware)
+    db.flush()
+
+    # 3. Log audit
+    log_audit(db, "returned", asset_type, hardware.id,
+              serial_number=hardware.serial_number,
+              model=hardware.model,
+              details=f"Returned to stock" + (f" | Notes: {notes}" if notes else ""))
 
 
 @router.get("/search")
@@ -314,6 +340,60 @@ async def assign_specific_hardware(payload: AssetAssignmentSchema, db: Session =
     assign_hardware(db, hardware, user, payload.asset_type, payload.notes)
     db.commit()
     return {"message": "Hardware assigned successfully and history logged."}
+
+
+@router.post("/return")
+async def return_specific_hardware(payload: ReturnAssetSchema, db: Session = Depends(get_db)):
+    """Closes active assignment and returns device to Available stock."""
+    hardware = None
+    if payload.asset_type == "pc":
+        hardware = db.query(PC).filter(PC.id == payload.asset_id).first()
+    elif payload.asset_type == "monitor":
+        hardware = db.query(Monitor).filter(Monitor.id == payload.asset_id).first()
+    elif payload.asset_type == "docking_station":
+        hardware = db.query(DockingStation).filter(DockingStation.id == payload.asset_id).first()
+    elif payload.asset_type == "phone":
+        hardware = db.query(Phone).filter(Phone.id == payload.asset_id).first()
+
+    if not hardware:
+        raise HTTPException(404, "Hardware asset not found")
+
+    return_hardware(db, hardware, payload.asset_type, payload.notes)
+    db.commit()
+    return {"message": "Hardware returned successfully."}
+
+
+@router.put("/stock/{asset_type}/{asset_id}/status")
+async def update_asset_status(asset_type: str, asset_id: int, payload: AssetStatusUpdateSchema, db: Session = Depends(get_db)):
+    """Update the status of an asset manually."""
+    valid_types = ["pc", "monitor", "docking_station", "phone"]
+    if asset_type not in valid_types:
+        raise HTTPException(status_code=400, detail="Invalid asset type")
+
+    hardware = None
+    if asset_type == "pc":
+        hardware = db.query(PC).filter(PC.id == asset_id).first()
+    elif asset_type == "monitor":
+        hardware = db.query(Monitor).filter(Monitor.id == asset_id).first()
+    elif asset_type == "docking_station":
+        hardware = db.query(DockingStation).filter(DockingStation.id == asset_id).first()
+    elif asset_type == "phone":
+        hardware = db.query(Phone).filter(Phone.id == asset_id).first()
+
+    if not hardware:
+        raise HTTPException(404, "Hardware asset not found")
+
+    old_status = hardware.status
+    hardware.status = payload.status
+    db.flush()
+
+    log_audit(db, "updated", asset_type, hardware.id,
+              serial_number=hardware.serial_number,
+              model=hardware.model,
+              details=f"Status changed from {old_status} to {payload.status}")
+
+    db.commit()
+    return {"message": f"Asset status updated to {payload.status}"}
 
 
 @router.post("/import")

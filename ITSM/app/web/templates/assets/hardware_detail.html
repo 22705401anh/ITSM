@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Hardware Timeline - ITSM Platform{% endblock %}
+{% block title %}Hardware Timeline - KOSTAL ITSM{% endblock %}
 
 {% block content %}
 <div class="py-4">
@@ -18,7 +18,7 @@
     <div class="row">
         <div class="col-md-12">
             <div class="card">
-                <div class="card-header bg-light">
+                <div class="card-header bg-body-tertiary">
                     <h5 class="mb-0"><i class="fas fa-stream"></i> Life Cycle & User Hand-offs</h5>
                 </div>
                 <div class="card-body">
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', async function() {
                         <span class="fw-bold text-primary">Assigned to ID ${entry.new_user_id || 'Unknown'}</span>
                         <span class="text-muted"><i class="fas fa-calendar-alt"></i> ${date} ${time}</span>
                     </div>
-                    <p class="mb-1 text-dark">
+                    <p class="mb-1 text-body">
                         Moved from User ID ${entry.previous_user_id || 'Inventory Stock'}. 
                         ${returnText}
                     </p>
@@ -113,3 +113,5 @@ document.addEventListener('DOMContentLoaded', async function() {
 });
 </script>
 {% endblock %}
+
+

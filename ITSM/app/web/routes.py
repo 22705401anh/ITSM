@@ -212,6 +212,12 @@ async def admin_users(request: Request):
     return templates.TemplateResponse(request, "admin/users.html", {})
 
 
+@router.get("/admin/users/{user_id}", response_class=HTMLResponse)
+async def admin_user_profile(request: Request, user_id: int):
+    """User Profile and Hardware Dashboard."""
+    return templates.TemplateResponse(request, "admin/user_profile.html", {"user_id": user_id, "request": request})
+
+
 @router.get("/admin/ad-users", response_class=HTMLResponse)
 async def admin_ad_users(request: Request):
     """Real-time Active Directory users page."""

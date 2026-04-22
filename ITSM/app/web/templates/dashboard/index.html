@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - ITSM Platform{% endblock %}
+{% block title %}Dashboard - KOSTAL ITSM{% endblock %}
 
 {% block content %}
 <div class="py-4">
@@ -19,16 +19,16 @@
         </div>
     </div>
 
-    <!-- KPI Cards - Inventory Focus -->
-    <div class="row g-3 mb-4">
+    <!-- KPI Cards - Overview -->
+    <div class="row row-cols-1 row-cols-md-3 row-cols-xl-5 g-3 mb-4">
         <!-- Total Assets -->
-        <div class="col-md-3">
+        <div class="col">
             <div class="card stat-card stat-assets h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted mb-2 small"><i class="fas fa-cube"></i> TOTAL ASSETS</p>
-                            <h2 class="mb-1 text-dark" id="assetCount">0</h2>
+                            <h2 class="mb-1 text-body" id="assetCount">0</h2>
                             <small class="text-success"><i class="fas fa-arrow-up"></i> Inventory items</small>
                         </div>
                         <div class="stat-icon">
@@ -40,13 +40,13 @@
         </div>
 
         <!-- Licensed Software -->
-        <div class="col-md-3">
+        <div class="col">
             <div class="card stat-card stat-licenses h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted mb-2 small"><i class="fas fa-certificate"></i> LICENSES</p>
-                            <h2 class="mb-1 text-dark" id="licenseCount">0</h2>
+                            <h2 class="mb-1 text-body" id="licenseCount">0</h2>
                             <small class="text-info"><i class="fas fa-check-circle"></i> Active</small>
                         </div>
                         <div class="stat-icon">
@@ -58,13 +58,13 @@
         </div>
 
         <!-- Problems -->
-        <div class="col-md-3">
+        <div class="col">
             <div class="card stat-card stat-problems h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted mb-2 small"><i class="fas fa-exclamation-circle"></i> PROBLEMS</p>
-                            <h2 class="mb-1 text-dark" id="problemCount">0</h2>
+                            <h2 class="mb-1 text-body" id="problemCount">0</h2>
                             <small class="text-warning"><i class="fas fa-clock"></i> Open</small>
                         </div>
                         <div class="stat-icon">
@@ -76,17 +76,74 @@
         </div>
 
         <!-- Changes -->
-        <div class="col-md-3">
+        <div class="col">
             <div class="card stat-card stat-changes h-100">
                 <div class="card-body">
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <p class="text-muted mb-2 small"><i class="fas fa-tasks"></i> CHANGES</p>
-                            <h2 class="mb-1 text-dark" id="changeCount">0</h2>
+                            <h2 class="mb-1 text-body" id="changeCount">0</h2>
                             <small class="text-primary"><i class="fas fa-hourglass-half"></i> Pending</small>
                         </div>
                         <div class="stat-icon">
                             <i class="fas fa-sync-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Users -->
+        <div class="col">
+            <div class="card stat-card stat-users h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-2 small"><i class="fas fa-users"></i> AD USERS</p>
+                            <h2 class="mb-1 text-body" id="topAdUserCount">0</h2>
+                            <small class="text-secondary"><i class="fas fa-user-shield"></i> Active</small>
+                        </div>
+                        <div class="stat-icon">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-body-tertiary border-bottom">
+                    <h5 class="mb-0"><i class="fas fa-bolt text-warning"></i> Quick Access</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            <a href="/assets" class="btn btn-outline-primary w-100 py-2 rounded-pill">
+                                <i class="fas fa-boxes me-2"></i>
+                                <span>Asset Inventory</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/licenses" class="btn btn-outline-warning w-100 py-2 rounded-pill">
+                                <i class="fas fa-certificate me-2"></i>
+                                <span>Manage Licenses</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/problems" class="btn btn-outline-danger w-100 py-2 rounded-pill">
+                                <i class="fas fa-exclamation-triangle me-2"></i>
+                                <span>Track Problems</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="/changes" class="btn btn-outline-info w-100 py-2 rounded-pill">
+                                <i class="fas fa-sync-alt me-2"></i>
+                                <span>Change Mgmt</span>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -99,7 +156,7 @@
         <!-- Asset Status Overview -->
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
-                <div class="card-header bg-light border-bottom">
+                <div class="card-header bg-body-tertiary border-bottom">
                     <div class="d-flex align-items-center justify-content-between">
                         <h5 class="mb-0"><i class="fas fa-chart-pie text-primary"></i> Asset Status Distribution</h5>
                         <span class="badge bg-secondary">Live</span>
@@ -149,7 +206,7 @@
                         </div>
                         <div class="progress" style="height: 24px;">
                             <div class="progress-bar bg-warning" id="maintenanceBar" style="width: 0%" role="progressbar">
-                                <span class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center text-dark small fw-bold" id="maintenancePercent">0%</span>
+                                <span class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center text-body small fw-bold" id="maintenancePercent">0%</span>
                             </div>
                         </div>
                     </div>
@@ -176,7 +233,7 @@
         <!-- Asset Types Breakdown -->
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
-                <div class="card-header bg-light border-bottom">
+                <div class="card-header bg-body-tertiary border-bottom">
                     <div class="d-flex align-items-center justify-content-between">
                         <h5 class="mb-0"><i class="fas fa-layer-group text-info"></i> Assets by Type</h5>
                         <a href="/assets" class="btn btn-sm btn-outline-primary">View All</a>
@@ -200,7 +257,7 @@
     <div class="row g-3 mb-4">
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
-                <div class="card-header bg-light border-bottom">
+                <div class="card-header bg-body-tertiary border-bottom">
                     <div class="d-flex align-items-center justify-content-between">
                         <h5 class="mb-0"><i class="fas fa-certificate text-warning"></i> License Management</h5>
                         <span class="badge bg-secondary">Overview</span>
@@ -209,19 +266,19 @@
                 <div class="card-body">
                     <div class="row mb-3">
                         <div class="col-md-4 text-center">
-                            <div class="p-3 bg-light rounded">
+                            <div class="p-3 bg-body-tertiary rounded">
                                 <h3 class="text-primary mb-1" id="totalLicenses">0</h3>
                                 <small class="text-muted">Total Licenses</small>
                             </div>
                         </div>
                         <div class="col-md-4 text-center">
-                            <div class="p-3 bg-light rounded">
+                            <div class="p-3 bg-body-tertiary rounded">
                                 <h3 class="text-success mb-1" id="activeLicenses">0</h3>
                                 <small class="text-muted">Active</small>
                             </div>
                         </div>
                         <div class="col-md-4 text-center">
-                            <div class="p-3 bg-light rounded">
+                            <div class="p-3 bg-body-tertiary rounded">
                                 <h3 class="text-danger mb-1" id="expiredLicenses">0</h3>
                                 <small class="text-muted">Expired</small>
                             </div>
@@ -247,7 +304,7 @@
         <!-- Problem & Change Overview -->
         <div class="col-lg-6">
             <div class="card h-100 shadow-sm">
-                <div class="card-header bg-light border-bottom">
+                <div class="card-header bg-body-tertiary border-bottom">
                     <div class="d-flex align-items-center justify-content-between">
                         <h5 class="mb-0"><i class="fas fa-tasks text-danger"></i> Service Management</h5>
                         <span class="badge bg-secondary">Status</span>
@@ -288,50 +345,13 @@
         </div>
     </div>
 
-    <!-- Quick Actions Section -->
-    <div class="row g-3 mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm">
-                <div class="card-header bg-light border-bottom">
-                    <h5 class="mb-0"><i class="fas fa-bolt text-warning"></i> Quick Access</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-2">
-                        <div class="col-md-3">
-                            <a href="/assets" class="btn btn-outline-primary w-100 py-2">
-                                <i class="fas fa-boxes me-2"></i>
-                                <span>Asset Inventory</span>
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="/licenses" class="btn btn-outline-warning w-100 py-2">
-                                <i class="fas fa-certificate me-2"></i>
-                                <span>Manage Licenses</span>
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="/problems" class="btn btn-outline-danger w-100 py-2">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                <span>Track Problems</span>
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="/changes" class="btn btn-outline-info w-100 py-2">
-                                <i class="fas fa-sync-alt me-2"></i>
-                                <span>Change Mgmt</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- (Quick Actions moved to top) -->
 
     <!-- System Health & Documentation -->
     <div class="row g-3">
         <div class="col-lg-6">
             <div class="card shadow-sm">
-                <div class="card-header bg-light border-bottom">
+                <div class="card-header bg-body-tertiary border-bottom">
                     <h5 class="mb-0"><i class="fas fa-heartbeat text-success"></i> System Health</h5>
                 </div>
                 <div class="card-body">
@@ -351,7 +371,7 @@
 
         <div class="col-lg-6">
             <div class="card shadow-sm">
-                <div class="card-header bg-light border-bottom">
+                <div class="card-header bg-body-tertiary border-bottom">
                     <h5 class="mb-0"><i class="fas fa-book text-info"></i> Documentation</h5>
                 </div>
                 <div class="card-body">
@@ -375,6 +395,47 @@
                 </div>
             </div>
         </div>
+    <!-- Identity & AD Management Section -->
+    <div class="row g-3 mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-3">
+                <div class="card-header bg-body-tertiary border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-users text-primary"></i> Identity & Access Management (AD)</h5>
+                    <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="syncADUsers()" id="syncBtn">
+                        <i class="fas fa-sync-alt"></i> Sync AD
+                    </button>
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-4 text-center border-end">
+                            <i class="fas fa-user-shield fa-3x text-primary mb-3 opacity-75"></i>
+                            <h3 class="mb-1 text-body" id="adUserCount">-</h3>
+                            <p class="text-muted small mb-0">Active AD Users</p>
+                        </div>
+                        <div class="col-md-8 ps-md-4">
+                            <h6 class="fw-bold mb-3">Directory Status</h6>
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="badge bg-success bg-opacity-10 text-success p-2 rounded-circle me-3">
+                                    <i class="fas fa-link"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-0">LDAP Connection</h6>
+                                    <small class="text-muted">Connected securely to Domain Controller</small>
+                                </div>
+                            </div>
+                            
+                            <div class="progress mb-2" style="height: 10px; border-radius: 10px;">
+                                <div class="progress-bar bg-primary progress-bar-striped progress-bar-animated w-100" role="progressbar" id="adSyncBar"></div>
+                            </div>
+                            <div class="d-flex justify-content-between small text-muted">
+                                <span>Synchronization Status</span>
+                                <span id="adSyncStatus">Fetching data...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -390,6 +451,11 @@
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
+.stat-card .card-body {
+    position: relative;
+    z-index: 2; /* Ensures text is always visible above hover effects */
+}
+
 .stat-card::before {
     content: '';
     position: absolute;
@@ -398,6 +464,7 @@
     width: 4px;
     height: 100%;
     transition: all 0.3s ease;
+    z-index: 1;
 }
 
 .stat-card.stat-assets::before {
@@ -416,6 +483,10 @@
     background: linear-gradient(180deg, #30cfd0 0%, #330867 100%);
 }
 
+.stat-card.stat-users::before {
+    background: linear-gradient(180deg, #43e97b 0%, #38f9d7 100%);
+}
+
 .stat-card:hover {
     transform: translateY(-8px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
@@ -423,6 +494,7 @@
 
 .stat-card:hover::before {
     width: 100%;
+    opacity: 0.15;
 }
 
 .stat-icon {
@@ -454,6 +526,11 @@
 .stat-card.stat-changes .stat-icon {
     background: rgba(48, 207, 208, 0.15);
     color: #30cfd0;
+}
+
+.stat-card.stat-users .stat-icon {
+    background: rgba(67, 233, 123, 0.15);
+    color: #43e97b;
 }
 
 .stat-card:hover .stat-icon {
@@ -638,12 +715,62 @@ async function loadDashboard() {
             console.warn('Could not load change data:', e);
         }
 
+        // Load AD Users count
+        try {
+            document.getElementById('adSyncStatus').textContent = "Fetching directory data...";
+            const adRes = await fetch('/api/admin/ad-users');
+            if (adRes.ok) {
+                const adUsers = await adRes.json();
+                const count = Array.isArray(adUsers) ? adUsers.length : 0;
+                document.getElementById('adUserCount').textContent = count;
+                document.getElementById('topAdUserCount').textContent = count;
+                document.getElementById('adSyncStatus').textContent = "Up to date";
+                document.getElementById('adSyncBar').classList.remove('progress-bar-animated', 'progress-bar-striped');
+            } else {
+                throw new Error("Failed to fetch AD Users");
+            }
+        } catch (e) {
+            console.warn('Could not load AD user data:', e);
+            document.getElementById('adUserCount').textContent = "Error";
+            document.getElementById('topAdUserCount').textContent = "Error";
+            document.getElementById('adSyncStatus').textContent = "Failed to connect";
+            document.getElementById('adSyncBar').classList.remove('bg-primary');
+            document.getElementById('adSyncBar').classList.add('bg-danger');
+        }
+
         // Update last refresh time
         const now = new Date();
         document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
 
     } catch (error) {
         console.error('Error loading dashboard:', error);
+    }
+}
+
+async function syncADUsers() {
+    const btn = document.getElementById('syncBtn');
+    const status = document.getElementById('adSyncStatus');
+    const bar = document.getElementById('adSyncBar');
+    
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Syncing...';
+    status.textContent = "Running synchronization...";
+    bar.classList.add('progress-bar-animated', 'progress-bar-striped');
+    
+    try {
+        const res = await fetch('/api/admin/sync-ad-users', { method: 'POST' });
+        if (res.ok) {
+            const data = await res.json();
+            alert(`Success: ${data.message}`);
+            loadDashboard(); // Reload data
+        } else {
+            alert('Failed to sync AD users');
+        }
+    } catch(e) {
+        alert('Error communicating with server');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-sync-alt"></i> Sync AD';
     }
 }
 
@@ -654,3 +781,5 @@ document.addEventListener('DOMContentLoaded', loadDashboard);
 setInterval(loadDashboard, 5 * 60 * 1000);
 </script>
 {% endblock %}
+
+

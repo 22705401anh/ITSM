@@ -18,3 +18,11 @@ class AssetAssignmentSchema(BaseModel):
     asset_type: str
     asset_id: int
     notes: Optional[str] = None
+
+class ReturnAssetSchema(BaseModel):
+    asset_type: str
+    asset_id: int
+    notes: Optional[str] = None
+
+class AssetStatusUpdateSchema(BaseModel):
+    status: str

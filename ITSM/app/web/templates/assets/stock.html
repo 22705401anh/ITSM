@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Hardware Stock - ITSM Platform{% endblock %}
+{% block title %}Hardware Stock - KOSTAL ITSM{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -12,19 +12,22 @@
         margin-bottom: 24px;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
     }
+
     .stat-card {
         background: white;
         border-radius: 10px;
         padding: 16px 20px;
         display: flex;
         align-items: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
         border: 1px solid #edf2f7;
         transition: transform 0.2s;
     }
+
     .stat-card:hover {
         transform: translateY(-2px);
     }
+
     .stat-icon {
         width: 48px;
         height: 48px;
@@ -35,10 +38,22 @@
         font-size: 20px;
         margin-right: 16px;
     }
-    .stat-icon.total { background: #eebfbf; color: #c53030; }
-    .stat-icon.available { background: #c6f6d5; color: #276749; }
-    .stat-icon.assigned { background: #e2e8f0; color: #4a5568; }
-    
+
+    .stat-icon.total {
+        background: #eebfbf;
+        color: #c53030;
+    }
+
+    .stat-icon.available {
+        background: #c6f6d5;
+        color: #276749;
+    }
+
+    .stat-icon.assigned {
+        background: #e2e8f0;
+        color: #4a5568;
+    }
+
     .nav-pills .nav-link {
         border-radius: 8px;
         padding: 10px 20px;
@@ -47,9 +62,11 @@
         margin-right: 8px;
         transition: all 0.2s ease;
     }
+
     .nav-pills .nav-link:hover {
         background-color: #edf2f7;
     }
+
     .nav-pills .nav-link.active {
         background-color: var(--primary, #4f46e5);
         color: white;
@@ -61,6 +78,7 @@
         border-collapse: separate;
         border-spacing: 0 8px;
     }
+
     .custom-table thead th {
         border: none;
         background: transparent;
@@ -71,23 +89,34 @@
         letter-spacing: 0.05em;
         padding-bottom: 4px;
     }
+
     .custom-table tbody tr {
         background: white;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         border-radius: 8px;
         transition: all 0.2s;
     }
+
     .custom-table tbody tr:hover {
-        box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
         transform: translateY(-1px);
     }
+
     .custom-table tbody td {
         border: none;
         padding: 16px;
         vertical-align: middle;
     }
-    .custom-table tbody td:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
-    .custom-table tbody td:last-child { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
+
+    .custom-table tbody td:first-child {
+        border-top-left-radius: 8px;
+        border-bottom-left-radius: 8px;
+    }
+
+    .custom-table tbody td:last-child {
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
 
     /* Thumbnails */
     .stock-image-thumb {
@@ -99,11 +128,13 @@
         border: 2px solid #edf2f7;
         transition: all 0.2s;
     }
+
     .stock-image-thumb:hover {
         transform: scale(1.15);
         border-color: var(--primary, #4f46e5);
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
     }
+
     .empty-thumb {
         width: 44px;
         height: 44px;
@@ -116,6 +147,7 @@
         cursor: pointer;
         transition: all 0.2s;
     }
+
     .empty-thumb:hover {
         background: #e2e8f0;
         color: var(--primary, #4f46e5);
@@ -127,9 +159,21 @@
         border-radius: 6px;
         font-weight: 600;
     }
-    .badge-soft-success { background: #dcfce7; color: #166534; }
-    .badge-soft-secondary { background: #f1f5f9; color: #475569; }
-    .badge-soft-warning { background: #fef08a; color: #854d0e; }
+
+    .badge-soft-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-soft-secondary {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .badge-soft-warning {
+        background: #fef08a;
+        color: #854d0e;
+    }
 
     .type-badge {
         display: inline-flex;
@@ -147,6 +191,7 @@
     .search-wrapper {
         position: relative;
     }
+
     .search-wrapper i {
         position: absolute;
         left: 14px;
@@ -154,12 +199,14 @@
         transform: translateY(-50%);
         color: #94a3b8;
     }
+
     .search-wrapper input {
         padding-left: 40px;
         border-radius: 8px;
         border: 1px solid #cbd5e1;
         background: #f8fafc;
     }
+
     .search-wrapper input:focus {
         background: white;
         border-color: var(--primary, #4f46e5);
@@ -178,20 +225,32 @@
         position: relative;
         overflow: hidden;
     }
+
     .upload-zone::before {
         content: '';
         position: absolute;
-        top: 0; left: 0; right: 0; bottom: 0;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
         background: var(--primary, #4f46e5);
         opacity: 0;
         transition: opacity 0.3s;
         z-index: 0;
     }
-    .upload-zone > * { position: relative; z-index: 1; }
-    .upload-zone:hover, .upload-zone.dragover {
+
+    .upload-zone>* {
+        position: relative;
+        z-index: 1;
+    }
+
+    .upload-zone:hover,
+    .upload-zone.dragover {
         border-color: var(--primary, #4f46e5);
     }
-    .upload-zone:hover::before, .upload-zone.dragover::before {
+
+    .upload-zone:hover::before,
+    .upload-zone.dragover::before {
         opacity: 0.03;
     }
 
@@ -201,6 +260,7 @@
         padding-left: 48px;
         margin-bottom: 2rem;
     }
+
     .timeline-item::before {
         content: '';
         position: absolute;
@@ -210,9 +270,11 @@
         width: 2px;
         background-color: #e2e8f0;
     }
+
     .timeline-item:last-child::before {
         display: none;
     }
+
     .timeline-icon {
         position: absolute;
         left: 0;
@@ -226,26 +288,48 @@
         color: white;
         font-size: 16px;
         z-index: 1;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     }
-    .action-created { background: linear-gradient(135deg, #10b981, #059669); }
-    .action-imported { background: linear-gradient(135deg, #3b82f6, #2563eb); }
-    .action-updated { background: linear-gradient(135deg, #f59e0b, #d97706); }
-    .action-deleted { background: linear-gradient(135deg, #ef4444, #dc2626); }
-    .action-assigned { background: linear-gradient(135deg, #8b5cf6, #7c3aed); }
-    .action-image_uploaded { background: linear-gradient(135deg, #14b8a6, #0d9488); }
-    .action-default { background: linear-gradient(135deg, #64748b, #475569); }
-    
+
+    .action-created {
+        background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .action-imported {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+
+    .action-updated {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .action-deleted {
+        background: linear-gradient(135deg, #ef4444, #dc2626);
+    }
+
+    .action-assigned {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+
+    .action-image_uploaded {
+        background: linear-gradient(135deg, #14b8a6, #0d9488);
+    }
+
+    .action-default {
+        background: linear-gradient(135deg, #64748b, #475569);
+    }
+
     .timeline-card {
         background: white;
         border: 1px solid #f1f5f9;
         border-radius: 10px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
         transition: transform 0.2s;
     }
+
     .timeline-card:hover {
         border-color: #e2e8f0;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.08);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
     }
 </style>
 {% endblock %}
@@ -255,7 +339,7 @@
     <!-- Header Section -->
     <div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center">
         <div class="mb-3 mb-md-0">
-            <h1 class="h3 mb-2 fw-bold text-dark"><i class="fas fa-boxes text-primary me-2"></i> Hardware Inventory</h1>
+            <h1 class="h3 mb-2 fw-bold text-body"><i class="fas fa-boxes text-primary me-2"></i> Hardware Inventory</h1>
             <p class="text-muted mb-0">Manage hardware assets, bulk imports, and full audit trails.</p>
         </div>
         <div class="d-flex gap-3">
@@ -279,17 +363,20 @@
     <!-- Navigation Tabs -->
     <ul class="nav nav-pills mb-4" id="stockTabs" role="tablist">
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory" type="button" role="tab" aria-controls="inventory" aria-selected="true">
+            <button class="nav-link active" id="inventory-tab" data-bs-toggle="tab" data-bs-target="#inventory"
+                type="button" role="tab" aria-controls="inventory" aria-selected="true">
                 <i class="fas fa-list me-1"></i> Stock Inventory
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="import-tab" data-bs-toggle="tab" data-bs-target="#import" type="button" role="tab" aria-controls="import" aria-selected="false">
+            <button class="nav-link" id="import-tab" data-bs-toggle="tab" data-bs-target="#import" type="button"
+                role="tab" aria-controls="import" aria-selected="false">
                 <i class="fas fa-file-excel me-1"></i> Excel Import
             </button>
         </li>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
+            <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button"
+                role="tab" aria-controls="history" aria-selected="false">
                 <i class="fas fa-history me-1"></i> Audit History
             </button>
         </li>
@@ -297,20 +384,23 @@
 
     <!-- Tab Content -->
     <div class="tab-content" id="stockTabsContent">
-        
+
         <!-- ==================== TAB 1: INVENTORY ==================== -->
         <div class="tab-pane fade show active" id="inventory" role="tabpanel" aria-labelledby="inventory-tab">
-            
+
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
                 <div class="search-wrapper w-100" style="max-width: 400px;">
                     <i class="fas fa-search"></i>
-                    <input type="text" class="form-control" id="searchInput" placeholder="Search serial, model, or name..." onkeyup="filterStock()">
+                    <input type="text" class="form-control" id="searchInput"
+                        placeholder="Search serial, model, or name..." onkeyup="filterStock()">
                 </div>
                 <div class="d-flex gap-2">
-                    <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addStockModal">
+                    <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal"
+                        data-bs-target="#addStockModal">
                         <i class="fas fa-plus me-1"></i> Add Asset
                     </button>
-                    <button class="btn btn-light border rounded-circle" style="width: 40px; height: 40px;" onclick="loadStock()" title="Refresh">
+                    <button class="btn btn-light border rounded-circle" style="width: 40px; height: 40px;"
+                        onclick="loadStock()" title="Refresh">
                         <i class="fas fa-sync-alt text-secondary"></i>
                     </button>
                 </div>
@@ -330,7 +420,12 @@
                         </tr>
                     </thead>
                     <tbody id="allStockList">
-                        <tr><td colspan="7" class="text-center py-5 bg-white rounded-3 shadow-sm"><div class="spinner-border text-primary" role="status"></div><div class="mt-2 text-muted">Loading assets...</div></td></tr>
+                        <tr>
+                            <td colspan="7" class="text-center py-5 bg-body rounded-3 shadow-sm">
+                                <div class="spinner-border text-primary" role="status"></div>
+                                <div class="mt-2 text-muted">Loading assets...</div>
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
             </div>
@@ -348,14 +443,17 @@
                                 </div>
                                 <h4 class="mb-0 fw-bold">Import Guide</h4>
                             </div>
-                            <p class="text-muted">Use Excel to rapidly ingest hardware into your inventory. Required columns must be present in the sheet.</p>
-                            
+                            <p class="text-muted">Use Excel to rapidly ingest hardware into your inventory. Required
+                                columns must be present in the sheet.</p>
+
                             <ul class="list-group list-group-flush mb-4">
                                 <li class="list-group-item px-0 d-flex align-items-center">
-                                    <i class="fas fa-check-circle text-success me-2"></i> <strong>Asset Type</strong> (e.g., PC, Monitor)
+                                    <i class="fas fa-check-circle text-success me-2"></i> <strong>Asset Type</strong>
+                                    (e.g., PC, Monitor)
                                 </li>
                                 <li class="list-group-item px-0 d-flex align-items-center">
-                                    <i class="fas fa-check-circle text-success me-2"></i> <strong>Serial Number</strong> (Unique identifier)
+                                    <i class="fas fa-check-circle text-success me-2"></i> <strong>Serial Number</strong>
+                                    (Unique identifier)
                                 </li>
                                 <li class="list-group-item px-0 d-flex align-items-center">
                                     <i class="fas fa-check-circle text-success me-2"></i> <strong>Model</strong>
@@ -365,7 +463,8 @@
                                 </li>
                             </ul>
 
-                            <a href="/static/downloads/hardware_import_template.xlsx" download class="btn btn-outline-primary w-100 rounded-pill fw-bold">
+                            <a href="/static/downloads/hardware_import_template.xlsx" download
+                                class="btn btn-outline-primary w-100 rounded-pill fw-bold">
                                 <i class="fas fa-download me-2"></i> Download Template
                             </a>
                         </div>
@@ -377,26 +476,31 @@
                         <div class="card-body p-4">
                             <h5 class="fw-bold mb-4">Upload File</h5>
                             <form id="importForm">
-                                <div class="upload-zone mb-4" id="dropZone" onclick="document.getElementById('fileUpload').click()">
+                                <div class="upload-zone mb-4" id="dropZone"
+                                    onclick="document.getElementById('fileUpload').click()">
                                     <div class="mb-3">
                                         <i class="fas fa-file-excel fa-4x text-success opacity-75"></i>
                                     </div>
-                                    <h5 class="fw-bold text-dark">Drag & Drop your .xlsx file</h5>
+                                    <h5 class="fw-bold text-body">Drag & Drop your .xlsx file</h5>
                                     <p class="text-muted mb-0">or click to browse from your computer</p>
-                                    <input type="file" id="fileUpload" name="file" accept=".xlsx, .xls" class="d-none" required onchange="handleFileSelect(this)">
+                                    <input type="file" id="fileUpload" name="file" accept=".xlsx, .xls" class="d-none"
+                                        required onchange="handleFileSelect(this)">
                                 </div>
-                                
-                                <div id="fileInfo" class="alert alert-secondary d-none mb-4 d-flex align-items-center border-0 rounded-3">
-                                    <i class="fas fa-file-excel text-success fa-2x me-3"></i> 
+
+                                <div id="fileInfo"
+                                    class="alert alert-secondary d-none mb-4 d-flex align-items-center border-0 rounded-3">
+                                    <i class="fas fa-file-excel text-success fa-2x me-3"></i>
                                     <div>
                                         <div class="fw-bold" id="fileNameDisplay">filename.xlsx</div>
                                         <div class="small text-muted">Ready to import</div>
                                     </div>
                                 </div>
-                                
-                                <div id="importAlertBox" class="alert d-none mb-4 rounded-3 border-0" role="alert"></div>
-                                
-                                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold" id="submitImportBtn" disabled>
+
+                                <div id="importAlertBox" class="alert d-none mb-4 rounded-3 border-0" role="alert">
+                                </div>
+
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill py-2 fw-bold"
+                                    id="submitImportBtn" disabled>
                                     <i class="fas fa-cloud-upload-alt me-2"></i> Process Import
                                 </button>
                             </form>
@@ -409,12 +513,15 @@
         <!-- ==================== TAB 3: AUDIT HISTORY ==================== -->
         <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
             <div class="card border-0 shadow-sm rounded-4">
-                <div class="card-header bg-white border-bottom-0 pt-4 pb-0 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                <div
+                    class="card-header bg-body border-bottom-0 pt-4 pb-0 px-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
                     <h5 class="fw-bold mb-3 mb-md-0">Complete Audit Trail</h5>
                     <div class="d-flex gap-2">
                         <div class="input-group input-group-sm rounded-pill border overflow-hidden">
-                            <span class="input-group-text bg-white border-0 text-muted"><i class="fas fa-filter"></i></span>
-                            <select class="form-select border-0 shadow-none bg-white" id="auditActionFilter" onchange="loadAuditLog()">
+                            <span class="input-group-text bg-body border-0 text-muted"><i
+                                    class="fas fa-filter"></i></span>
+                            <select class="form-select border-0 shadow-none bg-body" id="auditActionFilter"
+                                onchange="loadAuditLog()">
                                 <option value="">All Actions</option>
                                 <option value="created">Created</option>
                                 <option value="imported">Imported</option>
@@ -424,8 +531,10 @@
                             </select>
                         </div>
                         <div class="input-group input-group-sm rounded-pill border overflow-hidden">
-                            <span class="input-group-text bg-white border-0 text-muted"><i class="fas fa-tags"></i></span>
-                            <select class="form-select border-0 shadow-none bg-white" id="auditTypeFilter" onchange="loadAuditLog()">
+                            <span class="input-group-text bg-body border-0 text-muted"><i
+                                    class="fas fa-tags"></i></span>
+                            <select class="form-select border-0 shadow-none bg-body" id="auditTypeFilter"
+                                onchange="loadAuditLog()">
                                 <option value="">All Types</option>
                                 <option value="pc">PC</option>
                                 <option value="monitor">Monitor</option>
@@ -433,12 +542,15 @@
                                 <option value="phone">Phone</option>
                             </select>
                         </div>
-                        <button class="btn btn-sm btn-light border rounded-circle" onclick="loadAuditLog()"><i class="fas fa-sync-alt text-secondary"></i></button>
+                        <button class="btn btn-sm btn-light border rounded-circle" onclick="loadAuditLog()"><i
+                                class="fas fa-sync-alt text-secondary"></i></button>
                     </div>
                 </div>
                 <div class="card-body p-4">
                     <div id="auditTimeline" class="mt-3 ps-2">
-                        <div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -478,7 +590,8 @@
                             <input type="text" class="form-control" id="stockModel" required>
                         </div>
                         <div class="col-12" id="pcNameGroup">
-                            <label class="form-label fw-semibold text-muted small text-uppercase">Hostname / Device Name</label>
+                            <label class="form-label fw-semibold text-muted small text-uppercase">Hostname / Device
+                                Name</label>
                             <input type="text" class="form-control" id="stockName">
                         </div>
                         <div class="col-12 d-none" id="phoneNumberGroup">
@@ -487,13 +600,15 @@
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-semibold text-muted small text-uppercase">Notes</label>
-                            <textarea class="form-control" id="stockNotes" rows="2" placeholder="Optional details..."></textarea>
+                            <textarea class="form-control" id="stockNotes" rows="2"
+                                placeholder="Optional details..."></textarea>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
                     <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="saveStockBtn">Save Asset</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="saveStockBtn">Save
+                        Asset</button>
                 </div>
             </form>
         </div>
@@ -512,12 +627,14 @@
                 <div class="modal-body text-center pt-0">
                     <input type="hidden" id="imageAssetType">
                     <input type="hidden" id="imageAssetId">
-                    <div class="badge bg-light text-dark mb-3" id="imageAssetDisplay"></div>
-                    
+                    <div class="badge bg-body-tertiary text-body mb-3" id="imageAssetDisplay"></div>
+
                     <div id="currentImageContainer" class="d-none mb-3">
-                        <img id="currentImagePreview" src="" class="img-thumbnail rounded-3 shadow-sm mb-2" style="max-height: 120px;">
+                        <img id="currentImagePreview" src="" class="img-thumbnail rounded-3 shadow-sm mb-2"
+                            style="max-height: 120px;">
                         <div>
-                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill" id="deleteImageBtn">
+                            <button type="button" class="btn btn-sm btn-outline-danger rounded-pill"
+                                id="deleteImageBtn">
                                 <i class="fas fa-trash me-1"></i> Remove
                             </button>
                         </div>
@@ -525,11 +642,53 @@
 
                     <div class="text-start">
                         <label class="form-label fw-semibold text-muted small text-uppercase">Upload New Image</label>
-                        <input class="form-control form-control-sm" type="file" id="imageFile" accept="image/*" required>
+                        <input class="form-control form-control-sm" type="file" id="imageFile" accept="image/*"
+                            required>
                     </div>
                 </div>
                 <div class="modal-footer border-top-0 pt-0">
-                    <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100" id="saveImageBtn">Upload Image</button>
+                    <button type="submit" class="btn btn-primary btn-sm rounded-pill w-100" id="saveImageBtn">Upload
+                        Image</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Stock Modal -->
+<div class="modal fade" id="assignStockModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form id="assignStockForm">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">Assign Asset</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pt-3">
+                    <input type="hidden" id="assignAssetType">
+                    <input type="hidden" id="assignAssetId">
+                    <div class="mb-3 text-center">
+                        <div class="badge bg-body-tertiary text-body fs-6 w-100 p-3" id="assignAssetDisplay"></div>
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-muted small text-uppercase">Assign To User</label>
+                            <select class="form-select" id="assignUserId" required>
+                                <option value="">Loading users...</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-muted small text-uppercase">Assignment
+                                Notes</label>
+                            <textarea class="form-control" id="assignNotes" rows="2"
+                                placeholder="Optional details..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="saveAssignBtn">Confirm
+                        Assignment</button>
                 </div>
             </form>
         </div>
@@ -541,109 +700,143 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content bg-transparent border-0">
             <div class="modal-header border-0 pb-0 justify-content-end">
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" style="filter: invert(1); opacity: 1;"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"
+                    style="filter: invert(1); opacity: 1;"></button>
             </div>
             <div class="modal-body text-center pt-0">
-                <img id="lightboxImg" src="" class="img-fluid rounded-3 shadow-lg" style="max-height: 85vh; border: 4px solid white;">
+                <img id="lightboxImg" src="" class="img-fluid rounded-3 shadow-lg"
+                    style="max-height: 85vh; border: 4px solid white;">
             </div>
         </div>
     </div>
 </div>
 
+<!-- Edit Status Modal -->
+<div class="modal fade" id="editStatusModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form id="editStatusForm">
+                <input type="hidden" id="statusAssetType">
+                <input type="hidden" id="statusAssetId">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h6 class="modal-title fw-bold">Edit Status</h6>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pt-3">
+                    <div class="badge bg-body-tertiary text-body mb-3 w-100 p-2" id="statusAssetDisplay"></div>
+                    <label class="form-label fw-semibold text-muted small text-uppercase">New Status</label>
+                    <select class="form-select" id="newStatusSelect" required>
+                        <option value="Available">Available</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Broken">Broken</option>
+                        <option value="Retired">Retired</option>
+                    </select>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill w-100 mb-2"
+                        data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill w-100 m-0" id="saveStatusBtn">Save
+                        Status</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
-let allStockItems = [];
+    let allStockItems = [];
 
-document.addEventListener('DOMContentLoaded', () => {
-    loadStock();
-    
-    document.getElementById('history-tab').addEventListener('shown.bs.tab', function () {
-        loadAuditLog();
+    document.addEventListener('DOMContentLoaded', () => {
+        loadStock();
+
+        document.getElementById('history-tab').addEventListener('shown.bs.tab', function () {
+            loadAuditLog();
+        });
     });
-});
 
-// --- Tab 1: Inventory ---
+    // --- Tab 1: Inventory ---
 
-async function loadStock() {
-    try {
-        const res = await fetch('/api/hardware/stock/all');
-        const data = await res.json();
-        allStockItems = data.items;
-        updateStats();
-        renderStockTable(allStockItems);
-    } catch (e) {
-        console.error('Error loading stock', e);
-        document.getElementById('allStockList').innerHTML = '<tr><td colspan="7" class="text-center text-danger py-5"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><br>Failed to load data.</td></tr>';
+    async function loadStock() {
+        try {
+            const res = await fetch('/api/hardware/stock/all');
+            const data = await res.json();
+            allStockItems = data.items;
+            updateStats();
+            renderStockTable(allStockItems);
+        } catch (e) {
+            console.error('Error loading stock', e);
+            document.getElementById('allStockList').innerHTML = '<tr><td colspan="7" class="text-center text-danger py-5"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><br>Failed to load data.</td></tr>';
+        }
     }
-}
 
-function updateStats() {
-    const total = allStockItems.length;
-    const available = allStockItems.filter(i => i.status === 'Available').length;
-    
-    document.getElementById('statTotal').innerText = total;
-    document.getElementById('statAvailable').innerText = available;
-    
-    // Animate the numbers slightly
-    document.getElementById('statTotal').parentElement.parentElement.style.animation = 'none';
-    setTimeout(() => document.getElementById('statTotal').parentElement.parentElement.style.animation = '', 10);
-}
+    function updateStats() {
+        const total = allStockItems.length;
+        const available = allStockItems.filter(i => i.status === 'Available').length;
 
-function filterStock() {
-    const query = document.getElementById('searchInput').value.toLowerCase();
-    const filtered = allStockItems.filter(i => 
-        (i.serial_number && i.serial_number.toLowerCase().includes(query)) ||
-        (i.model && i.model.toLowerCase().includes(query)) ||
-        (i.name && i.name.toLowerCase().includes(query))
-    );
-    renderStockTable(filtered);
-}
+        document.getElementById('statTotal').innerText = total;
+        document.getElementById('statAvailable').innerText = available;
 
-function renderStockTable(items) {
-    const tbody = document.getElementById('allStockList');
-    if (!items || items.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5 bg-white rounded-3">
+        // Animate the numbers slightly
+        document.getElementById('statTotal').parentElement.parentElement.style.animation = 'none';
+        setTimeout(() => document.getElementById('statTotal').parentElement.parentElement.style.animation = '', 10);
+    }
+
+    function filterStock() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = allStockItems.filter(i =>
+            (i.serial_number && i.serial_number.toLowerCase().includes(query)) ||
+            (i.model && i.model.toLowerCase().includes(query)) ||
+            (i.name && i.name.toLowerCase().includes(query))
+        );
+        renderStockTable(filtered);
+    }
+
+    function renderStockTable(items) {
+        const tbody = document.getElementById('allStockList');
+        if (!items || items.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5 bg-body rounded-3">
             <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
             <h5>No hardware found</h5>
             <p class="mb-0">Try adjusting your search or add a new asset.</p>
         </td></tr>`;
-        return;
-    }
+            return;
+        }
 
-    const getIcon = (type) => {
-        const map = {
-            'pc': '<i class="fas fa-laptop"></i>',
-            'monitor': '<i class="fas fa-desktop"></i>',
-            'docking_station': '<i class="fas fa-hdd"></i>',
-            'phone': '<i class="fas fa-mobile-alt"></i>'
+        const getIcon = (type) => {
+            const map = {
+                'pc': '<i class="fas fa-laptop"></i>',
+                'monitor': '<i class="fas fa-desktop"></i>',
+                'docking_station': '<i class="fas fa-hdd"></i>',
+                'phone': '<i class="fas fa-mobile-alt"></i>'
+            };
+            return map[type] || '<i class="fas fa-box"></i>';
         };
-        return map[type] || '<i class="fas fa-box"></i>';
-    };
 
-    const getTypeLabel = (type) => {
-        const map = {
-            'pc': 'PC', 'monitor': 'Monitor', 'docking_station': 'Docking Station', 'phone': 'Phone'
+        const getTypeLabel = (type) => {
+            const map = {
+                'pc': 'PC', 'monitor': 'Monitor', 'docking_station': 'Docking Station', 'phone': 'Phone'
+            };
+            return map[type] || type;
         };
-        return map[type] || type;
-    };
 
-    const getStatusBadge = (status) => {
-        if(status === 'Available') return '<span class="badge badge-soft badge-soft-success"><i class="fas fa-check-circle me-1"></i> Available</span>';
-        if(status === 'Assigned') return '<span class="badge badge-soft badge-soft-secondary"><i class="fas fa-user me-1"></i> Assigned</span>';
-        return `<span class="badge badge-soft badge-soft-warning">${status}</span>`;
-    };
+        const getStatusBadge = (status) => {
+            if (status === 'Available') return '<span class="badge badge-soft badge-soft-success"><i class="fas fa-check-circle me-1"></i> Available</span>';
+            if (status === 'Assigned') return '<span class="badge badge-soft badge-soft-secondary"><i class="fas fa-user me-1"></i> Assigned</span>';
+            return `<span class="badge badge-soft badge-soft-warning">${status}</span>`;
+        };
 
-    tbody.innerHTML = items.map(item => {
-        const imgHtml = item.image_path 
-            ? `<img src="${item.image_path}" class="stock-image-thumb shadow-sm" onclick="openLightbox('${item.image_path}')" title="Click to view full size">`
-            : `<div class="empty-thumb" onclick="openImageModal('${item.asset_type}', ${item.id}, '${item.serial_number}')" title="Click to upload image"><i class="fas fa-camera"></i></div>`;
+        tbody.innerHTML = items.map(item => {
+            const imgHtml = item.image_path
+                ? `<img src="${item.image_path}" class="stock-image-thumb shadow-sm" onclick="openLightbox('${item.image_path}')" title="Click to view full size">`
+                : `<div class="empty-thumb" onclick="openImageModal('${item.asset_type}', ${item.id}, '${item.serial_number}')" title="Click to upload image"><i class="fas fa-camera"></i></div>`;
 
-        let detailsHtml = `<div class="fw-bold text-dark">${item.model || '-'}</div>`;
-        if (item.name) detailsHtml += `<div class="small text-muted">${item.name}</div>`;
-        if (item.notes) detailsHtml += `<div class="small text-muted mt-1" title="${item.notes}"><i class="fas fa-info-circle"></i> ${item.notes.substring(0, 25)}${item.notes.length > 25 ? '...' : ''}</div>`;
+            let detailsHtml = `<div class="fw-bold text-body">${item.model || '-'}</div>`;
+            if (item.name) detailsHtml += `<div class="small text-muted">${item.name}</div>`;
+            if (item.notes) detailsHtml += `<div class="small text-muted mt-1" title="${item.notes}"><i class="fas fa-info-circle"></i> ${item.notes.substring(0, 25)}${item.notes.length > 25 ? '...' : ''}</div>`;
 
-        const dateAdded = item.created_at ? new Date(item.created_at).toLocaleDateString(undefined, {month:'short', day:'numeric', year:'numeric'}) : '-';
+            const dateAdded = item.created_at ? new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
 
-        return `
+            return `
             <tr>
                 <td class="text-center">${imgHtml}</td>
                 <td>${detailsHtml}</td>
@@ -652,6 +845,12 @@ function renderStockTable(items) {
                 <td>${getStatusBadge(item.status)}</td>
                 <td class="text-muted small">${dateAdded}</td>
                 <td class="text-end pe-4">
+                    <button class="btn btn-sm btn-light border rounded-circle me-1" onclick="openAssignModal('${item.asset_type}', ${item.id}, '${item.serial_number}')" title="Assign to User">
+                        <i class="fas fa-user-plus text-success"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light border rounded-circle me-1" onclick="openStatusModal('${item.asset_type}', ${item.id}, '${item.serial_number}', '${item.status}')" title="Change Status">
+                        <i class="fas fa-edit text-warning"></i>
+                    </button>
                     <button class="btn btn-sm btn-light border rounded-circle me-1" onclick="openImageModal('${item.asset_type}', ${item.id}, '${item.serial_number}', '${item.image_path || ''}')" title="Upload Image">
                         <i class="fas fa-camera text-primary"></i>
                     </button>
@@ -661,268 +860,396 @@ function renderStockTable(items) {
                 </td>
             </tr>
         `;
-    }).join('');
-}
+        }).join('');
+    }
 
-function toggleExtraFields() {
-    const type = document.getElementById('stockType').value;
-    document.getElementById('pcNameGroup').classList.toggle('d-none', type !== 'pc');
-    document.getElementById('phoneNumberGroup').classList.toggle('d-none', type !== 'phone');
-}
+    function toggleExtraFields() {
+        const type = document.getElementById('stockType').value;
+        document.getElementById('pcNameGroup').classList.toggle('d-none', type !== 'pc');
+        document.getElementById('phoneNumberGroup').classList.toggle('d-none', type !== 'phone');
+    }
 
-document.getElementById('addStockForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('saveStockBtn');
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+    document.getElementById('addStockForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('saveStockBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
-    try {
+        try {
+            const payload = {
+                asset_type: document.getElementById('stockType').value,
+                serial_number: document.getElementById('stockSerial').value,
+                model: document.getElementById('stockModel').value,
+                name: document.getElementById('stockName').value,
+                phone_number: document.getElementById('stockPhoneNumber').value,
+                notes: document.getElementById('stockNotes').value
+            };
+
+            const res = await fetch('/api/hardware/stock', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Failed to add stock');
+            }
+
+            bootstrap.Modal.getInstance(document.getElementById('addStockModal')).hide();
+            e.target.reset();
+            loadStock();
+
+            if (document.getElementById('history-tab').classList.contains('active')) {
+                loadAuditLog();
+            }
+
+        } catch (e) {
+            alert(e.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Save Asset';
+        }
+    });
+
+    // --- Image Handling ---
+
+    function openLightbox(url) {
+        document.getElementById('lightboxImg').src = url;
+        new bootstrap.Modal(document.getElementById('imageLightboxModal')).show();
+    }
+
+    function openImageModal(type, id, serial, currentPath) {
+        document.getElementById('imageAssetType').value = type;
+        document.getElementById('imageAssetId').value = id;
+        document.getElementById('imageAssetDisplay').innerHTML = `<i class="fas fa-tag"></i> ${type.toUpperCase()} &bull; ${serial}`;
+        document.getElementById('imageFile').value = '';
+
+        const currentContainer = document.getElementById('currentImageContainer');
+        if (currentPath && currentPath !== 'null') {
+            document.getElementById('currentImagePreview').src = currentPath;
+            currentContainer.classList.remove('d-none');
+        } else {
+            currentContainer.classList.add('d-none');
+        }
+
+        new bootstrap.Modal(document.getElementById('uploadImageModal')).show();
+    }
+
+    document.getElementById('uploadImageForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('saveImageBtn');
+        const file = document.getElementById('imageFile').files[0];
+        const type = document.getElementById('imageAssetType').value;
+        const id = document.getElementById('imageAssetId').value;
+
+        if (!file) return;
+
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch(`/api/hardware/stock/${type}/${id}/image`, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Upload failed');
+            }
+
+            bootstrap.Modal.getInstance(document.getElementById('uploadImageModal')).hide();
+            loadStock();
+            if (document.getElementById('history-tab').classList.contains('active')) loadAuditLog();
+
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Upload Image';
+        }
+    });
+
+    // --- Status Handling ---
+
+    function openStatusModal(type, id, serial, currentStatus) {
+        document.getElementById('statusAssetType').value = type;
+        document.getElementById('statusAssetId').value = id;
+        document.getElementById('statusAssetDisplay').innerHTML = `<i class="fas fa-tag"></i> ${type.toUpperCase()} &bull; ${serial}`;
+
+        const select = document.getElementById('newStatusSelect');
+        select.value = currentStatus;
+        // Add it to options if it's a custom status not in list
+        if (!Array.from(select.options).find(o => o.value === currentStatus) && currentStatus !== 'Assigned') {
+            const opt = new Option(currentStatus, currentStatus);
+            select.add(opt);
+            select.value = currentStatus;
+        }
+
+        new bootstrap.Modal(document.getElementById('editStatusModal')).show();
+    }
+
+    document.getElementById('editStatusForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('saveStatusBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        try {
+            const payload = {
+                status: document.getElementById('newStatusSelect').value
+            };
+            const type = document.getElementById('statusAssetType').value;
+            const id = document.getElementById('statusAssetId').value;
+
+            const res = await fetch(`/api/hardware/stock/${type}/${id}/status`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Failed to update status');
+            }
+
+            bootstrap.Modal.getInstance(document.getElementById('editStatusModal')).hide();
+            loadStock();
+            const histTab = document.getElementById('history-tab');
+            if (histTab && histTab.classList.contains('active')) {
+                loadAuditLog();
+            }
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Save Status';
+        }
+    });
+
+    document.getElementById('deleteImageBtn').addEventListener('click', async () => {
+        if (!confirm('Are you sure you want to remove this image?')) return;
+
+        const btn = document.getElementById('deleteImageBtn');
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        btn.disabled = true;
+
+        const type = document.getElementById('imageAssetType').value;
+        const id = document.getElementById('imageAssetId').value;
+
+        try {
+            const res = await fetch(`/api/hardware/stock/${type}/${id}/image`, {
+                method: 'DELETE'
+            });
+            if (!res.ok) throw new Error('Delete failed');
+
+            bootstrap.Modal.getInstance(document.getElementById('uploadImageModal')).hide();
+            loadStock();
+        } catch (e) {
+            alert(e.message);
+        } finally {
+            btn.innerHTML = originalHtml;
+            btn.disabled = false;
+        }
+    });
+
+    // --- Assignment Handling ---
+
+    let allUsersCache = null;
+
+    async function openAssignModal(type, id, serial) {
+        document.getElementById('assignAssetType').value = type;
+        document.getElementById('assignAssetId').value = id;
+        document.getElementById('assignAssetDisplay').innerHTML = `<i class="fas fa-tag"></i> ${type.toUpperCase()} &bull; ${serial}`;
+        document.getElementById('assignNotes').value = '';
+
+        // Fetch users if not loaded
+        if (!allUsersCache) {
+            try {
+                const res = await fetch('/api/admin/users');
+                if (res.ok) {
+                    allUsersCache = await res.json();
+                } else {
+                    allUsersCache = [];
+                }
+            } catch (e) {
+                allUsersCache = [];
+            }
+        }
+
+        const select = document.getElementById('assignUserId');
+        select.innerHTML = '<option value="">Select a user...</option>' +
+            allUsersCache.map(u => `<option value="${u.id}">${u.full_name} (${u.email})</option>`).join('');
+
+        new bootstrap.Modal(document.getElementById('assignStockModal')).show();
+    }
+
+    document.getElementById('assignStockForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('saveAssignBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
+
         const payload = {
-            asset_type: document.getElementById('stockType').value,
-            serial_number: document.getElementById('stockSerial').value,
-            model: document.getElementById('stockModel').value,
-            name: document.getElementById('stockName').value,
-            phone_number: document.getElementById('stockPhoneNumber').value,
-            notes: document.getElementById('stockNotes').value
+            asset_type: document.getElementById('assignAssetType').value,
+            asset_id: parseInt(document.getElementById('assignAssetId').value),
+            user_id: parseInt(document.getElementById('assignUserId').value),
+            notes: document.getElementById('assignNotes').value
         };
 
-        const res = await fetch('/api/hardware/stock', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(payload)
-        });
+        try {
+            const res = await fetch('/api/hardware/assign', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
 
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.detail || 'Failed to add stock');
-        }
+            if (!res.ok) {
+                const data = await res.json();
+                throw new Error(data.detail || 'Failed to assign');
+            }
 
-        bootstrap.Modal.getInstance(document.getElementById('addStockModal')).hide();
-        e.target.reset();
-        loadStock();
-        
-        if(document.getElementById('history-tab').classList.contains('active')) {
-            loadAuditLog();
-        }
-
-    } catch(e) {
-        alert(e.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerText = 'Save Asset';
-    }
-});
-
-// --- Image Handling ---
-
-function openLightbox(url) {
-    document.getElementById('lightboxImg').src = url;
-    new bootstrap.Modal(document.getElementById('imageLightboxModal')).show();
-}
-
-function openImageModal(type, id, serial, currentPath) {
-    document.getElementById('imageAssetType').value = type;
-    document.getElementById('imageAssetId').value = id;
-    document.getElementById('imageAssetDisplay').innerHTML = `<i class="fas fa-tag"></i> ${type.toUpperCase()} &bull; ${serial}`;
-    document.getElementById('imageFile').value = '';
-    
-    const currentContainer = document.getElementById('currentImageContainer');
-    if (currentPath && currentPath !== 'null') {
-        document.getElementById('currentImagePreview').src = currentPath;
-        currentContainer.classList.remove('d-none');
-    } else {
-        currentContainer.classList.add('d-none');
-    }
-    
-    new bootstrap.Modal(document.getElementById('uploadImageModal')).show();
-}
-
-document.getElementById('uploadImageForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const btn = document.getElementById('saveImageBtn');
-    const file = document.getElementById('imageFile').files[0];
-    const type = document.getElementById('imageAssetType').value;
-    const id = document.getElementById('imageAssetId').value;
-    
-    if (!file) return;
-
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    try {
-        const res = await fetch(`/api/hardware/stock/${type}/${id}/image`, {
-            method: 'POST',
-            body: formData
-        });
-
-        if (!res.ok) throw new Error('Upload failed');
-        
-        bootstrap.Modal.getInstance(document.getElementById('uploadImageModal')).hide();
-        loadStock();
-        if(document.getElementById('history-tab').classList.contains('active')) loadAuditLog();
-
-    } catch(e) {
-        alert(e.message);
-    } finally {
-        btn.disabled = false;
-        btn.innerHTML = 'Upload Image';
-    }
-});
-
-document.getElementById('deleteImageBtn').addEventListener('click', async () => {
-    if(!confirm('Are you sure you want to remove this image?')) return;
-    
-    const btn = document.getElementById('deleteImageBtn');
-    const originalHtml = btn.innerHTML;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
-    btn.disabled = true;
-
-    const type = document.getElementById('imageAssetType').value;
-    const id = document.getElementById('imageAssetId').value;
-    
-    try {
-        const res = await fetch(`/api/hardware/stock/${type}/${id}/image`, {
-            method: 'DELETE'
-        });
-        if (!res.ok) throw new Error('Delete failed');
-        
-        bootstrap.Modal.getInstance(document.getElementById('uploadImageModal')).hide();
-        loadStock();
-    } catch(e) {
-        alert(e.message);
-    } finally {
-        btn.innerHTML = originalHtml;
-        btn.disabled = false;
-    }
-});
-
-// --- Tab 2: Import ---
-
-const dropZone = document.getElementById('dropZone');
-dropZone.addEventListener('dragover', (e) => {
-    e.preventDefault();
-    dropZone.classList.add('dragover');
-});
-dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('dragover');
-});
-dropZone.addEventListener('drop', (e) => {
-    e.preventDefault();
-    dropZone.classList.remove('dragover');
-    if (e.dataTransfer.files.length) {
-        document.getElementById('fileUpload').files = e.dataTransfer.files;
-        handleFileSelect(document.getElementById('fileUpload'));
-    }
-});
-
-function handleFileSelect(input) {
-    if (input.files.length > 0) {
-        const fileName = input.files[0].name;
-        document.getElementById('fileNameDisplay').textContent = fileName;
-        document.getElementById('fileInfo').classList.remove('d-none');
-        document.getElementById('submitImportBtn').disabled = false;
-    }
-}
-
-document.getElementById('importForm').addEventListener('submit', async function(e) {
-    e.preventDefault();
-    const form = e.target;
-    const formData = new FormData(form);
-    const btn = document.getElementById('submitImportBtn');
-    const alertBox = document.getElementById('importAlertBox');
-
-    btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Processing Import...';
-    alertBox.className = 'alert d-none';
-
-    try {
-        const response = await fetch('/api/hardware/import', {
-            method: 'POST',
-            body: formData
-        });
-        const result = await response.json();
-
-        if (response.ok) {
-            alertBox.className = 'alert alert-success mb-4 rounded-3 border-0 bg-success bg-opacity-10 text-success';
-            alertBox.innerHTML = `<div class="d-flex align-items-center"><i class="fas fa-check-circle fa-2x me-3"></i> <div><strong class="d-block">Import Successful!</strong>${result.message} (${result.created} new items)</div></div>`;
-            form.reset();
-            document.getElementById('fileInfo').classList.add('d-none');
+            bootstrap.Modal.getInstance(document.getElementById('assignStockModal')).hide();
             loadStock();
-        } else {
-            alertBox.className = 'alert alert-danger mb-4 rounded-3 border-0 bg-danger bg-opacity-10 text-danger';
-            alertBox.innerHTML = `<div class="d-flex align-items-center"><i class="fas fa-exclamation-triangle fa-2x me-3"></i> <div><strong class="d-block">Import Failed</strong>${result.detail || 'An error occurred.'}</div></div>`;
+            if (document.getElementById('history-tab').classList.contains('active')) loadAuditLog();
+
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Confirm Assignment';
         }
-    } catch (error) {
-        alertBox.className = 'alert alert-danger mb-4 rounded-3 border-0 bg-danger bg-opacity-10 text-danger';
-        alertBox.innerHTML = `<div class="d-flex align-items-center"><i class="fas fa-wifi fa-2x me-3"></i> <div><strong class="d-block">Network Error</strong>Could not connect to server.</div></div>`;
-    } finally {
-        btn.innerHTML = '<i class="fas fa-cloud-upload-alt me-2"></i> Process Import';
-        btn.disabled = document.getElementById('fileUpload').files.length === 0;
-        alertBox.classList.remove('d-none');
+    });
+
+    // --- Tab 2: Import ---
+
+    const dropZone = document.getElementById('dropZone');
+    dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('dragover');
+    });
+    dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('dragover');
+    });
+    dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            document.getElementById('fileUpload').files = e.dataTransfer.files;
+            handleFileSelect(document.getElementById('fileUpload'));
+        }
+    });
+
+    function handleFileSelect(input) {
+        if (input.files.length > 0) {
+            const fileName = input.files[0].name;
+            document.getElementById('fileNameDisplay').textContent = fileName;
+            document.getElementById('fileInfo').classList.remove('d-none');
+            document.getElementById('submitImportBtn').disabled = false;
+        }
     }
-});
 
-// --- Tab 3: Audit Log ---
+    document.getElementById('importForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
+        const form = e.target;
+        const formData = new FormData(form);
+        const btn = document.getElementById('submitImportBtn');
+        const alertBox = document.getElementById('importAlertBox');
 
-async function loadAuditLog() {
-    const action = document.getElementById('auditActionFilter').value;
-    const type = document.getElementById('auditTypeFilter').value;
-    const container = document.getElementById('auditTimeline');
-    
-    container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>';
-    
-    let url = '/api/hardware/audit-log?limit=50';
-    if (action) url += `&action=${action}`;
-    if (type) url += `&asset_type=${type}`;
-    
-    try {
-        const res = await fetch(url);
-        const data = await res.json();
-        
-        if (data.entries.length === 0) {
-            container.innerHTML = `
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Processing Import...';
+        alertBox.className = 'alert d-none';
+
+        try {
+            const response = await fetch('/api/hardware/import', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await response.json();
+
+            if (response.ok) {
+                alertBox.className = 'alert alert-success mb-4 rounded-3 border-0 bg-success bg-opacity-10 text-success';
+                alertBox.innerHTML = `<div class="d-flex align-items-center"><i class="fas fa-check-circle fa-2x me-3"></i> <div><strong class="d-block">Import Successful!</strong>${result.message} (${result.created} new items)</div></div>`;
+                form.reset();
+                document.getElementById('fileInfo').classList.add('d-none');
+                loadStock();
+            } else {
+                alertBox.className = 'alert alert-danger mb-4 rounded-3 border-0 bg-danger bg-opacity-10 text-danger';
+                alertBox.innerHTML = `<div class="d-flex align-items-center"><i class="fas fa-exclamation-triangle fa-2x me-3"></i> <div><strong class="d-block">Import Failed</strong>${result.detail || 'An error occurred.'}</div></div>`;
+            }
+        } catch (error) {
+            alertBox.className = 'alert alert-danger mb-4 rounded-3 border-0 bg-danger bg-opacity-10 text-danger';
+            alertBox.innerHTML = `<div class="d-flex align-items-center"><i class="fas fa-wifi fa-2x me-3"></i> <div><strong class="d-block">Network Error</strong>Could not connect to server.</div></div>`;
+        } finally {
+            btn.innerHTML = '<i class="fas fa-cloud-upload-alt me-2"></i> Process Import';
+            btn.disabled = document.getElementById('fileUpload').files.length === 0;
+            alertBox.classList.remove('d-none');
+        }
+    });
+
+    // --- Tab 3: Audit Log ---
+
+    async function loadAuditLog() {
+        const action = document.getElementById('auditActionFilter').value;
+        const type = document.getElementById('auditTypeFilter').value;
+        const container = document.getElementById('auditTimeline');
+
+        container.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div></div>';
+
+        let url = '/api/hardware/audit-log?limit=50';
+        if (action) url += `&action=${action}`;
+        if (type) url += `&asset_type=${type}`;
+
+        try {
+            const res = await fetch(url);
+            const data = await res.json();
+
+            if (data.entries.length === 0) {
+                container.innerHTML = `
                 <div class="text-center text-muted py-5">
                     <i class="fas fa-clipboard-list fa-4x mb-3 opacity-25"></i>
                     <h5>No Audit Records Found</h5>
                     <p>Try adjusting your filters or add new assets to generate logs.</p>
                 </div>`;
-            return;
-        }
-        
-        const getActionIcon = (act) => {
-            const map = {
-                'created': {i: 'fa-plus', c: 'action-created'},
-                'imported': {i: 'fa-file-excel', c: 'action-imported'},
-                'updated': {i: 'fa-edit', c: 'action-updated'},
-                'deleted': {i: 'fa-trash', c: 'action-deleted'},
-                'assigned': {i: 'fa-user-check', c: 'action-assigned'},
-                'image_uploaded': {i: 'fa-image', c: 'action-image_uploaded'}
+                return;
+            }
+
+            const getActionIcon = (act) => {
+                const map = {
+                    'created': { i: 'fa-plus', c: 'action-created' },
+                    'imported': { i: 'fa-file-excel', c: 'action-imported' },
+                    'updated': { i: 'fa-edit', c: 'action-updated' },
+                    'deleted': { i: 'fa-trash', c: 'action-deleted' },
+                    'assigned': { i: 'fa-user-check', c: 'action-assigned' },
+                    'image_uploaded': { i: 'fa-image', c: 'action-image_uploaded' }
+                };
+                const cfg = map[act] || { i: 'fa-cog', c: 'action-default' };
+                return `<div class="timeline-icon ${cfg.c}"><i class="fas ${cfg.i}"></i></div>`;
             };
-            const cfg = map[act] || {i: 'fa-cog', c: 'action-default'};
-            return `<div class="timeline-icon ${cfg.c}"><i class="fas ${cfg.i}"></i></div>`;
-        };
-        
-        container.innerHTML = data.entries.map(e => {
-            const date = new Date(e.created_at);
-            const timeStr = date.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            const dateStr = date.toLocaleDateString(undefined, {month:'short', day:'numeric'});
-            
-            return `
+
+            container.innerHTML = data.entries.map(e => {
+                const date = new Date(e.created_at);
+                const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                const dateStr = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+
+                return `
                 <div class="timeline-item">
                     ${getActionIcon(e.action)}
                     <div class="timeline-card p-3">
                         <div class="d-flex justify-content-between align-items-center mb-2">
-                            <h6 class="mb-0 fw-bold text-dark text-capitalize">${e.action.replace('_', ' ')} - ${e.asset_type}</h6>
+                            <h6 class="mb-0 fw-bold text-body text-capitalize">${e.action.replace('_', ' ')} - ${e.asset_type}</h6>
                             <span class="text-muted small"><i class="far fa-clock me-1"></i> ${dateStr} ${timeStr}</span>
                         </div>
                         <div class="mb-2">
-                            <span class="badge bg-light text-dark border me-1 font-monospace">${e.serial_number || `ID: ${e.asset_id}`}</span>
+                            <span class="badge bg-body-tertiary text-body border me-1 font-monospace">${e.serial_number || `ID: ${e.asset_id}`}</span>
                             ${e.model ? `<span class="text-secondary small fw-semibold">${e.model}</span>` : ''}
                         </div>
-                        <p class="mb-2 text-dark small bg-light p-2 rounded-3 border-start border-3 border-primary">${e.details || 'System update'}</p>
+                        <p class="mb-2 text-body small bg-body-tertiary p-2 rounded-3 border-start border-3 border-primary">${e.details || 'System update'}</p>
                         <div class="d-flex align-items-center text-muted small">
                             <div class="bg-secondary bg-opacity-10 rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 24px; height: 24px;">
                                 <i class="fas fa-user" style="font-size: 10px;"></i>
@@ -932,11 +1259,11 @@ async function loadAuditLog() {
                     </div>
                 </div>
             `;
-        }).join('');
-        
-    } catch (e) {
-        container.innerHTML = '<div class="text-center text-danger py-5"><i class="fas fa-exclamation-circle fa-2x mb-2"></i><br>Failed to load audit timeline.</div>';
+            }).join('');
+
+        } catch (e) {
+            container.innerHTML = '<div class="text-center text-danger py-5"><i class="fas fa-exclamation-circle fa-2x mb-2"></i><br>Failed to load audit timeline.</div>';
+        }
     }
-}
 </script>
 {% endblock %}

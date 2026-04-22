@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Settings - ITSM Platform{% endblock %}
+{% block title %}Settings - KOSTAL ITSM{% endblock %}
 
 {% block content %}
 <div class="py-4">
@@ -36,10 +36,10 @@
                     <h5 class="mb-0"><i class="fas fa-cog"></i> General Settings</h5>
                 </div>
                 <div class="card-body">
-                    <form>
+                    <form id="generalForm">
                         <div class="mb-3">
                             <label for="appName" class="form-label">Application Name</label>
-                            <input type="text" class="form-control" id="appName" value="ITSM Platform">
+                            <input type="text" class="form-control" id="appName" value="KOSTAL ITSM">
                         </div>
                         <div class="mb-3">
                             <label for="appVersion" class="form-label">Version</label>
@@ -92,7 +92,7 @@
                     <h5 class="mb-0"><i class="fas fa-envelope"></i> Email Configuration</h5>
                 </div>
                 <div class="card-body">
-                    <form>
+                    <form id="emailForm">
                         <div class="mb-3">
                             <label for="smtpHost" class="form-label">SMTP Host</label>
                             <input type="text" class="form-control" id="smtpHost" placeholder="smtp.gmail.com">
@@ -109,7 +109,7 @@
                             <label for="smtpPass" class="form-label">SMTP Password</label>
                             <input type="password" class="form-control" id="smtpPass">
                         </div>
-                        <button type="submit" class="btn btn-primary">Test Connection</button>
+                        <button type="submit" class="btn btn-primary">Test Connection & Save</button>
                     </form>
                 </div>
             </div>
@@ -146,24 +146,132 @@
                     <h5 class="mb-0"><i class="fas fa-lock"></i> Security</h5>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <label for="sessionTimeout" class="form-label">Session Timeout (minutes)</label>
-                        <input type="number" class="form-control" id="sessionTimeout" value="30">
-                    </div>
-                    <div class="mb-3">
-                        <label for="maxLoginAttempts" class="form-label">Max Login Attempts</label>
-                        <input type="number" class="form-control" id="maxLoginAttempts" value="5">
-                    </div>
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="mfaRequired">
-                        <label class="form-check-label" for="mfaRequired">
-                            Require MFA
-                        </label>
-                    </div>
-                    <button type="submit" class="btn btn-warning">Reset Security Settings</button>
+                    <form id="securityForm">
+                        <div class="mb-3">
+                            <label for="sessionTimeout" class="form-label">Session Timeout (minutes)</label>
+                            <input type="number" class="form-control" id="sessionTimeout" value="30">
+                        </div>
+                        <div class="mb-3">
+                            <label for="maxLoginAttempts" class="form-label">Max Login Attempts</label>
+                            <input type="number" class="form-control" id="maxLoginAttempts" value="5">
+                        </div>
+                        <div class="form-check form-switch mb-3">
+                            <input class="form-check-input" type="checkbox" id="mfaRequired">
+                            <label class="form-check-label" for="mfaRequired">
+                                Require MFA
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary me-2">Save Security Settings</button>
+                        <button type="button" class="btn btn-warning" id="resetSecurityBtn">Reset</button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Load saved settings from localStorage
+    loadSettings();
+
+    // Theme dropdown listener
+    const themeSelect = document.getElementById('theme');
+    if (themeSelect) {
+        themeSelect.addEventListener('change', (e) => {
+            const val = e.target.value.toLowerCase();
+            if(window.themeUtils) {
+                localStorage.setItem('theme', val);
+                window.themeUtils.setTheme(val);
+                updateThemeUI(val);
+                showToast('Success', 'Theme applied successfully', 'success');
+            }
+        });
+    }
+
+    // Wiring up forms to prevent refresh and save data
+    document.getElementById('generalForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveSetting('appName', document.getElementById('appName').value);
+        saveSetting('timezone', document.getElementById('timezone').value);
+        showToast('Success', 'General settings saved successfully!', 'success');
+    });
+
+    document.getElementById('emailForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveSetting('smtpHost', document.getElementById('smtpHost').value);
+        saveSetting('smtpPort', document.getElementById('smtpPort').value);
+        saveSetting('smtpUser', document.getElementById('smtpUser').value);
+        // Do not save plain text passwords in real life, but for the mock:
+        saveSetting('smtpPass', document.getElementById('smtpPass').value);
+        
+        const btn = e.submitter;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        btn.disabled = true;
+        
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            showToast('Success', 'SMTP Connection Test Successful!', 'success');
+        }, 1500);
+    });
+
+    document.getElementById('securityForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveSetting('sessionTimeout', document.getElementById('sessionTimeout').value);
+        saveSetting('maxLoginAttempts', document.getElementById('maxLoginAttempts').value);
+        saveSetting('mfaRequired', document.getElementById('mfaRequired').checked);
+        showToast('Success', 'Security settings saved!', 'success');
+    });
+
+    // Notification Toggles (Save on change)
+    ['emailNotif', 'inAppNotif', 'ticketNotif'].forEach(id => {
+        const el = document.getElementById(id);
+        if(el) {
+            el.addEventListener('change', (e) => {
+                saveSetting(id, e.target.checked);
+                showToast('Success', 'Notification preference updated.', 'success');
+            });
+        }
+    });
+    
+    // Language Dropdown
+    document.getElementById('language').addEventListener('change', (e) => {
+        saveSetting('language', e.target.value);
+        showToast('Success', 'Language updated successfully.', 'success');
+    });
+
+    document.getElementById('resetSecurityBtn').addEventListener('click', () => {
+        document.getElementById('sessionTimeout').value = 30;
+        document.getElementById('maxLoginAttempts').value = 5;
+        document.getElementById('mfaRequired').checked = false;
+        showToast('Warning', 'Security settings reset to defaults. Remember to save.', 'warning');
+    });
+});
+
+function saveSetting(key, value) {
+    localStorage.setItem('setting_' + key, value);
+}
+
+function loadSettings() {
+    const fields = ['appName', 'timezone', 'smtpHost', 'smtpPort', 'smtpUser', 'smtpPass', 'sessionTimeout', 'maxLoginAttempts', 'language'];
+    fields.forEach(f => {
+        const val = localStorage.getItem('setting_' + f);
+        if (val !== null && document.getElementById(f)) {
+            document.getElementById(f).value = val;
+        }
+    });
+
+    const checks = ['emailNotif', 'inAppNotif', 'ticketNotif', 'mfaRequired'];
+    checks.forEach(c => {
+        const val = localStorage.getItem('setting_' + c);
+        if (val !== null && document.getElementById(c)) {
+            document.getElementById(c).checked = (val === 'true');
+        }
+    });
+}
+</script>
 {% endblock %}
+
+

@@ -13,6 +13,101 @@ from app.models.user import User
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+@router.get("/users")
+async def get_local_users(db: Session = Depends(get_db)):
+    """Fetch all active local users from the SQL database."""
+    try:
+        users = db.query(User).filter(User.is_active == True).order_by(User.full_name).all()
+        return [{"id": u.id, "username": u.username, "full_name": u.full_name, "email": u.email} for u in users]
+    except Exception as e:
+        logger.error(f"Error fetching local users: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail="Failed to fetch local users")
+
+@router.get("/users/{user_id}")
+async def get_user_details(user_id: int, db: Session = Depends(get_db)):
+    """Fetch specific user details."""
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    return {
+        "id": user.id,
+        "username": user.username,
+        "full_name": user.full_name,
+        "email": user.email,
+        "department": getattr(user, 'department', None),
+        "title": getattr(user, 'title', None),
+        "is_active": user.is_active
+    }
+
+@router.get("/users/{user_id}/hardware")
+async def get_user_hardware(user_id: int, db: Session = Depends(get_db)):
+    """Fetch current and historical hardware assignments for a user."""
+    from app.models.hardware import PC, Monitor, DockingStation, Phone, AssetAssignment
+
+    # Current assignments
+    pcs = db.query(PC).filter(PC.current_user_id == user_id).all()
+    monitors = db.query(Monitor).filter(Monitor.current_user_id == user_id).all()
+    docks = db.query(DockingStation).filter(DockingStation.current_user_id == user_id).all()
+    phones = db.query(Phone).filter(Phone.current_user_id == user_id).all()
+
+    current = []
+    for hw in pcs: current.append({"type": "pc", "id": hw.id, "model": hw.model, "serial_number": hw.serial_number})
+    for hw in monitors: current.append({"type": "monitor", "id": hw.id, "model": hw.model, "serial_number": hw.serial_number})
+    for hw in docks: current.append({"type": "docking_station", "id": hw.id, "model": hw.model, "serial_number": hw.serial_number})
+    for hw in phones: current.append({"type": "phone", "id": hw.id, "model": hw.model, "serial_number": hw.serial_number, "phone_number": hw.phone_number})
+
+    # History (assignments)
+    from sqlalchemy import or_
+    assignments = db.query(AssetAssignment).filter(
+        or_(AssetAssignment.new_user_id == user_id, AssetAssignment.previous_user_id == user_id)
+    ).order_by(AssetAssignment.assigned_date.desc()).all()
+
+    history = []
+    for a in assignments:
+        hw_type = "Unknown"
+        hw_serial = ""
+        hw_model = ""
+        
+        if a.pc:
+            hw_type = "pc"
+            hw_serial = a.pc.serial_number
+            hw_model = a.pc.model
+        elif a.monitor:
+            hw_type = "monitor"
+            hw_serial = a.monitor.serial_number
+            hw_model = a.monitor.model
+        elif a.docking_station:
+            hw_type = "docking_station"
+            hw_serial = a.docking_station.serial_number
+            hw_model = a.docking_station.model
+        elif a.phone:
+            hw_type = "phone"
+            hw_serial = a.phone.serial_number
+            hw_model = a.phone.model
+
+        # Determine if this was an assignment TO the user or RETURN FROM the user
+        action = ""
+        if a.new_user_id == user_id:
+            action = "Assigned"
+        elif a.previous_user_id == user_id:
+            action = "Returned"
+
+        history.append({
+            "id": a.id,
+            "action": action,
+            "hw_type": hw_type,
+            "hw_serial": hw_serial,
+            "hw_model": hw_model,
+            "date": a.assigned_date.isoformat() if a.assigned_date else None,
+            "notes": a.notes
+        })
+
+    return {
+        "current": current,
+        "history": history
+    }
+
 @router.get("/ad-users")
 async def get_ad_users():
     """Fetch user list from Active Directory in real-time."""
@@ -32,8 +127,8 @@ async def get_ad_users():
                 auto_bind=True
             )
 
-            search_filter = '(&(objectClass=user)(objectCategory=person)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))'  # Only active users
-            attributes = ['sAMAccountName', 'displayName', 'mail', 'department', 'title', 'company']
+            search_filter = '(&(objectClass=user)(objectCategory=person))'  # All users including disabled
+            attributes = ['sAMAccountName', 'displayName', 'mail', 'department', 'title', 'company', 'userAccountControl']
 
             logger.info(f"Searching with filter: {search_filter}")
             conn.search(
@@ -54,13 +149,21 @@ async def get_ad_users():
                             return val
                     return ""
 
+                uac_str = get_attr('userAccountControl')
+                try:
+                    uac = int(uac_str) if uac_str else 0
+                except ValueError:
+                    uac = 0
+                is_active = not bool(uac & 2)
+
                 users.append({
                     "username": get_attr('sAMAccountName'),
                     "name": get_attr('displayName'),
                     "email": get_attr('mail'),
                     "department": get_attr('department'),
                     "title": get_attr('title'),
-                    "company": get_attr('company')
+                    "company": get_attr('company'),
+                    "is_active": is_active
                 })
 
             conn.unbind()
@@ -100,6 +203,8 @@ async def sync_ad_users(db: Session = Depends(get_db)):
             email = ad_user.get("email") or f"{username}@local"
             name = ad_user.get("name") or username
             
+            is_active = ad_user.get("is_active", True)
+            
             # Check if user exists in SQL DB
             db_user = db.query(User).filter(User.username == username).first()
             if not db_user:
@@ -109,15 +214,24 @@ async def sync_ad_users(db: Session = Depends(get_db)):
                     email=email.lower(),
                     full_name=name,
                     hashed_password="AD_MANAGED_USER",
-                    is_active=True
+                    is_active=is_active
                 )
                 db.add(new_user)
                 synced_count += 1
             else:
                 # Update existing
-                if db_user.full_name != name or db_user.email != email.lower():
+                updated = False
+                if db_user.full_name != name:
                     db_user.full_name = name
+                    updated = True
+                if db_user.email != email.lower():
                     db_user.email = email.lower()
+                    updated = True
+                if db_user.is_active != is_active:
+                    db_user.is_active = is_active
+                    updated = True
+                    
+                if updated:
                     synced_count += 1
                     
         db.commit()

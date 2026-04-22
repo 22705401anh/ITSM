@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Users Administration - ITSM Platform{% endblock %}
+{% block title %}Users Administration - KOSTAL ITSM{% endblock %}
 
 {% block content %}
 <div class="py-4">
@@ -71,4 +71,42 @@
         </div>
     </div>
 </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', loadUsers);
+
+async function loadUsers() {
+    try {
+        const res = await fetch('/api/admin/users');
+        if (!res.ok) throw new Error('Failed to fetch users');
+        const users = await res.json();
+        
+        const tbody = document.getElementById('usersTable');
+        if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No users found.</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = users.map(u => `
+            <tr class="align-middle">
+                <td><span class="fw-bold">${u.username}</span></td>
+                <td>${u.email}</td>
+                <td>${u.full_name}</td>
+                <td><span class="badge bg-success">Active</span></td>
+                <td>
+                    <a href="/admin/users/${u.id}" class="btn btn-sm btn-outline-info" title="View User Profile & Hardware">
+                        <i class="fas fa-id-card me-1"></i> Profile
+                    </a>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        document.getElementById('usersTable').innerHTML = '<tr><td colspan="5" class="text-center text-danger">Error loading users.</td></tr>';
+        console.error(e);
+    }
+}
+</script>
 {% endblock %}
+
+

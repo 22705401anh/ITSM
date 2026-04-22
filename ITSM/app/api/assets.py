@@ -55,52 +55,51 @@ async def list_assets(
                 docks = db.query(DockingStation).filter(DockingStation.current_user_id == u.id).all()
                 phones = db.query(Phone).filter(Phone.current_user_id == u.id).all()
 
-                if pcs or monitors or docks or phones:
-                    pc = pcs[0] if pcs else None
-                    monitor = monitors[0] if monitors else None
-                    dock = docks[0] if docks else None
-                    phone = phones[0] if phones else None
+                pc = pcs[0] if pcs else None
+                monitor = monitors[0] if monitors else None
+                dock = docks[0] if docks else None
+                phone = phones[0] if phones else None
 
-                    specs = {
-                        "department": getattr(u, 'department', '') or "",
-                        "hostname": pc.name if pc else "",
-                        "laptop_model": pc.model if pc else "",
-                        "laptop_sn": pc.serial_number if pc else "",
-                        "monitor_model": monitor.model if monitor else "",
-                        "monitor_sn": monitor.serial_number if monitor else "",
-                        "docking_sn": dock.serial_number if dock else "",
-                        "phone_model": phone.model if phone else "",
-                        "phone_number": phone.phone_number if phone else "",
-                        "accessories": ""
-                    }
+                specs = {
+                    "department": getattr(u, 'department', '') or "",
+                    "hostname": pc.name if pc else "",
+                    "laptop_model": pc.model if pc else "",
+                    "laptop_sn": pc.serial_number if pc else "",
+                    "monitor_model": monitor.model if monitor else "",
+                    "monitor_sn": monitor.serial_number if monitor else "",
+                    "docking_sn": dock.serial_number if dock else "",
+                    "phone_model": phone.model if phone else "",
+                    "phone_number": phone.phone_number if phone else "",
+                    "accessories": ""
+                }
 
-                    bundle = {
-                        "id": 1000000 + (pc.id if pc else (monitor.id if monitor else id_counter)),
-                        "name": u.full_name,
-                        "description": "",
-                        "asset_type": "computer" if pc else "other",
-                        "status": "in_use",
-                        "asset_tag": str(u.id),  # Using user ID as asset tag for the UI
-                        "serial_number": pc.serial_number if pc else "",
-                        "model_number": pc.model if pc else "",
-                        "manufacturer": "",
-                        "location": "",
-                        "assigned_user_id": u.id,
-                        "purchase_date": None,
-                        "purchase_cost": None,
-                        "warranty_expiry": None,
-                        "depreciation_rate": None,
-                        "specifications": str(specs).replace("'", '"'), # Send as JSON string approximation
-                        "license_key": None,
-                        "license_expiry": None,
-                        "end_of_life_date": None,
-                        "notes": "",
-                        "is_active": True,
-                        "created_at": datetime.utcnow().isoformat(),
-                        "updated_at": datetime.utcnow().isoformat()
-                    }
-                    results.append(bundle)
-                    id_counter += 1
+                bundle = {
+                    "id": 1000000 + (pc.id if pc else (monitor.id if monitor else id_counter)),
+                    "name": u.full_name,
+                    "description": "",
+                    "asset_type": "computer" if pc else "other",
+                    "status": "in_use" if (pcs or monitors or docks or phones) else "available",
+                    "asset_tag": str(u.id),  # Using user ID as asset tag for the UI
+                    "serial_number": pc.serial_number if pc else "",
+                    "model_number": pc.model if pc else "",
+                    "manufacturer": "",
+                    "location": "",
+                    "assigned_user_id": u.id,
+                    "purchase_date": None,
+                    "purchase_cost": None,
+                    "warranty_expiry": None,
+                    "depreciation_rate": None,
+                    "specifications": str(specs).replace("'", '"'), # Send as JSON string approximation
+                    "license_key": None,
+                    "license_expiry": None,
+                    "end_of_life_date": None,
+                    "notes": "",
+                    "is_active": True,
+                    "created_at": datetime.utcnow().isoformat(),
+                    "updated_at": datetime.utcnow().isoformat()
+                }
+                results.append(bundle)
+                id_counter += 1
             except Exception as e:
                 logger.error(f"Error processing user {u.id}: {str(e)}")
                 continue
@@ -213,6 +212,49 @@ async def create_asset(
             **asset_create.model_dump()
         )
         db.add(asset)
+        db.flush()
+
+        # Synchronize with Hardware Stock tables for new UI
+        from app.models.hardware import PC, Monitor, DockingStation, Phone
+        stock_model = None
+        sn = asset_create.serial_number or asset_create.asset_tag
+        hw_status = "Available" if asset_create.status == "available" else "Assigned"
+
+        if asset_create.asset_type in [AssetType.COMPUTER, AssetType.LAPTOP]:
+            stock_model = PC(
+                name=asset_create.name,
+                serial_number=sn,
+                model=asset_create.model_number,
+                status=hw_status,
+                notes="Created via Inventory"
+            )
+        elif asset_create.asset_type == AssetType.MONITOR:
+            stock_model = Monitor(
+                serial_number=sn,
+                model=asset_create.model_number,
+                status=hw_status,
+                notes="Created via Inventory"
+            )
+        elif asset_create.asset_type == AssetType.PHONE:
+            stock_model = Phone(
+                serial_number=sn,
+                phone_number=None,
+                model=asset_create.model_number,
+                status=hw_status,
+                notes="Created via Inventory"
+            )
+        # Assuming asset type might be passed as string 'docking' from UI even if not in enum sometimes
+        elif str(asset_create.asset_type) == "docking":
+            stock_model = DockingStation(
+                serial_number=sn,
+                model=asset_create.model_number,
+                status=hw_status,
+                notes="Created via Inventory"
+            )
+
+        if stock_model:
+            db.add(stock_model)
+
         db.commit()
         db.refresh(asset)
 

@@ -8,7 +8,7 @@ class Settings(BaseSettings):
     """Application settings loaded from environment variables."""
 
     # App
-    APP_NAME: str = "GLPI-like ITSM Platform"
+    APP_NAME: str = "KOSTAL ITSM"
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = False
 

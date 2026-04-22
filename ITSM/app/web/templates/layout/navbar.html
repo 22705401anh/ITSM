@@ -6,7 +6,7 @@
             </button>
 
             <a class="navbar-brand" href="/">
-                <i class="fas fa-cogs"></i> ITSM Platform
+                <i class="fas fa-cogs"></i> KOSTAL ITSM
             </a>
         </div>
 
@@ -15,7 +15,12 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item me-2">
+                    <button class="btn btn-link nav-link px-2" onclick="window.themeUtils.toggleTheme()" title="Toggle Dark Mode">
+                        <i id="themeToggleIcon" class="fas fa-moon"></i>
+                    </button>
+                </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
                         <i class="fas fa-user"></i> Account
@@ -35,3 +40,5 @@
         </div>
     </div>
 </nav>
+
+

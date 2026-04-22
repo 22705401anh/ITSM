@@ -1,0 +1,410 @@
+{% extends "base.html" %}
+
+{% block title %}User Profile - KOSTAL ITSM{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h2 mb-1" id="userNameTitle">Loading User...</h1>
+            <p class="text-muted" id="userEmailSubtitle"></p>
+        </div>
+        <div>
+            <button class="btn btn-primary" onclick="openAssignModal()">
+                <i class="fas fa-plus-circle"></i> Assign Hardware
+            </button>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- User Details Card -->
+        <div class="col-md-4">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-body-tertiary border-0 pt-4 pb-0">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-id-card me-2 text-primary"></i> Profile Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Status</span>
+                            <span id="userStatus" class="badge bg-secondary">Unknown</span>
+                        </li>
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Department</span>
+                            <span id="userDepartment" class="fw-semibold">-</span>
+                        </li>
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Job Title</span>
+                            <span id="userTitle" class="fw-semibold">-</span>
+                        </li>
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Username</span>
+                            <code id="userUsername" class="text-body bg-body-tertiary px-2 py-1 rounded">-</code>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Currently Assigned -->
+        <div class="col-md-8">
+            <div class="card h-100 shadow-sm border-0">
+                <div class="card-header bg-body-tertiary border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 fw-bold"><i class="fas fa-laptop me-2 text-success"></i> Currently Assigned</h5>
+                    <span class="badge bg-success" id="activeCount">0 Devices</span>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3" id="currentHardwareList">
+                        <div class="col-12 text-center py-4 text-muted">
+                            <div class="spinner-border spinner-border-sm me-2"></div> Loading equipment...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assignment History -->
+    <div class="card shadow-sm border-0 mt-4">
+        <div class="card-header bg-body-tertiary border-0 pt-4 pb-0">
+            <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2 text-info"></i> Equipment History</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover table-borderless mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">Date</th>
+                            <th>Action</th>
+                            <th>Device Type</th>
+                            <th>Model</th>
+                            <th>Serial Number</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyList">
+                        <tr>
+                            <td colspan="6" class="text-center py-4 text-muted">
+                                Loading history...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Assign Modal -->
+<div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form id="assignForm">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">Assign New Hardware</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 pt-3">
+                    <div class="alert alert-info py-2" style="font-size: 0.9rem;">
+                        <i class="fas fa-info-circle me-1"></i> Only items currently marked as "Available" in stock are shown here.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted text-uppercase">Select Device</label>
+                        <select class="form-select" id="stockSelect" required>
+                            <option value="">Loading available stock...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted text-uppercase">Assignment Notes</label>
+                        <textarea class="form-control" id="assignNotes" rows="2" placeholder="Optional details..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="saveBtn">Assign Equipment</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Return Modal -->
+<div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form id="returnForm">
+                <input type="hidden" id="returnAssetType">
+                <input type="hidden" id="returnAssetId">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">Return Hardware</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body px-4 pt-3">
+                    <div class="alert alert-warning py-2" style="font-size: 0.9rem;">
+                        <i class="fas fa-exclamation-triangle me-1"></i> You are returning <span id="returnAssetDisplay" class="fw-bold"></span> to available stock.
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-muted text-uppercase">Return Notes</label>
+                        <textarea class="form-control" id="returnNotes" rows="2" placeholder="Condition, reason for return, etc..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4" id="submitReturnBtn">Confirm Return</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+const USER_ID = {{ user_id }};
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadUserProfile();
+    loadHardware();
+});
+
+async function loadUserProfile() {
+    try {
+        const res = await fetch(`/api/admin/users/${USER_ID}`);
+        if (!res.ok) throw new Error('User not found');
+        const user = await res.json();
+        
+        document.getElementById('userNameTitle').textContent = user.full_name;
+        document.getElementById('userEmailSubtitle').textContent = user.email || 'No email provided';
+        document.getElementById('userDepartment').textContent = user.department || '-';
+        document.getElementById('userTitle').textContent = user.title || '-';
+        document.getElementById('userUsername').textContent = user.username;
+        
+        const statusBadge = document.getElementById('userStatus');
+        statusBadge.textContent = user.is_active ? 'Active' : 'Disabled';
+        statusBadge.className = `badge bg-${user.is_active ? 'success' : 'danger'}`;
+        
+    } catch (e) {
+        document.getElementById('userNameTitle').textContent = "Error loading user";
+        console.error(e);
+    }
+}
+
+function getIconForType(type) {
+    if(type === 'pc') return 'fa-laptop';
+    if(type === 'monitor') return 'fa-desktop';
+    if(type === 'docking_station') return 'fa-plug';
+    if(type === 'phone') return 'fa-mobile-alt';
+    return 'fa-box';
+}
+
+function getLabelForType(type) {
+    if(type === 'pc') return 'Computer';
+    if(type === 'monitor') return 'Monitor';
+    if(type === 'docking_station') return 'Docking Station';
+    if(type === 'phone') return 'Phone';
+    return type;
+}
+
+async function loadHardware() {
+    try {
+        const res = await fetch(`/api/admin/users/${USER_ID}/hardware`);
+        const data = await res.json();
+        
+        // Render Current
+        const curContainer = document.getElementById('currentHardwareList');
+        document.getElementById('activeCount').textContent = `${data.current.length} Devices`;
+        
+        if (data.current.length === 0) {
+            curContainer.innerHTML = `
+                <div class="col-12 text-center py-5 text-muted">
+                    <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
+                    <p class="mb-0">No equipment currently assigned.</p>
+                </div>`;
+        } else {
+            curContainer.innerHTML = data.current.map(hw => `
+                <div class="col-md-6">
+                    <div class="p-3 border rounded-3 bg-body shadow-sm position-relative">
+                        <div class="d-flex align-items-center mb-2">
+                            <div class="bg-body-tertiary rounded-circle p-3 me-3 text-primary">
+                                <i class="fas ${getIconForType(hw.type)} fa-lg"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <div class="fw-bold text-body">${hw.model || 'Unknown Model'}</div>
+                                <div class="text-muted small">${hw.serial_number}</div>
+                                <div class="badge bg-body-tertiary text-body mt-1 border">${getLabelForType(hw.type)}</div>
+                            </div>
+                        </div>
+                        <button class="btn btn-sm btn-outline-danger w-100 rounded-pill mt-2" onclick="openReturnModal('${hw.type}', ${hw.id}, '${hw.serial_number}')">
+                            <i class="fas fa-undo me-1"></i> Return to Stock
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Render History
+        const histContainer = document.getElementById('historyList');
+        if (data.history.length === 0) {
+            histContainer.innerHTML = `
+                <tr><td colspan="6" class="text-center py-5 text-muted">No assignment history found.</td></tr>
+            `;
+        } else {
+            histContainer.innerHTML = data.history.map(h => {
+                const isAssigned = h.action === "Assigned";
+                const dateStr = h.date ? new Date(h.date).toLocaleDateString() + ' ' + new Date(h.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-';
+                return `
+                <tr class="align-middle">
+                    <td class="ps-4 text-muted small">${dateStr}</td>
+                    <td><span class="badge bg-${isAssigned ? 'success' : 'secondary'} bg-opacity-25 text-${isAssigned ? 'success' : 'secondary'} border border-${isAssigned ? 'success' : 'secondary'} px-2">${h.action}</span></td>
+                    <td><i class="fas ${getIconForType(h.hw_type)} me-2 text-muted"></i> ${getLabelForType(h.hw_type)}</td>
+                    <td>${h.hw_model || '-'}</td>
+                    <td><code class="bg-body-tertiary text-body px-2 py-1 rounded border">${h.hw_serial || '-'}</code></td>
+                    <td class="text-muted small">${h.notes || '-'}</td>
+                </tr>
+                `;
+            }).join('');
+        }
+        
+    } catch (e) {
+        console.error(e);
+        document.getElementById('currentHardwareList').innerHTML = `<div class="col-12 text-danger text-center">Error loading hardware</div>`;
+    }
+}
+
+// Assignment Logic
+async function openAssignModal() {
+    const select = document.getElementById('stockSelect');
+    select.innerHTML = '<option value="">Loading available stock...</option>';
+    document.getElementById('assignNotes').value = '';
+    
+    new bootstrap.Modal(document.getElementById('assignModal')).show();
+    
+    try {
+        // Fetch all available stock
+        const res = await fetch('/api/hardware/stock/all');
+        const stockData = await res.json();
+        
+        const available = (stockData.items || []).filter(item => item.status.toLowerCase() === 'available');
+        
+        if (available.length === 0) {
+            select.innerHTML = '<option value="">No available stock found</option>';
+            return;
+        }
+        
+        // Group by type for better UI
+        const grouped = available.reduce((acc, item) => {
+            if(!acc[item.asset_type]) acc[item.asset_type] = [];
+            acc[item.asset_type].push(item);
+            return acc;
+        }, {});
+        
+        let html = '<option value="">Select a device to assign...</option>';
+        for (const [type, items] of Object.entries(grouped)) {
+            html += `<optgroup label="${getLabelForType(type)}">`;
+            items.forEach(item => {
+                html += `<option value="${type}|${item.id}">${item.serial_number} - ${item.model || 'Unknown Model'}</option>`;
+            });
+            html += `</optgroup>`;
+        }
+        
+        select.innerHTML = html;
+        
+    } catch (e) {
+        select.innerHTML = '<option value="">Error loading stock</option>';
+        console.error(e);
+    }
+}
+
+document.getElementById('assignForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const val = document.getElementById('stockSelect').value;
+    if (!val) return;
+    
+    const [type, id] = val.split('|');
+    const notes = document.getElementById('assignNotes').value;
+    
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
+    
+    try {
+        const payload = {
+            asset_type: type,
+            asset_id: parseInt(id),
+            user_id: USER_ID,
+            notes: notes
+        };
+        
+        const res = await fetch('/api/hardware/assign', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.detail || 'Assignment failed');
+        }
+        
+        bootstrap.Modal.getInstance(document.getElementById('assignModal')).hide();
+        loadHardware(); // Refresh
+        
+    } catch(err) {
+        alert(err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Assign Equipment';
+    }
+});
+
+function openReturnModal(type, id, serial) {
+    document.getElementById('returnAssetType').value = type;
+    document.getElementById('returnAssetId').value = id;
+    document.getElementById('returnAssetDisplay').textContent = `${getLabelForType(type)} (${serial})`;
+    document.getElementById('returnNotes').value = '';
+    new bootstrap.Modal(document.getElementById('returnModal')).show();
+}
+
+document.getElementById('returnForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitReturnBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    try {
+        const payload = {
+            asset_type: document.getElementById('returnAssetType').value,
+            asset_id: parseInt(document.getElementById('returnAssetId').value),
+            notes: document.getElementById('returnNotes').value
+        };
+        
+        const res = await fetch('/api/hardware/return', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(payload)
+        });
+        
+        if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.detail || 'Return failed');
+        }
+        
+        bootstrap.Modal.getInstance(document.getElementById('returnModal')).hide();
+        loadHardware(); // Refresh
+        
+    } catch(err) {
+        alert(err.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Confirm Return';
+    }
+});
+
+</script>
+{% endblock %}
+
+

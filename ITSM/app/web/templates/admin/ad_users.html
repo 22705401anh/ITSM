@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Active Directory Users - ITSM Platform{% endblock %}
+{% block title %}Active Directory Users - KOSTAL ITSM{% endblock %}
 
 {% block content %}
 <div class="py-4">
@@ -28,14 +28,14 @@
             <div class="row align-items-center">
                 <div class="col-md-5">
                     <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0">
+                        <span class="input-group-text bg-body border-end-0">
                             <i class="fas fa-search text-muted"></i>
                         </span>
                         <input type="text" id="searchInput" class="form-control border-start-0" placeholder="Search by name, email, or department...">
                     </div>
                 </div>
                 <div class="col-md-7 text-end text-muted small">
-                    Showing <span id="userCount" class="fw-bold text-dark">0</span> AD users
+                    Showing <span id="userCount" class="fw-bold text-body">0</span> AD users
                 </div>
             </div>
         </div>
@@ -261,3 +261,5 @@ async function syncADUsers() {
 }
 </script>
 {% endblock %}
+
+
