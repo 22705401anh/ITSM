@@ -38,6 +38,8 @@ wheels/
 *.db
 *.sqlite
 *.sqlite3
+*.db-wal
+*.db-shm
 
 # Environment
 .env
