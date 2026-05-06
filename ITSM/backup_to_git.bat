@@ -8,7 +8,8 @@ echo.
 :: Ensure we are in the script's directory
 cd /d "%~dp0"
 
-echo [1/4] Checking git status...
+echo [1/4] Checking git status and branch...
+git checkout master
 git status -s
 echo.
 
@@ -31,7 +32,7 @@ git commit -m "%commit_msg%"
 
 echo.
 echo [4/4] Pushing to remote repository...
-git push
+git push origin HEAD:master
 
 echo.
 echo =======================================================
