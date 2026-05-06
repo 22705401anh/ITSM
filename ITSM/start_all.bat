@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 echo =======================================================
 echo          Starting ITSM Platform Services
 echo =======================================================
@@ -9,6 +10,11 @@ start "FastAPI Web Server" cmd /k "venv\Scripts\activate && uvicorn app.main:app
 
 echo [2/4] Starting Network Telemetry Worker...
 start "Network Telemetry Worker" cmd /k "venv\Scripts\activate && python scripts\network_telemetry_worker.py"
+
+echo.
+echo Waiting 5 seconds for the FastAPI server to boot up before launching API sync scripts...
+timeout /t 5 /nobreak >nul
+echo.
 
 echo [3/4] Starting Asset Inventory Sync...
 start "Asset Inventory Sync" powershell -NoExit -ExecutionPolicy Bypass -File "scripts\Sync-ITSMAssets.ps1"

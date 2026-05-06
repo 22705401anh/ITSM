@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey, Bool
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.db import Base
+from app.models.user import User
 
 class DiscoveryJob(Base):
     __tablename__ = "discovery_jobs"

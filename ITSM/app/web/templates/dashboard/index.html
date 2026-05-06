@@ -20,136 +20,69 @@
     </div>
 
     <!-- KPI Cards - Overview -->
-    <div class="row row-cols-1 row-cols-md-3 row-cols-xl-5 g-3 mb-4">
+    <div class="row row-cols-1 row-cols-md-3 g-3 mb-4">
         <!-- Total Assets -->
         <div class="col">
-            <div class="card stat-card stat-assets h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2 small"><i class="fas fa-cube"></i> TOTAL ASSETS</p>
-                            <h2 class="mb-1 text-body" id="assetCount">0</h2>
-                            <small class="text-success"><i class="fas fa-arrow-up"></i> Inventory items</small>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-server"></i>
+            <a href="/users_list" class="text-decoration-none">
+                <div class="card stat-card stat-assets h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-2 small"><i class="fas fa-cube"></i> TOTAL ASSETS</p>
+                                <h2 class="mb-1 text-body" id="assetCount">0</h2>
+                                <small class="text-success"><i class="fas fa-arrow-up"></i> Inventory items</small>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-laptop"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
 
-        <!-- Licensed Software -->
+        <!-- Network Assets -->
         <div class="col">
-            <div class="card stat-card stat-licenses h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2 small"><i class="fas fa-certificate"></i> LICENSES</p>
-                            <h2 class="mb-1 text-body" id="licenseCount">0</h2>
-                            <small class="text-info"><i class="fas fa-check-circle"></i> Active</small>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-certificate"></i>
+            <a href="/network/discovery" class="text-decoration-none">
+                <div class="card stat-card stat-network h-100" style="--card-gradient: linear-gradient(180deg, #8E2DE2 0%, #4A00E0 100%);">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-2 small"><i class="fas fa-network-wired"></i> NETWORK ASSETS</p>
+                                <h2 class="mb-1 text-body" id="networkCount">0</h2>
+                                <small class="text-primary"><i class="fas fa-satellite-dish"></i> Switches/Routers</small>
+                            </div>
+                            <div class="stat-icon" style="background: rgba(142, 45, 226, 0.15); color: #8E2DE2;">
+                                <i class="fas fa-server"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- Problems -->
-        <div class="col">
-            <div class="card stat-card stat-problems h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2 small"><i class="fas fa-exclamation-circle"></i> PROBLEMS</p>
-                            <h2 class="mb-1 text-body" id="problemCount">0</h2>
-                            <small class="text-warning"><i class="fas fa-clock"></i> Open</small>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Changes -->
-        <div class="col">
-            <div class="card stat-card stat-changes h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2 small"><i class="fas fa-tasks"></i> CHANGES</p>
-                            <h2 class="mb-1 text-body" id="changeCount">0</h2>
-                            <small class="text-primary"><i class="fas fa-hourglass-half"></i> Pending</small>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-sync-alt"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </a>
         </div>
 
         <!-- Users -->
         <div class="col">
-            <div class="card stat-card stat-users h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2 small"><i class="fas fa-users"></i> AD USERS</p>
-                            <h2 class="mb-1 text-body" id="topAdUserCount">0</h2>
-                            <small class="text-secondary"><i class="fas fa-user-shield"></i> Active</small>
-                        </div>
-                        <div class="stat-icon">
-                            <i class="fas fa-user-friends"></i>
+            <a href="/admin/ad-users" class="text-decoration-none">
+                <div class="card stat-card stat-users h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <p class="text-muted mb-2 small"><i class="fas fa-users"></i> AD USERS</p>
+                                <h2 class="mb-1 text-body" id="topAdUserCount">0</h2>
+                                <small class="text-secondary"><i class="fas fa-user-shield"></i> Active</small>
+                            </div>
+                            <div class="stat-icon">
+                                <i class="fas fa-user-friends"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
+            </a>
         </div>
     </div>
 
-    <!-- Quick Actions Section -->
-    <div class="row g-3 mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm border-0 rounded-3">
-                <div class="card-header bg-body-tertiary border-bottom">
-                    <h5 class="mb-0"><i class="fas fa-bolt text-warning"></i> Quick Access</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row g-2">
-                        <div class="col-md-3">
-                            <a href="/users_list" class="btn btn-outline-primary w-100 py-2 rounded-pill">
-                                <i class="fas fa-boxes me-2"></i>
-                                <span>Asset Inventory</span>
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="/licenses" class="btn btn-outline-warning w-100 py-2 rounded-pill">
-                                <i class="fas fa-certificate me-2"></i>
-                                <span>Manage Licenses</span>
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="/problems" class="btn btn-outline-danger w-100 py-2 rounded-pill">
-                                <i class="fas fa-exclamation-triangle me-2"></i>
-                                <span>Track Problems</span>
-                            </a>
-                        </div>
-                        <div class="col-md-3">
-                            <a href="/changes" class="btn btn-outline-info w-100 py-2 rounded-pill">
-                                <i class="fas fa-sync-alt me-2"></i>
-                                <span>Change Mgmt</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+
 
     <!-- Stale Assets Section -->
     <div class="row g-3 mb-4" id="staleAssetsContainer">
@@ -290,99 +223,7 @@
         </div>
     </div>
 
-    <!-- License Management Section -->
-    <div class="row g-3 mb-4">
-        <div class="col-lg-6">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-body-tertiary border-bottom">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h5 class="mb-0"><i class="fas fa-certificate text-warning"></i> License Management</h5>
-                        <span class="badge bg-secondary">Overview</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-4 text-center">
-                            <div class="p-3 bg-body-tertiary rounded">
-                                <h3 class="text-primary mb-1" id="totalLicenses">0</h3>
-                                <small class="text-muted">Total Licenses</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-center">
-                            <div class="p-3 bg-body-tertiary rounded">
-                                <h3 class="text-success mb-1" id="activeLicenses">0</h3>
-                                <small class="text-muted">Active</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4 text-center">
-                            <div class="p-3 bg-body-tertiary rounded">
-                                <h3 class="text-danger mb-1" id="expiredLicenses">0</h3>
-                                <small class="text-muted">Expired</small>
-                            </div>
-                        </div>
-                    </div>
 
-                    <hr>
-
-                    <div class="mb-3">
-                        <p class="small text-muted mb-2">Expiring Soon (30 days)</p>
-                        <h4 class="text-warning" id="expiringLicenses">0</h4>
-                    </div>
-
-                    <div class="d-grid">
-                        <a href="/licenses" class="btn btn-primary btn-sm">
-                            <i class="fas fa-arrow-right me-2"></i> Manage Licenses
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Problem & Change Overview -->
-        <div class="col-lg-6">
-            <div class="card h-100 shadow-sm">
-                <div class="card-header bg-body-tertiary border-bottom">
-                    <div class="d-flex align-items-center justify-content-between">
-                        <h5 class="mb-0"><i class="fas fa-tasks text-danger"></i> Service Management</h5>
-                        <span class="badge bg-secondary">Status</span>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-3">
-                        <div class="col-md-6">
-                            <div class="border-start border-warning border-4 ps-3 mb-3">
-                                <small class="text-muted">Open Problems</small>
-                                <h3 class="text-warning mb-0" id="openProblems">0</h3>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="border-start border-info border-4 ps-3 mb-3">
-                                <small class="text-muted">Pending Changes</small>
-                                <h3 class="text-info mb-0" id="pendingChanges">0</h3>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr>
-
-                    <div class="row g-2">
-                        <div class="col-md-6">
-                            <a href="/problems" class="btn btn-outline-warning w-100 btn-sm">
-                                <i class="fas fa-exclamation-circle me-1"></i> Problems
-                            </a>
-                        </div>
-                        <div class="col-md-6">
-                            <a href="/changes" class="btn btn-outline-info w-100 btn-sm">
-                                <i class="fas fa-sync-alt me-1"></i> Changes
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- (Quick Actions moved to top) -->
 
     <!-- System Health & Documentation -->
     <div class="row g-3 mb-4">
@@ -595,6 +436,10 @@
     color: #43e97b;
 }
 
+.stat-card.stat-network::before {
+    background: var(--card-gradient, linear-gradient(180deg, #8E2DE2 0%, #4A00E0 100%));
+}
+
 .stat-card:hover .stat-icon {
     transform: scale(1.1) rotate(5deg);
 }
@@ -724,56 +569,23 @@ async function loadDashboard() {
             typesList.innerHTML = '<p class="text-muted text-center py-4">No assets registered yet</p>';
         }
 
-        // Load license statistics
-        try {
-            const licenseRes = await fetch('/api/licenses');
-            if (licenseRes.ok) {
-                const licenses = await licenseRes.json();
-                const totalLicenses = licenses.length || 0;
-                const activeLicenses = licenses.filter(l => !l.expiry_date || new Date(l.expiry_date) > new Date()).length;
-                const expiredLicenses = licenses.filter(l => l.expiry_date && new Date(l.expiry_date) < new Date()).length;
-                const expiringLicenses = licenses.filter(l => {
-                    if (!l.expiry_date) return false;
-                    const expiry = new Date(l.expiry_date);
-                    const today = new Date();
-                    const daysLeft = Math.floor((expiry - today) / (1000 * 60 * 60 * 24));
-                    return daysLeft >= 0 && daysLeft <= 30;
-                }).length;
 
-                document.getElementById('licenseCount').textContent = totalLicenses;
-                document.getElementById('totalLicenses').textContent = totalLicenses;
-                document.getElementById('activeLicenses').textContent = activeLicenses;
-                document.getElementById('expiredLicenses').textContent = expiredLicenses;
-                document.getElementById('expiringLicenses').textContent = expiringLicenses;
+
+        // Load network count
+        try {
+            const netDevices = await apiRequest('GET', '/discovery/devices');
+            if (Array.isArray(netDevices)) {
+                // Only count actual network infrastructure devices
+                const infrastructureDevices = netDevices.filter(d => 
+                    d.device_type === 'Switch' || 
+                    d.device_type === 'Router' || 
+                    d.device_type === 'Firewall' ||
+                    d.device_type === 'Access Point'
+                );
+                document.getElementById('networkCount').textContent = infrastructureDevices.length;
             }
         } catch (e) {
-            console.warn('Could not load license data:', e);
-        }
-
-        // Load problem count
-        try {
-            const problemRes = await fetch('/api/problems');
-            if (problemRes.ok) {
-                const problems = await problemRes.json();
-                const openProblems = Array.isArray(problems) ? problems.length : 0;
-                document.getElementById('problemCount').textContent = openProblems;
-                document.getElementById('openProblems').textContent = openProblems;
-            }
-        } catch (e) {
-            console.warn('Could not load problem data:', e);
-        }
-
-        // Load change count
-        try {
-            const changeRes = await fetch('/api/changes');
-            if (changeRes.ok) {
-                const changes = await changeRes.json();
-                const pendingChanges = Array.isArray(changes) ? changes.filter(c => c.status !== 'completed').length : 0;
-                document.getElementById('changeCount').textContent = pendingChanges;
-                document.getElementById('pendingChanges').textContent = pendingChanges;
-            }
-        } catch (e) {
-            console.warn('Could not load change data:', e);
+            console.warn('Could not load network data:', e);
         }
 
         // Load AD Users count

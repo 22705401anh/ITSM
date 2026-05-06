@@ -85,13 +85,13 @@ async def get_switch_ports(ip: str, community: str = 'public') -> list:
         
     try:
         from pysnmp.hlapi.v3arch.asyncio import bulk_walk_cmd, SnmpEngine, CommunityData, UdpTransportTarget, ContextData, ObjectType, ObjectIdentity
-        import asyncio
+        engine = SnmpEngine()
         
         async def fetch_column(oid_str):
             t = await UdpTransportTarget.create((ip, 161), timeout=2.0, retries=2)
             results = {}
             async for errorIndication, errorStatus, errorIndex, varBinds in bulk_walk_cmd(
-                SnmpEngine(), CommunityData(community, mpModel=1), t, ContextData(),
+                engine, CommunityData(community, mpModel=1), t, ContextData(),
                 0, 50, ObjectType(ObjectIdentity(oid_str)),
                 lexicographicMode=False
             ):
@@ -107,7 +107,7 @@ async def get_switch_ports(ip: str, community: str = 'public') -> list:
             t = await UdpTransportTarget.create((ip, 161), timeout=2.0, retries=2)
             results = {}
             async for errorIndication, errorStatus, errorIndex, varBinds in bulk_walk_cmd(
-                SnmpEngine(), CommunityData(community, mpModel=1), t, ContextData(),
+                engine, CommunityData(community, mpModel=1), t, ContextData(),
                 0, 50, ObjectType(ObjectIdentity(oid_str)),
                 lexicographicMode=False
             ):
@@ -144,7 +144,6 @@ async def get_switch_ports(ip: str, community: str = 'public') -> list:
 
         async def fetch_cam_data():
             t = await UdpTransportTarget.create((ip, 161), timeout=2.0, retries=2)
-            engine = SnmpEngine()
             auth = CommunityData(community, mpModel=1)
             vlans = []
             
@@ -202,7 +201,7 @@ async def get_switch_ports(ip: str, community: str = 'public') -> list:
             t = await UdpTransportTarget.create((ip, 161), timeout=2.0, retries=2)
             vlan_map = {}
             async for errorIndication, errorStatus, errorIndex, varBinds in bulk_walk_cmd(
-                SnmpEngine(), CommunityData(community, mpModel=1), t, ContextData(),
+                engine, CommunityData(community, mpModel=1), t, ContextData(),
                 0, 50, ObjectType(ObjectIdentity('1.3.6.1.4.1.9.9.68.1.2.2.1.2')),
                 lexicographicMode=False
             ):
@@ -223,7 +222,7 @@ async def get_switch_ports(ip: str, community: str = 'public') -> list:
             # Step 1: dot1dBasePortIfIndex — bridge port → ifIndex
             bp_to_ifidx = {}
             async for errorIndication, errorStatus, errorIndex, varBinds in bulk_walk_cmd(
-                SnmpEngine(), CommunityData(community, mpModel=1), t, ContextData(),
+                engine, CommunityData(community, mpModel=1), t, ContextData(),
                 0, 50, ObjectType(ObjectIdentity('1.3.6.1.2.1.17.1.4.1.2')),
                 lexicographicMode=False
             ):
@@ -235,7 +234,7 @@ async def get_switch_ports(ip: str, community: str = 'public') -> list:
             # Step 2: dot1qPvid — bridge port → PVID
             pvid_map = {}
             async for errorIndication, errorStatus, errorIndex, varBinds in bulk_walk_cmd(
-                SnmpEngine(), CommunityData(community, mpModel=1), t, ContextData(),
+                engine, CommunityData(community, mpModel=1), t, ContextData(),
                 0, 50, ObjectType(ObjectIdentity('1.3.6.1.2.1.17.7.1.4.5.1.1')),
                 lexicographicMode=False
             ):
@@ -250,19 +249,25 @@ async def get_switch_ports(ip: str, community: str = 'public') -> list:
                             pvid_map[ifidx] = v
             return pvid_map
 
+        # Run column fetches with strict concurrency limit to prevent CoPP packet drops
+        col_sem = asyncio.Semaphore(3)
+        async def run_col(coro):
+            async with col_sem:
+                return await coro
+
         results = await asyncio.gather(
-            fetch_column('1.3.6.1.2.1.2.2.1.2'), # ifDescr
-            fetch_column('1.3.6.1.2.1.2.2.1.5'), # ifSpeed
-            fetch_column('1.3.6.1.2.1.2.2.1.6'), # ifPhysAddress
-            fetch_column('1.3.6.1.2.1.2.2.1.7'), # ifAdminStatus
-            fetch_column('1.3.6.1.2.1.2.2.1.8'), # ifOperStatus
-            fetch_column('1.3.6.1.2.1.31.1.1.1.18'), # ifAlias
-            fetch_cdp('1.3.6.1.4.1.9.9.23.1.2.1.1.4', is_ip=True), # CDP IP
-            fetch_cdp('1.3.6.1.4.1.9.9.23.1.2.1.1.6', is_ip=False), # CDP Name
-            fetch_cdp('1.3.6.1.4.1.9.9.23.1.2.1.1.9', is_ip=False, is_cap=True), # CDP Capabilities
-            fetch_cam_data(),          # CAM Table MACs
-            fetch_vmvlan(),            # Primary: Cisco vmVlan (ifIndex-indexed)
-            fetch_pvid_with_mapping(), # Fallback: Q-BRIDGE dot1qPvid (bridge port-indexed)
+            run_col(fetch_column('1.3.6.1.2.1.2.2.1.2')), # ifDescr
+            run_col(fetch_column('1.3.6.1.2.1.2.2.1.5')), # ifSpeed
+            run_col(fetch_column('1.3.6.1.2.1.2.2.1.6')), # ifPhysAddress
+            run_col(fetch_column('1.3.6.1.2.1.2.2.1.7')), # ifAdminStatus
+            run_col(fetch_column('1.3.6.1.2.1.2.2.1.8')), # ifOperStatus
+            run_col(fetch_column('1.3.6.1.2.1.31.1.1.1.18')), # ifAlias
+            run_col(fetch_cdp('1.3.6.1.4.1.9.9.23.1.2.1.1.4', is_ip=True)), # CDP IP
+            run_col(fetch_cdp('1.3.6.1.4.1.9.9.23.1.2.1.1.6', is_ip=False)), # CDP Name
+            run_col(fetch_cdp('1.3.6.1.4.1.9.9.23.1.2.1.1.9', is_ip=False, is_cap=True)), # CDP Capabilities
+            run_col(fetch_cam_data()),          # CAM Table MACs
+            run_col(fetch_vmvlan()),            # Primary: Cisco vmVlan
+            run_col(fetch_pvid_with_mapping()), # Fallback: Q-BRIDGE dot1qPvid
         )
 
         # Build ifIndex → vlan_id: prefer Cisco vmVlan, fall back to dot1qPvid
@@ -295,15 +300,16 @@ async def get_switch_ports(ip: str, community: str = 'public') -> list:
         return []
 
 
-async def _snmp_walk(ip: str, community: str, oid: str) -> dict:
+async def _snmp_walk(ip: str, community: str, oid: str, engine=None) -> dict:
     """Generic SNMP GETBULK walk helper. Returns {index: value_str}."""
     if not HAS_SNMP:
         return {}
     try:
         t = await UdpTransportTarget.create((ip, 161), timeout=3.0, retries=2)
         results = {}
+        eng = engine or SnmpEngine()
         async for errorIndication, errorStatus, errorIndex, varBinds in bulk_walk_cmd(
-            SnmpEngine(), CommunityData(community, mpModel=1), t, ContextData(),
+            eng, CommunityData(community, mpModel=1), t, ContextData(),
             0, 50, ObjectType(ObjectIdentity(oid)),
             lexicographicMode=False
         ):
@@ -318,15 +324,16 @@ async def _snmp_walk(ip: str, community: str, oid: str) -> dict:
         return {}
 
 
-async def _snmp_walk_full_index(ip: str, community: str, oid: str) -> dict:
+async def _snmp_walk_full_index(ip: str, community: str, oid: str, engine=None) -> dict:
     """Generic SNMP GETBULK walk helper keeping full index after base OID."""
     if not HAS_SNMP:
         return {}
     try:
         t = await UdpTransportTarget.create((ip, 161), timeout=3.0, retries=2)
         results = {}
+        eng = engine or SnmpEngine()
         async for errorIndication, errorStatus, errorIndex, varBinds in bulk_walk_cmd(
-            SnmpEngine(), CommunityData(community, mpModel=1), t, ContextData(),
+            eng, CommunityData(community, mpModel=1), t, ContextData(),
             0, 50, ObjectType(ObjectIdentity(oid)),
             lexicographicMode=False
         ):
@@ -345,7 +352,7 @@ async def _snmp_walk_full_index(ip: str, community: str, oid: str) -> dict:
         return {}
 
 
-async def _snmp_get(ip: str, community: str, oids: list) -> dict:
+async def _snmp_get(ip: str, community: str, oids: list, engine=None) -> dict:
     """SNMP GET for specific OIDs. Returns {oid: value_str}."""
     if not HAS_SNMP:
         return {}
@@ -353,8 +360,9 @@ async def _snmp_get(ip: str, community: str, oids: list) -> dict:
         from pysnmp.hlapi.v3arch.asyncio import get_cmd, SnmpEngine, CommunityData, UdpTransportTarget, ContextData, ObjectType, ObjectIdentity
         t = await UdpTransportTarget.create((ip, 161), timeout=3.0, retries=2)
         obj_types = [ObjectType(ObjectIdentity(o)) for o in oids]
+        eng = engine or SnmpEngine()
         errorIndication, errorStatus, errorIndex, varBinds = await get_cmd(
-            SnmpEngine(), CommunityData(community, mpModel=1), t, ContextData(),
+            eng, CommunityData(community, mpModel=1), t, ContextData(),
             *obj_types
         )
         if errorIndication or errorStatus:
@@ -409,14 +417,15 @@ async def get_device_hardware_software(ip: str, community: str) -> dict:
     """Entity MIB chassis details: model, HW rev, SW rev, serial, description."""
     import asyncio
 
+    engine = SnmpEngine()
     # Walk Entity MIB columns
     descr, model_name, hw_rev, sw_rev, serial, phys_class = await asyncio.gather(
-        _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.2'),   # entPhysicalDescr
-        _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.13'),  # entPhysicalModelName
-        _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.8'),   # entPhysicalHardwareRev
-        _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.10'),  # entPhysicalSoftwareRev
-        _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.11'),  # entPhysicalSerialNum
-        _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.5'),   # entPhysicalClass
+        _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.2', engine),   # entPhysicalDescr
+        _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.13', engine),  # entPhysicalModelName
+        _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.8', engine),   # entPhysicalHardwareRev
+        _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.10', engine),  # entPhysicalSoftwareRev
+        _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.11', engine),  # entPhysicalSerialNum
+        _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.5', engine),   # entPhysicalClass
     )
 
     # Also fetch sysDescr for IOS version extraction
@@ -716,24 +725,24 @@ async def get_device_stack(ip: str, community: str) -> dict:
 
     return {'members': members}
 
-async def poll_device_telemetry(db_session, device):
+async def _async_poll_device_telemetry(device_id: int, ip_address: str, discovery_source: str):
     import json
     import asyncio
     from datetime import datetime
     from app.models.network import DeviceTelemetry
-    if not device.ip_address:
+    from app.db import SessionLocal
+    from app.models.settings import SystemSetting
+    
+    if not ip_address:
         return
         
+    db_session = SessionLocal()
     try:
-        from app.api.discovery import (
-            get_switch_ports, get_arp_table, get_device_power, get_device_fans, get_device_temperature,
-            get_device_summary, get_device_hardware_software, get_device_sfp, get_device_vlans, get_device_stp, get_device_stack
-        )
-        from app.models.settings import SystemSetting
+
         
         # Get SNMP community
         comm = "public"
-        comm_str = device.discovery_source or ""
+        comm_str = discovery_source or ""
         if "COMMUNITY:" in comm_str.upper():
             for p in comm_str.split(","):
                 if p.upper().startswith("COMMUNITY:"):
@@ -744,22 +753,46 @@ async def poll_device_telemetry(db_session, device):
             if global_comm and global_comm.setting_value:
                 comm = global_comm.setting_value
                 
-        ip = device.ip_address
+        ip = ip_address
         
-        # Gather ALL SNMP data sequentially
-        # PySNMP uses many sockets; gathering them concurrently hits Windows 512 FD limit
-        ports = await get_switch_ports(ip, comm)
-        arp = await get_arp_table(ip, comm)
-        power = await get_device_power(ip, comm)
-        fans = await get_device_fans(ip, comm)
-        temp = await get_device_temperature(ip, comm)
-        summary = await get_device_summary(ip, comm)
-        hw_sw = await get_device_hardware_software(ip, comm)
-        sfp = await get_device_sfp(ip, comm)
-        vlans = await get_device_vlans(ip, comm)
-        stp = await get_device_stp(ip, comm)
-        stack = await get_device_stack(ip, comm)
-        cdp = await get_cdp_neighbors(ip, comm)
+        # Limit total telemetry tasks to 2 at a time to respect switch CPU
+        sem = asyncio.Semaphore(2)
+        
+        async def run_with_sem(coro):
+            async with sem:
+                return await coro
+
+        results = await asyncio.gather(
+            run_with_sem(get_switch_ports(ip, comm)),
+            run_with_sem(get_arp_table(ip, comm)),
+            run_with_sem(get_device_power(ip, comm)),
+            run_with_sem(get_device_fans(ip, comm)),
+            run_with_sem(get_device_temperature(ip, comm)),
+            run_with_sem(get_device_summary(ip, comm)),
+            run_with_sem(get_device_hardware_software(ip, comm)),
+            run_with_sem(get_device_sfp(ip, comm)),
+            run_with_sem(get_device_vlans(ip, comm)),
+            run_with_sem(get_device_stp(ip, comm)),
+            run_with_sem(get_device_stack(ip, comm)),
+            run_with_sem(get_cdp_neighbors(ip, comm)),
+            return_exceptions=True
+        )
+        
+        def get_result(idx, default):
+            return results[idx] if not isinstance(results[idx], Exception) else default
+            
+        ports = get_result(0, [])
+        arp = get_result(1, {})
+        power = get_result(2, {})
+        fans = get_result(3, {})
+        temp = get_result(4, {})
+        summary = get_result(5, {})
+        hw_sw = get_result(6, {})
+        sfp = get_result(7, {})
+        vlans = get_result(8, {})
+        stp = get_result(9, {})
+        stack = get_result(10, {})
+        cdp = get_result(11, [])
         
         # Yield to the event loop so HTTP requests aren't starved
         await asyncio.sleep(0)
@@ -779,9 +812,9 @@ async def poll_device_telemetry(db_session, device):
         }
         
         # Update or create telemetry
-        telemetry = db_session.query(DeviceTelemetry).filter(DeviceTelemetry.device_id == device.id).first()
+        telemetry = db_session.query(DeviceTelemetry).filter(DeviceTelemetry.device_id == device_id).first()
         if not telemetry:
-            telemetry = DeviceTelemetry(device_id=device.id)
+            telemetry = DeviceTelemetry(device_id=device_id)
             db_session.add(telemetry)
             
         telemetry.ports_data_json = json.dumps(ports)
@@ -789,56 +822,46 @@ async def poll_device_telemetry(db_session, device):
         telemetry.last_polled_at = datetime.utcnow()
         
         db_session.commit()
-        logger.info(f"Successfully polled telemetry for switch {device.ip_address}")
+        logger.info(f"Successfully polled telemetry for switch {ip_address}")
     except Exception as e:
-        logger.error(f"Error polling telemetry for {device.ip_address}: {e}")
+        logger.error(f"Error polling telemetry for {ip_address}: {e}")
         db_session.rollback()
+    finally:
+        db_session.close()
+
+def sync_poll_device_telemetry(device_id: int, ip_address: str, discovery_source: str):
+    import asyncio
+    # Create a new event loop for this thread
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(_async_poll_device_telemetry(device_id, ip_address, discovery_source))
+    finally:
+        loop.close()
+
+async def poll_device_telemetry(device_id: int, ip_address: str, discovery_source: str):
+    """
+    Dispatches the telemetry polling to a background thread to prevent PySNMP 
+    ASN.1 decoding from freezing the FastAPI event loop.
+    """
+    import asyncio
+    if not ip_address:
+        return
+    await asyncio.to_thread(sync_poll_device_telemetry, device_id, ip_address, discovery_source)
 
 
+async def poll_all_switch_telemetry():
+    """Background routine to poll telemetry from all known active switches."""
     from app.db import SessionLocal
     from app.models.network import DiscoveredDevice
     import asyncio
     
-    logger.info("Starting background poll of all switch telemetry...")
-    db = SessionLocal()
-    try:
-        switches = db.query(DiscoveredDevice).filter(
-            DiscoveredDevice.device_type == 'Switch',
-            DiscoveredDevice.snmp_status == 'CONNECTED'
-        ).all()
-        
-        if not switches:
-            logger.info("No connected switches found to poll.")
-            return
-            
-        # Poll ONE switch at a time sequentially with pauses between each.
-        # This is a background job — it doesn't need to be fast, but it must NOT
-        # starve the event loop or make HTTP page loads unresponsive.
-        for sw in switches:
-            local_db = SessionLocal()
-            try:
-                local_device = local_db.query(DiscoveredDevice).filter(DiscoveredDevice.id == sw.id).first()
-                if local_device:
-                    await poll_device_telemetry(local_db, local_device)
-            except Exception as poll_err:
-                logger.error(f"Error polling switch {sw.ip_address}: {poll_err}")
-            finally:
-                local_db.close()
-            # Breathe between switches so the event loop can serve HTTP requests
-            await asyncio.sleep(2)
-        logger.info("Completed background poll of all switch telemetry.")
-    except Exception as e:
-        logger.error(f"Failed to complete telemetry polling: {e}")
-    finally:
-        db.close()
-
-async def poll_all_switch_telemetry():
-    """Background routine to poll telemetry from all known active switches."""
     logger.info("=== poll_all_switch_telemetry() CALLED ===")
     db = SessionLocal()
     try:
         switches = db.query(DiscoveredDevice).filter(
-            DiscoveredDevice.is_active == True,
+            DiscoveredDevice.status != 'IGNORED',
+            DiscoveredDevice.snmp_status == 'CONNECTED',
             DiscoveredDevice.device_type.in_(['Switch', 'Router'])
         ).all()
         
@@ -848,12 +871,23 @@ async def poll_all_switch_telemetry():
             
         logger.info(f"Polling telemetry for {len(switches)} devices...")
         
-        for device in switches:
+        # Poll ONE switch at a time sequentially with pauses between each.
+        for sw in switches:
+            local_db = SessionLocal()
             try:
-                await poll_device_telemetry(db, device)
+                local_device = local_db.query(DiscoveredDevice).filter(DiscoveredDevice.id == sw.id).first()
+                if local_device:
+                    await poll_device_telemetry(local_device.id, local_device.ip_address, local_device.discovery_source)
             except Exception as e:
-                logger.error(f"Error polling telemetry for device {device.ip_address}: {e}")
-                
+                logger.error(f"Error polling telemetry for device {sw.ip_address}: {e}")
+            finally:
+                local_db.close()
+            
+            # Breathe between switches so the event loop can serve HTTP requests
+            await asyncio.sleep(2)
+            
         logger.info("=== poll_all_switch_telemetry() COMPLETED ===")
+    except Exception as e:
+        logger.error(f"Failed to complete telemetry polling: {e}")
     finally:
         db.close()

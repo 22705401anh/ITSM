@@ -362,9 +362,29 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         const isAvail = asset.status === 'Available';
+        let statusColor = 'secondary';
+        let statusIcon = 'fa-info-circle';
+        
+        if (asset.status === 'Available') {
+            statusColor = 'success';
+            statusIcon = 'fa-check-circle';
+        } else if (asset.status === 'Assigned') {
+            statusColor = 'primary';
+            statusIcon = 'fa-user-lock';
+        } else if (asset.status === 'Maintenance') {
+            statusColor = 'warning text-dark';
+            statusIcon = 'fa-tools text-dark';
+        } else if (asset.status === 'Broken' || asset.status === 'Retired') {
+            statusColor = 'danger';
+            statusIcon = 'fa-times-circle';
+        } else if (asset.status === 'Returned to Supplier') {
+            statusColor = 'secondary';
+            statusIcon = 'fa-truck-loading';
+        }
+
         document.getElementById('statusIndicator').innerHTML = `
-            <span class="badge rounded-pill bg-${isAvail ? 'success' : 'primary'} fs-6 px-3 py-2 shadow-sm">
-                <i class="fas ${isAvail ? 'fa-check-circle' : 'fa-user-lock'} me-1"></i> ${asset.status}
+            <span class="badge rounded-pill bg-${statusColor} fs-6 px-3 py-2 shadow-sm">
+                <i class="fas ${statusIcon} me-1"></i> ${asset.status || 'Unknown'}
             </span>
         `;
 

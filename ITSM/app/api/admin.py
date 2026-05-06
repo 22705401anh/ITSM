@@ -169,10 +169,17 @@ async def get_user_hardware(user_id: int, db: Session = Depends(get_db)):
 
         # Determine if this was an assignment TO the user or RETURN FROM the user
         action = ""
+        date_val = a.assigned_date
+
         if a.new_user_id == user_id:
-            action = "Assigned"
+            if a.is_active:
+                action = "Assigned"
+            else:
+                action = "Returned"
+                if a.returned_date:
+                    date_val = a.returned_date
         elif a.previous_user_id == user_id:
-            action = "Returned"
+            action = "Transferred"
 
         history.append({
             "id": a.id,
@@ -181,7 +188,7 @@ async def get_user_hardware(user_id: int, db: Session = Depends(get_db)):
             "hw_serial": hw_serial,
             "hw_model": hw_model,
             "hw_id": hw_id,
-            "date": a.assigned_date.isoformat() if a.assigned_date else None,
+            "date": date_val.isoformat() if date_val else None,
             "notes": a.notes
         })
 

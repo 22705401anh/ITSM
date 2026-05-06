@@ -217,7 +217,8 @@ async function liveRefresh() {
     const btn = document.getElementById('btnLiveRefresh');
     if (btn) btn.classList.add('fa-spin');
     try {
-        await apiRequest('POST', `/discovery/devices/${deviceId}/refresh`);
+        const res = await apiRequest('POST', `/discovery/devices/${deviceId}/refresh`);
+        if (!res) throw new Error("Refresh failed");
         // Clear cache so sections re-fetch
         Object.keys(sectionCache).forEach(k => delete sectionCache[k]);
         showToast("Live data refreshed", "success");
@@ -235,6 +236,7 @@ async function fetchAndRenderPorts() {
     const grid = document.getElementById('portGridContainer');
     try {
         const res = await apiRequest('GET', `/discovery/devices/${deviceId}/ports`);
+        if (!res) throw new Error("Failed to fetch SNMP interface data.");
         const ports = res.ports || [];
         window.globalPortsData = ports;
         if (!ports.length) { grid.innerHTML = '<div style="padding:2rem;color:#6b7280;width:100%;text-align:center">No interface data available.</div>'; return; }
@@ -543,6 +545,7 @@ async function loadSection(section) {
 
     try {
         const res = await apiRequest('GET', `/discovery/devices/${deviceId}/detail/${apiSection}`);
+        if (!res) throw new Error("Failed to load section data via SNMP.");
         sectionCache[apiSection] = res.data;
         if (currentSection === section) {
             contentEl.innerHTML = renderSection(apiSection, res.data);

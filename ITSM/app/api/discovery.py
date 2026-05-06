@@ -537,45 +537,47 @@ async def get_device_ports(device_id: int, force: bool = False, db: Session = De
     return {"ports": ports}
 
 @router.post("/devices/{device_id}/refresh")
-async def refresh_device(device_id: int, db: Session = Depends(get_db)):
+async def refresh_device(device_id: int, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     d = db.query(DiscoveredDevice).filter(DiscoveredDevice.id == device_id).first()
     if not d:
         raise HTTPException(status_code=404, detail="Device not found")
         
     community = "public"
-    if d.discovery_source and "COMMUNITY:" in d.discovery_source.upper():
+    if d.discovery_source:
         parts = d.discovery_source.split(",")
         for p in parts:
             if p.upper().startswith("COMMUNITY:"):
                 community = p[len("COMMUNITY:"):]
                 break
                 
-    from app.services.discovery_service import analyze_device
-    from app.services.switch_telemetry import poll_device_telemetry
+    from app.services.discovery_service import get_snmp_sysdescr
+    from app.services.switch_telemetry import sync_poll_device_telemetry
     
-    result = await analyze_device(d.ip_address, use_icmp=True, use_snmp=True, community=community)
+    # Rapid SNMP check (skips slow ICMP and Port scanning for known devices)
+    sys_descr, sys_name, snmp_status, snmp_error, uptime, serial_number = await get_snmp_sysdescr(d.ip_address, community)
     
-    if result:
-        d.last_seen = datetime.utcnow()
-        if result["hostname"] and "HOST-" not in result["hostname"]:
-            d.hostname = result["hostname"]
-        if result["mac_address"]:
-            d.mac_address = result["mac_address"]
-        if result["device_type"] != "Unknown":
-            d.device_type = result["device_type"]
-        if result["vendor"] != "Unknown":
-            d.vendor = result["vendor"]
-        if result.get("serial_number"):
-            d.serial_number = result.get("serial_number")
-        if result.get("uptime"):
-            d.uptime = result.get("uptime")
-        d.snmp_status = result["snmp_status"]
-        d.snmp_error = result["snmp_error"]
-        db.commit()
+    if snmp_status == "CONNECTED":
+        d.snmp_status = "CONNECTED"
+        if sys_name and "HOST-" not in sys_name:
+            d.hostname = sys_name
+        if sys_descr:
+            d.device_type = "Network Switch"
+            d.os_version = sys_descr[:100]
+        if uptime:
+            d.uptime = uptime
+        if serial_number:
+            d.serial_number = serial_number
+    else:
+        d.snmp_status = "FAILED"
+        d.snmp_error = snmp_error
+        
+    d.last_seen = datetime.utcnow()
+    db.commit()
         
     # Always poll telemetry after refresh to ensure cache is hot
     if d.snmp_status == "CONNECTED":
-        await poll_device_telemetry(db, d)
+        # Run telemetry in background so UI returns instantly
+        background_tasks.add_task(sync_poll_device_telemetry, d.id, d.ip_address, d.discovery_source)
         
     return {"message": "Refreshed"}
 

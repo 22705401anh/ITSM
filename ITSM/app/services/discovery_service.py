@@ -59,10 +59,12 @@ async def get_snmp_sysdescr(ip: str, community: str = 'public') -> tuple:
     try:
         from pysnmp.hlapi.v3arch.asyncio import get_cmd, SnmpEngine, CommunityData, UdpTransportTarget, ContextData, ObjectType, ObjectIdentity
         
-        t = await UdpTransportTarget.create((ip, 161), timeout=2.0, retries=2)
-        errorIndication, errorStatus, errorIndex, varBinds = await get_cmd(
-                SnmpEngine(),
-                CommunityData(community, mpModel=1), # mpModel=1 means SNMPv2c
+        engine = SnmpEngine()
+        try:
+            t = await UdpTransportTarget.create((ip, 161), timeout=2.0, retries=2)
+            errorIndication, errorStatus, errorIndex, varBinds = await get_cmd(
+                    engine,
+                    CommunityData(community, mpModel=1), # mpModel=1 means SNMPv2c
                 t,
                 ContextData(),
                 ObjectType(ObjectIdentity('1.3.6.1.2.1.1.1.0')), # sysDescr
@@ -71,38 +73,39 @@ async def get_snmp_sysdescr(ip: str, community: str = 'public') -> tuple:
                 ObjectType(ObjectIdentity('1.3.6.1.2.1.47.1.1.1.1.11.1')) # entPhysicalSerialNum.1 (Chassis)
             )
             
-        if errorIndication:
-            return None, None, "FAILED", f"Timeout or Network Error: {errorIndication}", None, None
-            
-        if errorStatus:
-            return None, None, "FAILED", f"SNMP Error: {errorStatus.prettyPrint()}", None, None
-            
-        sys_descr = None
-        sys_name = None
-        uptime = None
-        serial_number = None
-        
-        for name, val in varBinds:
-            oid = str(name)
-            if '1.3.6.1.2.1.1.1.0' in oid:
-                sys_descr = val.prettyPrint()
-            elif '1.3.6.1.2.1.1.5.0' in oid:
-                sys_name = val.prettyPrint()
-            elif '1.3.6.1.2.1.1.3.0' in oid:
-                # sysUpTime is in hundredths of a second
-                try:
-                    ticks = int(val)
-                    seconds = ticks / 100.0
-                    days = int(seconds // 86400)
-                    hours = int((seconds % 86400) // 3600)
-                    minutes = int((seconds % 3600) // 60)
-                    uptime = f"{days}d {hours}h {minutes}m"
-                except:
-                    uptime = val.prettyPrint()
-            elif '1.3.6.1.2.1.47.1.1.1.1.11.1' in oid:
-                serial_number = val.prettyPrint()
+            if errorIndication:
+                return None, None, "FAILED", f"Timeout or Network Error: {errorIndication}", None, None
                 
-        return sys_descr, sys_name, "CONNECTED", None, uptime, serial_number
+            if errorStatus:
+                return None, None, "FAILED", f"SNMP Error: {errorStatus.prettyPrint()}", None, None
+                
+            sys_descr = None
+            sys_name = None
+            uptime = None
+            serial_number = None
+            
+            for name, val in varBinds:
+                oid = str(name)
+                if '1.3.6.1.2.1.1.1.0' in oid:
+                    sys_descr = val.prettyPrint()
+                elif '1.3.6.1.2.1.1.5.0' in oid:
+                    sys_name = val.prettyPrint()
+                elif '1.3.6.1.2.1.1.3.0' in oid:
+                    # sysUpTime is in hundredths of a second
+                    try:
+                        ticks = int(val)
+                        seconds = ticks / 100.0
+                        days = int(seconds // 86400)
+                        hours = int((seconds % 86400) // 3600)
+                        minutes = int((seconds % 3600) // 60)
+                        uptime = f"{days}d {hours}h {minutes}m"
+                    except:
+                        pass
+                        
+            return sys_descr, sys_name, "CONNECTED", None, uptime, serial_number
+        finally:
+            engine.transportDispatcher.closeDispatcher()
+            
     except Exception as e:
         logger.warning(f"SNMP error for {ip}: {e}")
         return None, None, "FAILED", f"Exception: {str(e)}", None, None
@@ -114,39 +117,43 @@ async def get_snmp_mac_and_serial(ip: str, community: str = 'public') -> tuple:
     try:
         from pysnmp.hlapi.v3arch.asyncio import bulk_walk_cmd, SnmpEngine, CommunityData, UdpTransportTarget, ContextData, ObjectType, ObjectIdentity
         
-        t = await UdpTransportTarget.create((ip, 161), timeout=2.0, retries=2)
-        mac = None
-        serial = None
-        
-        # Fetch Serial
-        async for err, st, idx, varBinds in bulk_walk_cmd(
-            SnmpEngine(), CommunityData(community, mpModel=1), t, ContextData(),
-            0, 10, ObjectType(ObjectIdentity('1.3.6.1.2.1.47.1.1.1.1.11')), lexicographicMode=False
-        ):
-            if err or st: break
-            for name, val in varBinds:
-                p = val.prettyPrint()
-                if p and len(p) > 4:
-                    serial = p
-                    break
-            if serial: break
+        engine = SnmpEngine()
+        try:
+            t = await UdpTransportTarget.create((ip, 161), timeout=2.0, retries=2)
+            mac = None
+            serial = None
             
-        # Fetch MAC
-        async for err, st, idx, varBinds in bulk_walk_cmd(
-            SnmpEngine(), CommunityData(community, mpModel=1), t, ContextData(),
-            0, 10, ObjectType(ObjectIdentity('1.3.6.1.2.1.2.2.1.6')), lexicographicMode=False
-        ):
-            if err or st: break
-            for name, val in varBinds:
-                p = val.prettyPrint()
-                if p.startswith('0x') and len(p) == 14:
-                    # Format 0x3462884fb0c0 -> 34:62:88:4f:b0:c0
-                    raw = p[2:]
-                    mac = ':'.join([raw[i:i+2] for i in range(0, len(raw), 2)]).upper()
-                    break
-            if mac: break
+            # Fetch Serial
+            async for err, st, idx, varBinds in bulk_walk_cmd(
+                engine, CommunityData(community, mpModel=1), t, ContextData(),
+                0, 10, ObjectType(ObjectIdentity('1.3.6.1.2.1.47.1.1.1.1.11')), lexicographicMode=False
+            ):
+                if err or st: break
+                for name, val in varBinds:
+                    p = val.prettyPrint()
+                    if p and len(p) > 4:
+                        serial = p
+                        break
+                if serial: break
             
-        return mac, serial
+            # Fetch MAC
+            async for err, st, idx, varBinds in bulk_walk_cmd(
+                engine, CommunityData(community, mpModel=1), t, ContextData(),
+                0, 10, ObjectType(ObjectIdentity('1.3.6.1.2.1.2.2.1.6')), lexicographicMode=False
+            ):
+                if err or st: break
+                for name, val in varBinds:
+                    p = val.prettyPrint()
+                    if p.startswith('0x') and len(p) == 14:
+                        # Format 0x3462884fb0c0 -> 34:62:88:4f:b0:c0
+                        raw = p[2:]
+                        mac = ':'.join([raw[i:i+2] for i in range(0, len(raw), 2)]).upper()
+                        break
+                if mac: break
+                
+            return mac, serial
+        finally:
+            engine.transportDispatcher.closeDispatcher()
             
     except Exception as e:
         logger.warning(f"SNMP mac/serial error for {ip}: {e}")
@@ -236,14 +243,25 @@ async def analyze_device(ip: str, use_icmp: bool, use_snmp: bool, community: str
     uptime, serial_number = None, None
     snmp_status = "NOT_ATTEMPTED"
     snmp_error = None
+    mac_address = None
     
     if use_snmp:
         sys_descr, sys_name, snmp_status, snmp_error, uptime, serial_number = await get_snmp_sysdescr(ip, community)
         if snmp_status == "CONNECTED":
             is_alive = True
+            snmp_mac, snmp_serial = await get_snmp_mac_and_serial(ip, community)
+            if snmp_serial and not serial_number:
+                serial_number = snmp_serial
+            if snmp_mac:
+                mac_address = snmp_mac
             
     if not is_alive:
         return None # Device is down or not answering
+        
+    if not mac_address:
+        mac_address = get_mac_address(ip)
+        
+    hostname = sys_name if sys_name else f"HOST-{ip.replace('.', '-')}"
         
     # 4. Fingerprint
     device_type = "Unknown"
@@ -280,14 +298,18 @@ async def analyze_device(ip: str, use_icmp: bool, use_snmp: bool, community: str
             os_info = "Linux/Unix"
             
     return {
-        "ip": ip,
+        "ip_address": ip,
         "is_alive": is_alive,
         "hostname": hostname,
         "vendor": vendor,
         "device_type": device_type,
         "os_info": os_info,
-        "mac": mac,
-        "serial": serial_number
+        "mac_address": mac_address,
+        "serial_number": serial_number,
+        "snmp_status": snmp_status,
+        "snmp_error": snmp_error,
+        "uptime": uptime,
+        "open_ports": open_ports
     }
 
 
@@ -466,22 +488,22 @@ async def run_auto_discovery():
     logger.info("=== run_auto_discovery() CALLED ===")
     db = SessionLocal()
     try:
-        auto_scan_enabled = db.query(SystemSetting).filter_by(key="auto_discovery_enabled").first()
-        if not auto_scan_enabled or auto_scan_enabled.value != "true":
-            logger.info("Auto discovery is disabled in settings.")
+        auto_scan_enabled = db.query(SystemSetting).filter_by(setting_key="auto_discovery_enabled").first()
+        if auto_scan_enabled and auto_scan_enabled.setting_value != "true":
+            logger.info("Auto-discovery is disabled in global settings. Skipping.")
             return
 
-        subnets_setting = db.query(SystemSetting).filter_by(key="discovery_subnets").first()
-        if not subnets_setting or not subnets_setting.value:
-            logger.info("No subnets configured for discovery.")
+        subnets_setting = db.query(SystemSetting).filter_by(setting_key="auto_discovery_subnets").first()
+        if not subnets_setting or not subnets_setting.setting_value:
+            logger.warning("No discovery subnets configured in global settings. Skipping auto-discovery.")
             return
-
-        subnets = json.loads(subnets_setting.value)
+            
+        subnets_list = [s.strip() for s in subnets_setting.setting_value.split(',') if s.strip()]
         
-        snmp_community_setting = db.query(SystemSetting).filter_by(key="snmp_community").first()
-        community = snmp_community_setting.value if snmp_community_setting else "public"
+        snmp_community_setting = db.query(SystemSetting).filter_by(setting_key="snmp_community").first()
+        community = snmp_community_setting.setting_value if snmp_community_setting else "public"
 
-        for subnet_str in subnets:
+        for subnet_str in subnets_list:
             logger.info(f"Sweeping subnet: {subnet_str}")
             try:
                 network = ipaddress.ip_network(subnet_str, strict=False)

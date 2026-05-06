@@ -714,7 +714,24 @@ async def add_stock(item: StockCreateSchema, db: Session = Depends(get_db)):
     # Check duplicate serial
     existing = db.query(model_class).filter(model_class.serial_number == item.serial_number).first()
     if existing:
-        raise HTTPException(status_code=400, detail=f"Serial number {item.serial_number} already exists")
+        if existing.status == "Retired":
+            existing.status = "Available"
+            existing.notes = item.notes
+            existing.model = item.model
+            if item.asset_type == "pc":
+                existing.name = item.name or ""
+            elif item.asset_type in ["phone", "phone_number"]:
+                existing.phone_number = item.phone_number or ""
+            
+            db.flush()
+            log_audit(db, "reactivated", item.asset_type, existing.id,
+                      serial_number=item.serial_number,
+                      model=item.model,
+                      details=f"Reactivated retired stock. Model: {item.model}, S/N: {item.serial_number}")
+            db.commit()
+            return {"message": "Previously retired item successfully reactivated", "id": existing.id}
+        else:
+            raise HTTPException(status_code=400, detail=f"Serial number {item.serial_number} already exists")
 
     new_device = model_class(
         serial_number=item.serial_number,
@@ -740,6 +757,51 @@ async def add_stock(item: StockCreateSchema, db: Session = Depends(get_db)):
 
     db.commit()
     return {"message": "Item added to stock successfully", "id": new_device.id}
+
+
+@router.delete("/stock/{asset_type}/{asset_id}")
+async def retire_asset(asset_type: str, asset_id: int, db: Session = Depends(get_db)):
+    """Soft delete an asset by marking it as Retired and closing any active assignments."""
+    type_map = {
+        "pc": PC,
+        "monitor": Monitor,
+        "docking_station": DockingStation,
+        "phone": Phone,
+        "phone_number": PhoneNumber,
+        "printer": Printer
+    }
+    
+    if asset_type not in type_map:
+        raise HTTPException(status_code=400, detail="Invalid asset type")
+        
+    model_class = type_map[asset_type]
+    asset = db.query(model_class).filter(model_class.id == asset_id).first()
+    
+    if not asset:
+        raise HTTPException(status_code=404, detail="Asset not found")
+        
+    # Close any active assignments
+    current_assignment_query = db.query(AssetAssignment).filter(
+        getattr(AssetAssignment, f"{asset_type}_id") == asset.id,
+        AssetAssignment.is_active == True
+    )
+    current_assignment = current_assignment_query.first()
+    if current_assignment:
+        current_assignment.is_active = False
+        current_assignment.returned_date = datetime.utcnow()
+        
+    asset.status = "Retired"
+    asset.current_user_id = None
+    db.flush()
+    
+    # Log audit
+    log_audit(db, "deleted", asset_type, asset.id,
+              serial_number=asset.serial_number,
+              model=asset.model,
+              details=f"Asset removed from available stock and retired.")
+              
+    db.commit()
+    return {"message": "Asset successfully removed from stock"}
 
 
 @router.get("/history/{asset_type}/{asset_id}")
@@ -828,31 +890,7 @@ async def return_specific_hardware(payload: ReturnAssetSchema, db: Session = Dep
         raise HTTPException(404, "Hardware asset not found")
 
     return_hardware(db, hardware, payload.asset_type, payload.notes)
-    for printer in payload.network_printers:
-        p_db = db.query(Printer).filter(Printer.serial_number == printer.serial_number).first()
-        is_new = p_db is None
-        if is_new:
-            p_db = Printer(
-                serial_number=printer.serial_number,
-                model=printer.model,
-                ip_address=printer.ip_address,
-                mac_address=printer.mac_address,
-                status="Available",
-                created_at=datetime.utcnow(),
-                last_seen_at=datetime.utcnow()
-            )
-            db.add(p_db)
-            db.flush()
-            created += 1
-            log_audit(db, "created", "printer", p_db.id, serial_number=p_db.serial_number, model=p_db.model, details="Discovered on network")
-        else:
-            p_db.last_seen_at = datetime.utcnow()
-            if printer.model: p_db.model = printer.model
-            if printer.ip_address: p_db.ip_address = printer.ip_address
-            if printer.mac_address: p_db.mac_address = printer.mac_address
-            updated += 1
-            log_audit(db, "updated", "printer", p_db.id, serial_number=p_db.serial_number, model=p_db.model, details="Updated via network discovery")
-
+    
     db.commit()
     return {"message": "Hardware returned successfully."}
 
@@ -887,31 +925,6 @@ async def update_asset_status(asset_type: str, asset_id: int, payload: AssetStat
               serial_number=hardware.serial_number,
               model=hardware.model,
               details=f"Status changed from {old_status} to {payload.status}")
-
-    for printer in payload.network_printers:
-        p_db = db.query(Printer).filter(Printer.serial_number == printer.serial_number).first()
-        is_new = p_db is None
-        if is_new:
-            p_db = Printer(
-                serial_number=printer.serial_number,
-                model=printer.model,
-                ip_address=printer.ip_address,
-                mac_address=printer.mac_address,
-                status="Available",
-                created_at=datetime.utcnow(),
-                last_seen_at=datetime.utcnow()
-            )
-            db.add(p_db)
-            db.flush()
-            created += 1
-            log_audit(db, "created", "printer", p_db.id, serial_number=p_db.serial_number, model=p_db.model, details="Discovered on network")
-        else:
-            p_db.last_seen_at = datetime.utcnow()
-            if printer.model: p_db.model = printer.model
-            if printer.ip_address: p_db.ip_address = printer.ip_address
-            if printer.mac_address: p_db.mac_address = printer.mac_address
-            updated += 1
-            log_audit(db, "updated", "printer", p_db.id, serial_number=p_db.serial_number, model=p_db.model, details="Updated via network discovery")
 
     db.commit()
     return {"message": f"Asset status updated to {payload.status}"}

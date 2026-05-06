@@ -271,6 +271,26 @@ html.dark-theme .disc-tag{color:var(--primary-light)}
   </div>
 </div>
 
+<!-- Ignore Device Modal -->
+<div class="modal fade" id="ignoreDeviceModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title fw-bold text-danger"><i class="fas fa-exclamation-triangle me-2"></i>Ignore Device</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="mb-0 text-secondary">Are you sure you want to ignore this device? It will be hidden from the discovery dashboard and will not be automatically synced.</p>
+        <input type="hidden" id="ignoreDeviceId">
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-danger px-4" onclick="confirmIgnoreDevice()">Ignore</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 document.addEventListener('DOMContentLoaded', loadData);
 let allDevices=[], currentFilter='All';
@@ -477,7 +497,32 @@ async function exportNetworkDevices(btn) {
 }
 
 async function syncDevice(id){ try{ const r=await apiRequest('POST',`/discovery/devices/${id}/sync`); if(r){showToast(r.message,"success");loadData();} }catch(e){console.error(e)} }
-async function ignoreDevice(id){ if(!confirm("Ignore this device?")) return; try{await apiRequest('POST',`/discovery/devices/${id}/ignore`);loadData();}catch(e){console.error(e)} }
+function ignoreDevice(id) {
+    document.getElementById('ignoreDeviceId').value = id;
+    const modal = new bootstrap.Modal(document.getElementById('ignoreDeviceModal'));
+    modal.show();
+}
+
+async function confirmIgnoreDevice() {
+    const id = document.getElementById('ignoreDeviceId').value;
+    if(!id) return;
+    try {
+        const btn = document.querySelector('#ignoreDeviceModal .btn-danger');
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Ignoring...';
+        btn.disabled = true;
+        await apiRequest('POST', `/discovery/devices/${id}/ignore`);
+        bootstrap.Modal.getInstance(document.getElementById('ignoreDeviceModal')).hide();
+        showToast("Device ignored successfully", "success");
+        loadData();
+    } catch(e) {
+        console.error(e);
+        showToast("Failed to ignore device", "error");
+    } finally {
+        const btn = document.querySelector('#ignoreDeviceModal .btn-danger');
+        btn.innerHTML = 'Ignore';
+        btn.disabled = false;
+    }
+}
 async function fetchCMDBFallback(query) {
     const tbody = document.getElementById('assetsTableBody');
     try {
