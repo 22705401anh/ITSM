@@ -12,8 +12,11 @@ class Settings(BaseSettings):
     APP_VERSION: str = "0.1.0"
     DEBUG: bool = False
 
-    # Database
-    DATABASE_URL: str = "sqlite:///./app.db"
+    # Database High Availability & Connection
+    DB_TYPE: str = "" # e.g. "POSTGRES", "MYSQL", "SQLSERVER", "SQLITE"
+    DATABASE_URL_PRIMARY: Optional[str] = None
+    DATABASE_URL_SECONDARY: Optional[str] = None
+    DATABASE_URL: str = "sqlite:///./app.db" # Local fallback
     SQLALCHEMY_ECHO: bool = False
 
     # Security
@@ -27,7 +30,7 @@ class Settings(BaseSettings):
     SMTP_PORT: int = 587
     SMTP_USER: Optional[str] = None
     SMTP_PASSWORD: Optional[str] = None
-    SMTP_FROM: str = "noreply@itsm.local"
+    SMTP_FROM: str = "KOSTALITSM@kostal.com"
     SMTP_ENABLED: bool = False
 
     # File uploads
@@ -51,6 +54,14 @@ class Settings(BaseSettings):
     LDAP_BASE_DN: str = "DC=ma,DC=kostal,DC=int"
     LDAP_BIND_DN: str = "CN=kaziz999,OU=GE,OU=USR,DC=ma,DC=kostal,DC=int"
     LDAP_PASSWORD: str = "jkfnJKF#44"
+
+    # SSO (Single Sign-On)
+    SSO_ENABLED: bool = True
+    SSO_CLIENT_ID: str = ""
+    SSO_CLIENT_SECRET: str = ""
+    SSO_TENANT_ID: str = "common"
+    SSO_AUTHORITY: str = "https://login.microsoftonline.com/{tenant}/v2.0"
+    SSO_REDIRECT_URI: str = "http://localhost:8000/api/auth/sso/callback"
 
     class Config:
         env_file = ".env"

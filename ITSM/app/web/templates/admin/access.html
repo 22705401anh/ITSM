@@ -1,0 +1,603 @@
+{% extends "base.html" %}
+
+{% block title %}Platform Access Management - KOSTAL ITSM{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="#" class="text-decoration-none text-muted">Admin</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Access Management</li>
+                </ol>
+            </nav>
+            <h1 class="h3 fw-bolder text-dark mb-0">Platform Access</h1>
+        </div>
+        <div>
+            <button class="btn btn-dark px-4 shadow-sm fw-medium d-flex align-items-center" data-bs-toggle="modal" data-bs-target="#grantAccessModal" onclick="resetAdSearch()">
+                <i class="fas fa-plus me-2" style="font-size: 0.8rem;"></i> Add User
+            </button>
+        </div>
+    </div>
+
+    <!-- Active Users Card -->
+    <div class="card border border-light-subtle shadow-sm rounded-3">
+        <div class="card-header bg-white border-bottom-0 py-3 d-flex justify-content-between align-items-center">
+            <div class="input-group input-group-sm" style="max-width: 250px;">
+                <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-search"></i></span>
+                <input type="text" id="activeSearchInput" class="form-control border-start-0 shadow-none bg-white px-0" placeholder="Search users..." onkeyup="filterActiveUsers()">
+            </div>
+            <div class="text-muted small">
+                Users Directory
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle table-hover mb-0 custom-table">
+                <thead>
+                    <tr>
+                        <th>User</th>
+                        <th>Account Info</th>
+                        <th>Status</th>
+                        <th>Role</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="activeUsersTable">
+                    <tr>
+                        <td colspan="5" class="text-center py-5">
+                            <div class="spinner-border text-secondary" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
+                            <div class="mt-3 text-muted" style="font-size: 0.85rem;">Loading directory...</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Grant Access Modal -->
+<div class="modal fade" id="grantAccessModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content border-0">
+            <div class="modal-header bg-white border-bottom px-4 py-3">
+                <h5 class="modal-title fw-bold text-dark fs-5">Add User to Platform</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0 bg-light">
+                <div class="p-4 bg-white border-bottom z-1 position-relative">
+                    <p class="text-muted small mb-3">Search the Active Directory forest to grant login access. User profiles will be imported automatically.</p>
+                    <div class="input-group input-group-lg border rounded-2 overflow-hidden shadow-sm">
+                        <span class="input-group-text bg-white border-0 text-muted ps-3"><i class="fas fa-search" style="font-size: 1rem;"></i></span>
+                        <input type="text" id="adSearchInput" class="form-control border-0 shadow-none bg-white fs-6" placeholder="Type name, email, or username..." onkeyup="debounceAdSearch()">
+                    </div>
+                </div>
+                <div class="list-group list-group-flush" id="adSearchResults" style="min-height: 250px;">
+                    <div class="text-center py-5 text-muted h-100 d-flex flex-column align-items-center justify-content-center">
+                        <i class="fas fa-address-book fa-2x mb-3 text-secondary opacity-25"></i>
+                        <p class="mb-0 fw-medium" style="font-size: 0.9rem;">Global directory search</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Revoke Confirmation Modal -->
+<div class="modal fade" id="revokeConfirmModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-sm">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-body p-4 text-center">
+                <div class="mb-3">
+                    <i class="fas fa-exclamation-circle text-danger" style="font-size: 2.5rem;"></i>
+                </div>
+                <h5 class="fw-bold mb-2">Revoke Access</h5>
+                <p class="text-muted small mb-4">Are you sure you want to revoke platform access for <strong id="revokeUserName" class="text-dark"></strong>?</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-light btn-sm px-3 fw-medium" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger btn-sm px-3 fw-medium" id="confirmRevokeBtn">Revoke</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manage Permissions Modal -->
+<div class="modal fade" id="managePermissionsModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-white border-bottom px-4 py-3">
+                <h5 class="modal-title fw-bold text-dark fs-5">Page Access: <span id="permUserName"></span></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4 bg-light">
+                <p class="text-muted small mb-4">Select the modules this user is allowed to access.</p>
+                
+                <form id="permissionsForm">
+                    <input type="hidden" id="permUserId">
+                    
+                    <div class="list-group shadow-sm border-0 mb-4">
+                        <label class="list-group-item d-flex justify-content-between align-items-center p-3 border-light-subtle">
+                            <div>
+                                <i class="fas fa-desktop text-muted me-2" style="width:20px"></i> Hardware Inventory
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input perm-checkbox" type="checkbox" value="hardware">
+                            </div>
+                        </label>
+                        <label class="list-group-item d-flex justify-content-between align-items-center p-3 border-light-subtle">
+                            <div>
+                                <i class="fas fa-key text-muted me-2" style="width:20px"></i> Software Licenses
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input perm-checkbox" type="checkbox" value="licenses">
+                            </div>
+                        </label>
+                        <label class="list-group-item d-flex justify-content-between align-items-center p-3 border-light-subtle">
+                            <div>
+                                <i class="fas fa-network-wired text-muted me-2" style="width:20px"></i> Network
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input perm-checkbox" type="checkbox" value="network">
+                            </div>
+                        </label>
+                        <label class="list-group-item d-flex justify-content-between align-items-center p-3 border-light-subtle">
+                            <div>
+                                <i class="fas fa-chart-line text-muted me-2" style="width:20px"></i> Global Dashboard
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input perm-checkbox" type="checkbox" value="dashboard">
+                            </div>
+                        </label>
+                        <label class="list-group-item d-flex justify-content-between align-items-center p-3 border-light-subtle">
+                            <div>
+                                <i class="fas fa-user-plus text-muted me-2" style="width:20px"></i> HR Onboarding
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input perm-checkbox" type="checkbox" value="onboarding">
+                            </div>
+                        </label>
+                        <label class="list-group-item d-flex justify-content-between align-items-center p-3 border-light-subtle">
+                            <div>
+                                <i class="fas fa-book-open text-muted me-2" style="width:20px"></i> Knowledge Base
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input perm-checkbox" type="checkbox" value="knowledge">
+                            </div>
+                        </label>
+                        <label class="list-group-item d-flex justify-content-between align-items-center p-3 border-light-subtle">
+                            <div>
+                                <i class="fas fa-cog text-muted me-2" style="width:20px"></i> Global Settings
+                            </div>
+                            <div class="form-check form-switch m-0">
+                                <input class="form-check-input perm-checkbox" type="checkbox" value="settings">
+                            </div>
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top bg-white px-4 py-3">
+                <button type="button" class="btn btn-light px-4 fw-medium" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-dark px-4 fw-medium" id="savePermissionsBtn" onclick="savePermissions()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let allUsers = [];
+
+document.addEventListener('DOMContentLoaded', loadUsers);
+
+function escapeHtml(unsafe) {
+    if (!unsafe) return '';
+    return unsafe
+         .replace(/&/g, "&amp;")
+         .replace(/</g, "&lt;")
+         .replace(/>/g, "&gt;")
+         .replace(/"/g, "&quot;")
+         .replace(/'/g, "&#039;");
+}
+
+function showToast(message, type = 'success') {
+    window.ITSMNotification ? window.ITSMNotification.show(message, type) : alert(message);
+}
+
+async function loadUsers() {
+    try {
+        const res = await fetch('/api/admin/users');
+        if (!res.ok) throw new Error('Failed to fetch users');
+        allUsers = await res.json();
+        renderActiveUsers();
+    } catch (e) {
+        document.getElementById('activeUsersTable').innerHTML = `
+            <tr><td colspan="5" class="text-center text-danger py-4"><i class="fas fa-exclamation-circle mb-2"></i><br>Error loading users.</td></tr>
+        `;
+        console.error(e);
+    }
+}
+
+function renderActiveUsers() {
+    const activeUsers = allUsers.filter(u => u.is_active);
+    const tbody = document.getElementById('activeUsersTable');
+    
+    if (activeUsers.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="5" class="text-center text-muted py-5">
+                    <p class="mb-0">No users have access</p>
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    tbody.innerHTML = activeUsers.map(u => `
+        <tr>
+            <td>
+                <div class="d-flex align-items-center">
+                    <div class="avatar bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center me-3 border avatar-pro">
+                        ${u.full_name ? escapeHtml(u.full_name.charAt(0).toUpperCase()) : '<i class="fas fa-user"></i>'}
+                    </div>
+                    <div>
+                        <div class="fw-semibold text-dark" style="font-size: 0.9rem;">${escapeHtml(u.full_name || u.username)}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">${escapeHtml(u.email || '-')}</div>
+                    </div>
+                </div>
+            </td>
+            <td>
+                <div class="text-dark fw-medium" style="font-size: 0.85rem;">${escapeHtml(u.username)}</div>
+                <div class="text-muted" style="font-size: 0.75rem;">
+                ${u.auth_type === 'ldap' 
+                    ? '<i class="fas fa-network-wired me-1" style="font-size:0.65rem;"></i> AD Sync' 
+                    : '<i class="fas fa-database me-1" style="font-size:0.65rem;"></i> Local DB'}
+                </div>
+            </td>
+            <td>
+                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 rounded-pill px-2" style="font-weight: 500; font-size: 0.7rem;">
+                    <i class="fas fa-circle me-1" style="font-size: 0.4rem; vertical-align: middle;"></i> Active
+                </span>
+            </td>
+            <td>
+                <select class="role-select ${u.role === 'admin' ? 'admin' : 'user'}" onchange="changeRole(${u.id}, this.value, '${escapeHtml(u.username)}', this)">
+                    <option value="user" ${u.role !== 'admin' ? 'selected' : ''}>Standard User</option>
+                    <option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Administrator</option>
+                </select>
+            </td>
+            <td class="text-end">
+                <button class="action-btn me-1" onclick="managePermissions(${u.id}, '${escapeHtml(u.username)}', '${u.assigned_pages || ''}')" title="Manage Permissions" ${u.role === 'admin' ? 'disabled style="opacity: 0.3;"' : ''}>
+                    <i class="fas fa-sliders-h"></i>
+                </button>
+                <button class="action-btn" onclick="revokeAccess(${u.id}, '${escapeHtml(u.username)}')" title="Revoke Access">
+                    <i class="fas fa-trash-alt"></i>
+                </button>
+            </td>
+        </tr>
+    `).join('');
+    
+    filterActiveUsers();
+}
+
+let searchTimeout = null;
+
+function resetAdSearch() {
+    document.getElementById('adSearchInput').value = '';
+    document.getElementById('adSearchResults').innerHTML = `
+        <div class="text-center py-5 text-muted h-100 d-flex flex-column align-items-center justify-content-center">
+            <i class="fas fa-address-book fa-2x mb-3 text-secondary opacity-25"></i>
+            <p class="mb-0 fw-medium" style="font-size: 0.9rem;">Global directory search</p>
+        </div>
+    `;
+}
+
+function debounceAdSearch() {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(performAdSearch, 500);
+}
+
+async function performAdSearch() {
+    const query = document.getElementById('adSearchInput').value.trim();
+    const container = document.getElementById('adSearchResults');
+    
+    if (query.length < 3) {
+        if (query.length === 0) resetAdSearch();
+        return;
+    }
+    
+    container.innerHTML = `
+        <div class="text-center py-5 text-muted">
+            <div class="spinner-border text-secondary mb-3" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
+            <p class="mb-0" style="font-size: 0.9rem;">Searching directory...</p>
+        </div>
+    `;
+    
+    try {
+        const res = await fetch(`/api/admin/ad/search?q=${encodeURIComponent(query)}`);
+        if (!res.ok) throw new Error('Search failed');
+        
+        const results = await res.json();
+        
+        if (results.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5 text-muted">
+                    <p class="mb-0" style="font-size: 0.9rem;">No users found for "${escapeHtml(query)}"</p>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = results.map(u => {
+            const isGranted = u.is_active_locally;
+            return `
+            <div class="list-group-item d-flex justify-content-between align-items-center p-3 border-bottom ${isGranted ? 'bg-light' : ''}">
+                <div class="d-flex align-items-center">
+                    <div class="avatar bg-light text-secondary rounded-circle d-flex align-items-center justify-content-center me-3 border avatar-pro">
+                        ${u.full_name ? escapeHtml(u.full_name.charAt(0).toUpperCase()) : '<i class="fas fa-user"></i>'}
+                    </div>
+                    <div class="${isGranted ? 'opacity-50' : ''}">
+                        <div class="fw-semibold text-dark" style="font-size: 0.9rem;">${escapeHtml(u.full_name || u.username)}</div>
+                        <div class="text-muted" style="font-size: 0.75rem;">${escapeHtml(u.email || 'No email')} &bull; ${escapeHtml(u.username)}</div>
+                    </div>
+                </div>
+                ${isGranted 
+                    ? '<span class="badge bg-light text-secondary border px-2 py-1"><i class="fas fa-check me-1"></i> Active</span>' 
+                    : `<button class="btn btn-outline-dark btn-sm px-3 fw-medium" onclick="grantAdAccess('${escapeHtml(u.username)}', this)">Grant</button>`
+                }
+            </div>
+            `;
+        }).join('');
+        
+    } catch (e) {
+        container.innerHTML = `
+            <div class="text-center py-5 text-danger">
+                <p class="mb-0" style="font-size: 0.9rem;">Error searching AD: ${e.message}</p>
+            </div>
+        `;
+    }
+}
+
+async function grantAdAccess(username, btnElement) {
+    const originalText = btnElement.innerHTML;
+    btnElement.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    btnElement.disabled = true;
+    
+    try {
+        const res = await fetch(`/api/admin/ad/grant`, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username })
+        });
+        
+        if (res.ok) {
+            showToast(`Access granted to ${username}`, 'success');
+            await loadUsers(); 
+            performAdSearch(); 
+        } else {
+            const data = await res.json();
+            showToast(data.detail || 'Failed to grant access', 'danger');
+            btnElement.innerHTML = originalText;
+            btnElement.disabled = false;
+        }
+    } catch (e) {
+        showToast('Network error: ' + e.message, 'danger');
+        btnElement.innerHTML = originalText;
+        btnElement.disabled = false;
+    }
+}
+
+function filterActiveUsers() {
+    const query = document.getElementById('activeSearchInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#activeUsersTable tr');
+    
+    rows.forEach(row => {
+        if (row.querySelector('td[colspan]')) return; 
+        const text = row.textContent.toLowerCase();
+        if (text.includes(query)) {
+            row.classList.remove('d-none');
+        } else {
+            row.classList.add('d-none');
+        }
+    });
+}
+
+let pendingRevokeUserId = null;
+let pendingRevokeUsername = null;
+
+function revokeAccess(userId, username) {
+    pendingRevokeUserId = userId;
+    pendingRevokeUsername = username;
+    document.getElementById('revokeUserName').textContent = username;
+    const modal = new bootstrap.Modal(document.getElementById('revokeConfirmModal'));
+    modal.show();
+}
+
+document.getElementById('confirmRevokeBtn').addEventListener('click', async function() {
+    if (!pendingRevokeUserId) return;
+    
+    const btn = this;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch(`/api/admin/users/${pendingRevokeUserId}/revoke`, { method: 'POST' });
+        if (res.ok) {
+            showToast(`Access revoked for ${pendingRevokeUsername}`, 'warning');
+            bootstrap.Modal.getInstance(document.getElementById('revokeConfirmModal')).hide();
+            await loadUsers();
+        } else {
+            const data = await res.json();
+            showToast(data.detail || 'Failed to revoke access', 'danger');
+        }
+    } catch (e) {
+        showToast('Network error: ' + e.message, 'danger');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+        pendingRevokeUserId = null;
+    }
+});
+
+async function changeRole(userId, newRole, username, selectElement) {
+    const originalRole = selectElement.value === 'admin' ? 'user' : 'admin';
+    const isNowAdmin = newRole === 'admin';
+    selectElement.className = 'role-select ' + (isNowAdmin ? 'admin' : 'user');
+
+    try {
+        const res = await fetch(`/api/admin/users/${userId}/role`, { 
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: newRole })
+        });
+        
+        if (res.ok) {
+            showToast(`Role updated to ${isNowAdmin ? 'Administrator' : 'Standard User'} for ${username}`, 'success');
+            await loadUsers();
+        } else {
+            const data = await res.json();
+            showToast(data.detail || 'Failed to update role', 'danger');
+            selectElement.value = originalRole;
+            selectElement.className = 'role-select ' + (originalRole === 'admin' ? 'admin' : 'user');
+        }
+    } catch (e) {
+        showToast('Network error: ' + e.message, 'danger');
+        selectElement.value = originalRole;
+        selectElement.className = 'role-select ' + (originalRole === 'admin' ? 'admin' : 'user');
+    }
+}
+
+function managePermissions(userId, username, assignedPagesStr) {
+    document.getElementById('permUserId').value = userId;
+    document.getElementById('permUserName').textContent = username;
+    
+    // reset checkboxes
+    document.querySelectorAll('.perm-checkbox').forEach(cb => cb.checked = false);
+    
+    if (assignedPagesStr && assignedPagesStr !== 'null') {
+        const pages = assignedPagesStr.split(',').map(s => s.trim());
+        document.querySelectorAll('.perm-checkbox').forEach(cb => {
+            if (pages.includes(cb.value)) cb.checked = true;
+        });
+    }
+    
+    new bootstrap.Modal(document.getElementById('managePermissionsModal')).show();
+}
+
+async function savePermissions() {
+    const userId = document.getElementById('permUserId').value;
+    const btn = document.getElementById('savePermissionsBtn');
+    
+    const checkboxes = document.querySelectorAll('.perm-checkbox:checked');
+    const assignedPages = Array.from(checkboxes).map(cb => cb.value).join(',');
+    
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch(`/api/admin/users/${userId}/permissions`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ assigned_pages: assignedPages })
+        });
+        
+        if (res.ok) {
+            showToast('Permissions updated successfully', 'success');
+            bootstrap.Modal.getInstance(document.getElementById('managePermissionsModal')).hide();
+            await loadUsers();
+        } else {
+            const data = await res.json();
+            showToast(data.detail || 'Failed to save permissions', 'danger');
+        }
+    } catch (e) {
+        showToast('Network error: ' + e.message, 'danger');
+    } finally {
+        btn.innerHTML = originalText;
+        btn.disabled = false;
+    }
+}
+</script>
+
+<style>
+.custom-table th {
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: #6c757d;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #dee2e6;
+    border-top: 1px solid #dee2e6;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+}
+.custom-table td {
+    padding: 1rem;
+    border-bottom: 1px solid #f1f3f5;
+    color: #495057;
+}
+
+/* Role Select styling - enterprise look */
+.role-select {
+    appearance: none;
+    background-color: transparent;
+    border: 1px solid transparent;
+    padding: 0.25rem 1.5rem 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #212529;
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M4 6l4 4 4-4'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.25rem center;
+    background-size: 12px 12px;
+    cursor: pointer;
+    transition: all 0.15s ease-in-out;
+}
+.role-select:hover {
+    background-color: #f8f9fa;
+    border-color: #dee2e6;
+}
+.role-select:focus {
+    outline: none;
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.1rem rgba(13, 110, 253, 0.25);
+    background-color: #fff;
+}
+.role-select.admin {
+    color: #b91c1c; 
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23b91c1c' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M4 6l4 4 4-4'/%3e%3c/svg%3e");
+}
+
+.avatar-pro {
+    font-size: 0.9rem;
+    font-weight: 500;
+    width: 36px;
+    height: 36px;
+}
+
+.action-btn {
+    color: #adb5bd;
+    background: transparent;
+    border: none;
+    padding: 0.4rem;
+    border-radius: 0.25rem;
+    transition: all 0.2s;
+    line-height: 1;
+}
+.action-btn:hover {
+    color: #dc3545;
+    background-color: #fee2e2;
+}
+
+/* Modals */
+.modal-content {
+    border-radius: 0.5rem;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04) !important;
+}
+.modal-header {
+    border-bottom: 1px solid #f1f3f5;
+    padding: 1.25rem 1.5rem;
+}
+</style>
+{% endblock %}

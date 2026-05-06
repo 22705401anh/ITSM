@@ -151,3 +151,22 @@ class LicenseAccessHistory(Base, TimestampMixin):
     action: Mapped[str] = mapped_column(String(50), nullable=False)  # viewed, exported, copied
     ip_address: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)  # IPv6 support
     user_agent: Mapped[Optional[str]] = mapped_column(String(500), nullable=True)
+
+
+class LicenseAssignment(Base, TimestampMixin):
+    """Tracks assignment of licenses to specific users or devices"""
+
+    __tablename__ = "license_assignments"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    license_id: Mapped[int] = mapped_column(Integer, ForeignKey("license_registrations.id"), nullable=False)
+    
+    # Can be assigned to a user OR a PC
+    user_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
+    pc_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("pcs.id"), nullable=True)
+    
+    assigned_by_id: Mapped[Optional[int]] = mapped_column(Integer, ForeignKey("users.id"), nullable=True)
+    assigned_date: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    
+    status: Mapped[str] = mapped_column(String(50), default="active")  # active, revoked
+    notes: Mapped[Optional[str]] = mapped_column(Text, nullable=True)

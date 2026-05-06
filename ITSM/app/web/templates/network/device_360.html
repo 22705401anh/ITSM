@@ -1,0 +1,562 @@
+{% extends "base.html" %}
+{% block title %}Device 360 | KOSTAL ITSM{% endblock %}
+{% block page_title %}Device 360{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ── Device 360 Professional Theme ── */
+.d360{font-family:'Inter',system-ui,sans-serif;background:#f0f2f5;min-height:calc(100vh - 60px)}
+.d360 *{box-sizing:border-box}
+
+/* ── Breadcrumb Bar ── */
+.d360-bc{background:#fff;border-bottom:1px solid #e5e7eb;padding:.65rem 2rem;font-size:.8rem}
+.d360-bc a{color:var(--primary);text-decoration:none;font-weight:500}
+.d360-bc a:hover{text-decoration:underline}
+.d360-bc .sep{color:#d1d5db;margin:0 .5rem}
+
+/* ── Hero Header ── */
+.d360-hero{background:linear-gradient(135deg,var(--primary) 0%,var(--primary-dark) 60%,#764ba2 100%);color:#fff;padding:1.75rem 2rem 1.5rem;position:relative;overflow:hidden}
+.d360-hero::after{content:'';position:absolute;top:-50%;right:-10%;width:500px;height:500px;background:radial-gradient(circle,rgba(255,255,255,.1) 0%,transparent 70%);pointer-events:none}
+.d360-hero-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1rem;position:relative;z-index:1}
+.d360-dev-icon{width:52px;height:52px;border-radius:12px;background:rgba(255,255,255,.1);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin-right:1rem;border:1px solid rgba(255,255,255,.15);flex-shrink:0}
+.d360-dev-name{font-size:1.35rem;font-weight:700;letter-spacing:-.02em}
+.d360-badges{display:flex;gap:.5rem;margin-top:.4rem;flex-wrap:wrap}
+.d360-badge{padding:.2rem .65rem;border-radius:20px;font-size:.7rem;font-weight:600;letter-spacing:.3px;border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.08);backdrop-filter:blur(4px)}
+.d360-badge-ok{background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);color:#86efac}
+.d360-badge-warn{background:rgba(251,191,36,.15);border-color:rgba(251,191,36,.3);color:#fde68a}
+.d360-meta-row{display:flex;flex-wrap:wrap;gap:.35rem 1.5rem;font-size:.78rem;color:rgba(255,255,255,.7);position:relative;z-index:1}
+.d360-meta-row strong{color:#fff;font-weight:600;margin-left:.3rem}
+.d360-last-seen{font-size:.75rem;color:rgba(255,255,255,.5)}
+.d360-refresh{color:rgba(255,255,255,.6);margin-left:.5rem;cursor:pointer;transition:.2s}
+.d360-refresh:hover{color:#fff;transform:rotate(90deg)}
+
+/* ── Body Layout ── */
+.d360-body{display:flex;gap:0;min-height:calc(100vh - 220px)}
+
+/* ── Sidebar Nav ── */
+.d360-side{width:240px;background:#fff;border-right:1px solid #e5e7eb;flex-shrink:0;padding:.5rem 0;overflow-y:auto}
+.d360-side-title{font-size:.65rem;font-weight:700;color:#9ca3af;text-transform:uppercase;letter-spacing:.8px;padding:1.25rem 1.25rem .5rem}
+.d360-side a{display:flex;align-items:center;justify-content:space-between;padding:.55rem 1.25rem;color:#4b5563;font-size:.82rem;font-weight:500;text-decoration:none;border-left:3px solid transparent;transition:.15s;cursor:pointer}
+.d360-side a:hover{background:#f9fafb;color:var(--primary);border-left-color:var(--primary)}
+.d360-side a.active{background:rgba(90,103,216,.06);color:var(--primary);border-left-color:var(--primary);font-weight:600}
+.d360-side a i.chevron{font-size:.6rem;color:#d1d5db;transition:transform .2s ease}
+.d360-side a:hover i.chevron{color:var(--primary)}
+.d360-side a.expanded i.chevron{transform:rotate(90deg);color:var(--primary)}
+.d360-side .side-sub{overflow:hidden;max-height:0;transition:max-height .25s ease}
+.d360-side .side-sub.open{max-height:600px}
+.d360-side .side-sub a{padding:.4rem 1.25rem .4rem 2.2rem;font-size:.78rem;color:#6b7280;border-left:3px solid transparent}
+.d360-side .side-sub a:hover{color:var(--primary);background:#f9fafb;border-left-color:var(--primary)}
+.d360-side .side-sub a.active{color:var(--primary);background:rgba(90,103,216,.06);border-left-color:var(--primary);font-weight:600}
+
+/* ── Main Content ── */
+.d360-main{flex:1;padding:1.75rem 2rem;overflow-y:auto;background:#f0f2f5}
+
+/* ── Section Card ── */
+.d360-card{background:#fff;border:1px solid #e5e7eb;border-radius:10px;margin-bottom:1.25rem;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:.2s}
+.d360-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.d360-card-head{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid #f3f4f6;cursor:pointer;user-select:none}
+.d360-card-head h6{margin:0;font-size:.85rem;font-weight:600;color:#1f2937;display:flex;align-items:center;gap:.5rem}
+.d360-card-head h6 i{font-size:.7rem;color:#9ca3af;transition:.2s}
+.d360-card-body{padding:1.25rem}
+
+/* ── Toolbar ── */
+.d360-toolbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.d360-toolbar select{border:1px solid #e5e7eb;border-radius:20px;padding:.3rem .9rem;font-size:.78rem;font-weight:500;color:#374151;background:#fff;cursor:pointer;outline:none}
+.d360-toolbar select:focus{border-color:var(--primary);box-shadow:0 0 0 2px rgba(90,103,216,.12)}
+.d360-legend{display:flex;align-items:center;gap:1rem;font-size:.72rem;color:#6b7280}
+.d360-legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:4px}
+.d360-view-btns{display:flex;border:1px solid #e5e7eb;border-radius:6px;overflow:hidden;margin-left:.75rem}
+.d360-view-btns button{border:none;background:#fff;padding:.3rem .6rem;font-size:.75rem;color:#6b7280;cursor:pointer;transition:.15s}
+.d360-view-btns button.active,.d360-view-btns button:hover{background:var(--primary);color:#fff}
+
+/* ── Supervisor Meta ── */
+.d360-sup-meta{display:flex;flex-wrap:wrap;gap:.25rem 1.5rem;font-size:.78rem;color:#6b7280;margin-bottom:.75rem;padding:0 .25rem}
+.d360-sup-meta span{color:#1f2937;font-weight:600}
+
+/* ── Port Status Summary Bar ── */
+.port-summary{display:flex;align-items:center;gap:1.5rem;padding:.65rem 0 .85rem;font-size:.78rem;color:#6b7280}
+.port-stat{display:flex;align-items:center;gap:.4rem}
+.port-stat-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.port-stat-dot.st-up{background:#22c55e}
+.port-stat-dot.st-down{background:#cbd5e1}
+.port-stat-dot.st-admin{background:#ef4444}
+.port-stat-dot.st-err{background:#f59e0b}
+.port-stat-count{font-weight:700;color:#1f2937;margin-left:.15rem}
+
+/* ── Port Grid Container ── */
+.d360-port-grid{display:flex;flex-wrap:nowrap;overflow-x:auto;gap:0;padding:85px 0 6px;margin-top:-81px;scrollbar-width:thin;scrollbar-color:#cbd5e1 transparent}
+.d360-port-grid::-webkit-scrollbar{height:5px}
+.d360-port-grid::-webkit-scrollbar-track{background:transparent;border-radius:3px}
+.d360-port-grid::-webkit-scrollbar-thumb{background:#d1d5db;border-radius:3px}
+.d360-port-grid::-webkit-scrollbar-thumb:hover{background:#9ca3af}
+
+/* Port module (group of 6) */
+.port-module{display:flex;gap:4px;padding:0 10px;position:relative}
+.port-module+.port-module{margin-left:6px}
+.port-module+.port-module::before{content:'';position:absolute;left:-5px;top:6px;bottom:6px;width:1px;background:#e5e7eb}
+
+/* Port pair column */
+.port-col{display:flex;flex-direction:column;align-items:center;gap:4px}
+
+/* Single port tile */
+.port-cell{position:relative;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;padding:3px 2px;border-radius:6px;transition:background .15s}
+.port-cell:hover{background:rgba(90,103,216,.06)}
+
+/* Port icon — clean rounded tile */
+.port-tile{width:30px;height:22px;border-radius:4px;position:relative;display:flex;align-items:center;justify-content:center;transition:all .15s ease;border:1.5px solid transparent}
+
+/* Status-specific port styling */
+.port-tile.p-up{background:linear-gradient(135deg,#dcfce7,#bbf7d0);border-color:#86efac}
+.port-tile.p-up .port-icon{color:#16a34a}
+.port-tile.p-down{background:#f3f4f6;border-color:#e5e7eb}
+.port-tile.p-down .port-icon{color:#9ca3af}
+.port-tile.p-admin{background:linear-gradient(135deg,#fee2e2,#fecaca);border-color:#fca5a5}
+.port-tile.p-admin .port-icon{color:#dc2626}
+.port-tile.p-err{background:linear-gradient(135deg,#fef3c7,#fde68a);border-color:#fcd34d}
+.port-tile.p-err .port-icon{color:#d97706}
+
+/* Hover states */
+.port-cell:hover .port-tile.p-up{border-color:#22c55e;box-shadow:0 0 0 2px rgba(34,197,94,.15)}
+.port-cell:hover .port-tile.p-down{border-color:#9ca3af;box-shadow:0 0 0 2px rgba(156,163,175,.12)}
+.port-cell:hover .port-tile.p-admin{border-color:#ef4444;box-shadow:0 0 0 2px rgba(239,68,68,.12)}
+.port-cell:hover .port-tile.p-err{border-color:#f59e0b;box-shadow:0 0 0 2px rgba(245,158,11,.12)}
+
+/* Mini Ethernet icon inside tile */
+.port-icon{font-size:9px;line-height:1;position:relative;z-index:1}
+
+/* Port label */
+.port-lbl{font-size:7.5px;color:#9ca3af;text-align:center;white-space:nowrap;font-weight:600;letter-spacing:.02em;line-height:1;max-width:36px;overflow:hidden;text-overflow:ellipsis;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase}
+.port-cell:hover .port-lbl{color:#4b5563}
+
+/* VLAN badge on port tile */
+.port-vlan-badge{position:absolute;bottom:-1px;left:50%;transform:translateX(-50%);font-size:5.5px;font-weight:800;letter-spacing:.01em;line-height:1;padding:1px 3px;border-radius:2px;color:#fff;white-space:nowrap;pointer-events:none;z-index:2}
+
+/* VLAN legend toggle button */
+.btn-vlan-legend{border:1px solid #e5e7eb;background:#fff;border-radius:12px;padding:.2rem .65rem;font-size:.68rem;font-weight:600;color:#6b7280;cursor:pointer;transition:.15s;display:flex;align-items:center;gap:.35rem;margin-left:.5rem}
+.btn-vlan-legend:hover{background:var(--primary);color:#fff;border-color:var(--primary)}
+
+/* Editable field in header */
+.editable-field{cursor:pointer;transition:color .15s}
+.editable-field:hover{color:#4f46e5}
+.editable-field:hover i{color:#4f46e5 !important}
+
+/* ── Port Tooltip ── */
+.port-tip{position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:#fff;color:#1f2937;padding:.6rem .85rem;border-radius:8px;font-size:.72rem;white-space:nowrap;z-index:100;pointer-events:none;opacity:0;transition:opacity .15s,transform .15s;transform:translateX(-50%) translateY(4px);box-shadow:0 4px 20px rgba(0,0,0,.12),0 0 0 1px rgba(0,0,0,.05);border:1px solid #e5e7eb}
+.port-tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:#fff}
+.port-cell:hover .port-tip{opacity:1;transform:translateX(-50%) translateY(0)}
+.port-tip-row{display:flex;justify-content:space-between;gap:1.2rem;padding:.15rem 0}
+.port-tip-lbl{color:#6b7280;font-size:.68rem}
+.port-tip-val{font-weight:600;color:#1f2937}
+.port-tip-status{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:4px}
+
+/* ── System Properties ── */
+.d360-props{display:grid;grid-template-columns:1fr 1fr;gap:.25rem 4rem}
+.d360-prop{display:flex;justify-content:space-between;align-items:center;padding:.55rem 0;border-bottom:1px solid #f9fafb}
+.d360-prop:last-child{border-bottom:none}
+.d360-prop-k{color:#6b7280;font-size:.8rem;font-weight:500}
+.d360-prop-v{color:#1f2937;font-size:.8rem;font-weight:600;text-align:right}
+.d360-prop-v.ok{color:#16a34a}
+.d360-prop-v.mono{font-family:'SF Mono','Fira Code',monospace;letter-spacing:.5px;text-transform:uppercase}
+
+/* ── Loading ── */
+.d360-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4rem 2rem;color:#6b7280}
+.d360-spinner{width:36px;height:36px;border:3px solid #e5e7eb;border-top-color:var(--primary);border-radius:50%;animation:d360spin .7s linear infinite;margin-bottom:1rem}
+@keyframes d360spin{to{transform:rotate(360deg)}}
+.d360-error{text-align:center;padding:3rem;color:#ef4444}
+
+/* ── Port Detail Panel ── */
+.port-modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(15,17,23,.5);z-index:9999;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px);opacity:0;transition:opacity .25s;visibility:hidden}
+.port-modal-overlay:not(.d-none){opacity:1;visibility:visible}
+.port-modal-content{background:#fff;width:680px;max-width:95vw;max-height:90vh;border-radius:14px;box-shadow:0 25px 60px rgba(0,0,0,.2),0 0 0 1px rgba(0,0,0,.05);transform:translateY(24px) scale(.97);transition:.35s cubic-bezier(.16,1,.3,1);overflow:hidden;display:flex;flex-direction:column}
+.port-modal-overlay:not(.d-none) .port-modal-content{transform:translateY(0) scale(1)}
+
+/* Status-colored header banner */
+.pm-banner{padding:1.25rem 1.5rem;display:flex;align-items:center;gap:1rem;position:relative;overflow:hidden}
+.pm-banner::before{content:'';position:absolute;inset:0;opacity:.08;background:currentColor}
+.pm-banner.pm-st-up{color:#16a34a;border-bottom:2px solid #22c55e}
+.pm-banner.pm-st-down{color:#6b7280;border-bottom:2px solid #9ca3af}
+.pm-banner.pm-st-admin{color:#dc2626;border-bottom:2px solid #ef4444}
+.pm-banner-icon{width:42px;height:42px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+.pm-banner.pm-st-up .pm-banner-icon{background:rgba(34,197,94,.12);color:#16a34a}
+.pm-banner.pm-st-down .pm-banner-icon{background:rgba(107,114,128,.1);color:#6b7280}
+.pm-banner.pm-st-admin .pm-banner-icon{background:rgba(239,68,68,.1);color:#dc2626}
+.pm-banner-info{flex:1;min-width:0}
+.pm-banner-title{font-size:1.1rem;font-weight:700;color:#1f2937;margin:0;letter-spacing:-.01em}
+.pm-banner-sub{font-size:.75rem;color:#6b7280;margin-top:.15rem;display:flex;align-items:center;gap:.6rem;flex-wrap:wrap}
+.pm-status-pill{display:inline-flex;align-items:center;gap:.3rem;padding:.15rem .55rem;border-radius:20px;font-size:.68rem;font-weight:600;letter-spacing:.02em}
+.pm-status-pill.pill-up{background:rgba(34,197,94,.1);color:#16a34a;border:1px solid rgba(34,197,94,.2)}
+.pm-status-pill.pill-down{background:rgba(107,114,128,.08);color:#6b7280;border:1px solid rgba(107,114,128,.15)}
+.pm-status-pill.pill-admin{background:rgba(239,68,68,.08);color:#dc2626;border:1px solid rgba(239,68,68,.15)}
+.pm-status-pill .pill-dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.pm-close-btn{position:absolute;top:1rem;right:1rem;width:30px;height:30px;border-radius:8px;border:none;background:rgba(0,0,0,.04);color:#9ca3af;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s;line-height:1}
+.pm-close-btn:hover{background:rgba(239,68,68,.08);color:#ef4444}
+
+/* Scrollable body */
+.pm-body{padding:1.25rem 1.5rem;overflow-y:auto;flex:1}
+
+/* Section cards */
+.pm-section{background:#f9fafb;border:1px solid #f0f1f3;border-radius:10px;padding:1rem 1.15rem;margin-bottom:.85rem}
+.pm-section:last-child{margin-bottom:0}
+.pm-section-head{display:flex;align-items:center;gap:.5rem;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:1px solid #f0f1f3}
+.pm-section-icon{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:.65rem;flex-shrink:0}
+.pm-section-icon.si-sys{background:rgba(90,103,216,.08);color:var(--primary)}
+.pm-section-icon.si-net{background:rgba(14,165,233,.08);color:#0ea5e9}
+.pm-section-icon.si-desc{background:rgba(168,85,247,.08);color:#a855f7}
+.pm-section-label{font-size:.78rem;font-weight:700;color:#374151;letter-spacing:.02em}
+
+/* Key-value grid */
+.pm-kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 2rem}
+.pm-kv{display:flex;align-items:baseline;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid rgba(0,0,0,.03)}
+.pm-kv:last-child{border-bottom:none}
+.pm-kv-k{color:#6b7280;font-size:.78rem;font-weight:500}
+.pm-kv-v{color:#1f2937;font-size:.78rem;font-weight:600;text-align:right;max-width:200px;word-break:break-all}
+.pm-kv-v.mono{font-family:'SF Mono','Fira Code',monospace;font-size:.73rem;letter-spacing:.3px}
+.pm-kv-v.val-up{color:#16a34a}
+.pm-kv-v.val-down{color:#ef4444}
+
+/* Description block */
+.pm-desc-block{background:#fff;border:1px solid #e5e7eb;border-radius:6px;padding:.65rem .85rem;font-size:.82rem;color:#1f2937;font-weight:500;font-family:'SF Mono','Fira Code',monospace;letter-spacing:.3px}
+
+/* ── Animations ── */
+@keyframes d360fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.d360-anim{animation:d360fadeIn .4s ease}
+
+/* ── Responsive ── */
+@media(max-width:900px){.d360-side{display:none}.d360-main{padding:1rem}}
+/* ── Dark Mode Overrides ── */
+html.dark-theme .d360{background:#0f1117}
+html.dark-theme .d360-bc{background:#161927;border-bottom-color:#2d3748}
+html.dark-theme .d360-bc span{color:#a0aec0}
+html.dark-theme .d360-side{background:#1a202c;border-right-color:#2d3748}
+html.dark-theme .d360-side-title{color:#718096}
+html.dark-theme .d360-side a{color:#a0aec0}
+html.dark-theme .d360-side a:hover{background:rgba(255,255,255,.05);color:var(--primary-light)}
+html.dark-theme .d360-side a.active{background:rgba(90,103,216,.12);color:var(--primary-light)}
+html.dark-theme .d360-side .side-sub a{color:#718096}
+html.dark-theme .d360-side .side-sub a:hover{color:var(--primary-light);background:rgba(255,255,255,.04)}
+html.dark-theme .d360-side .side-sub a.active{color:var(--primary-light);background:rgba(90,103,216,.12)}
+html.dark-theme .d360-main{background:#0f1117}
+html.dark-theme .d360-card{background:#161927;border-color:#2d3748}
+html.dark-theme .d360-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.3)}
+html.dark-theme .d360-card-head{border-bottom-color:#2d3748}
+html.dark-theme .d360-card-head h6{color:#e2e8f0}
+html.dark-theme .d360-card-head h6 i{color:#4a5568}
+html.dark-theme .d360-legend{color:#718096}
+html.dark-theme .d360-toolbar select{background:#1a1d2e;border-color:#2d3748;color:#e2e8f0}
+html.dark-theme .d360-sup-meta{color:#718096}
+html.dark-theme .d360-sup-meta span{color:#e2e8f0}
+html.dark-theme .port-summary{color:#718096}
+html.dark-theme .port-stat-count{color:#e2e8f0}
+html.dark-theme .port-stat-dot.st-down{background:#4a5568}
+html.dark-theme .port-module+.port-module::before{background:#2d3748}
+html.dark-theme .port-cell:hover{background:rgba(90,103,216,.1)}
+html.dark-theme .port-tile.p-up{background:linear-gradient(135deg,rgba(34,197,94,.15),rgba(22,163,74,.12));border-color:rgba(34,197,94,.35)}
+html.dark-theme .port-tile.p-down{background:#1e2230;border-color:#2d3748}
+html.dark-theme .port-tile.p-down .port-icon{color:#4a5568}
+html.dark-theme .port-tile.p-admin{background:linear-gradient(135deg,rgba(239,68,68,.12),rgba(220,38,38,.1));border-color:rgba(239,68,68,.3)}
+html.dark-theme .port-tile.p-err{background:linear-gradient(135deg,rgba(245,158,11,.12),rgba(217,119,6,.1));border-color:rgba(245,158,11,.3)}
+html.dark-theme .port-lbl{color:#4a5568}
+html.dark-theme .port-cell:hover .port-lbl{color:#a0aec0}
+html.dark-theme .port-tip{background:#1e293b;color:#e2e8f0;border-color:#2d3748;box-shadow:0 8px 24px rgba(0,0,0,.4)}
+html.dark-theme .port-tip::after{border-top-color:#1e293b}
+html.dark-theme .port-tip-val{color:#e5e7eb}
+html.dark-theme .d360-props .d360-prop{border-bottom-color:#2d3748}
+html.dark-theme .d360-prop-k{color:#718096}
+html.dark-theme .d360-prop-v{color:#e2e8f0}
+html.dark-theme .d360-loading{color:#4a5568}
+html.dark-theme .d360-spinner{border-color:#2d3748;border-top-color:var(--primary)}
+
+/* Dark Theme for Port Detail Panel */
+html.dark-theme .port-modal-content{background:#161927;box-shadow:0 25px 60px rgba(0,0,0,.5),0 0 0 1px rgba(255,255,255,.05)}
+html.dark-theme .pm-banner-title{color:#e2e8f0}
+html.dark-theme .pm-banner-sub{color:#718096}
+html.dark-theme .pm-close-btn{background:rgba(255,255,255,.06);color:#718096}
+html.dark-theme .pm-close-btn:hover{background:rgba(239,68,68,.12);color:#ef4444}
+html.dark-theme .pm-section{background:#1a1f2e;border-color:#2d3748}
+html.dark-theme .pm-section-head{border-bottom-color:#2d3748}
+html.dark-theme .pm-section-label{color:#e2e8f0}
+html.dark-theme .pm-kv{border-bottom-color:rgba(255,255,255,.04)}
+html.dark-theme .pm-kv-k{color:#718096}
+html.dark-theme .pm-kv-v{color:#e2e8f0}
+html.dark-theme .pm-desc-block{background:#12141d;border-color:#2d3748;color:#e2e8f0}
+
+/* ── Status Cards (Power/Fans) ── */
+.d360-status-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:1rem}
+.d360-status-card{background:#fafbfc;border:1px solid #e5e7eb;border-radius:10px;padding:1.1rem 1.25rem;transition:.2s;position:relative;overflow:hidden}
+.d360-status-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;border-radius:10px 0 0 10px}
+.d360-status-card.ok::before{background:#22c55e}
+.d360-status-card.warn::before{background:#f59e0b}
+.d360-status-card.crit::before{background:#ef4444}
+.d360-status-card.off::before{background:#94a3b8}
+.d360-status-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.06);transform:translateY(-1px)}
+.d360-sc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.5rem}
+.d360-sc-name{font-size:.85rem;font-weight:600;color:#1f2937}
+.d360-sc-badge{padding:.15rem .55rem;border-radius:20px;font-size:.68rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.d360-sc-badge.ok{background:rgba(34,197,94,.1);color:#16a34a}
+.d360-sc-badge.warn{background:rgba(251,191,36,.1);color:#b45309}
+.d360-sc-badge.crit{background:rgba(239,68,68,.1);color:#dc2626}
+.d360-sc-badge.off{background:rgba(148,163,184,.1);color:#64748b}
+.d360-sc-detail{font-size:.75rem;color:#6b7280}
+
+/* ── Data Tables (VLANs, SFP, Entities) ── */
+.d360-table{width:100%;border-collapse:separate;border-spacing:0;font-size:.8rem}
+.d360-table thead th{padding:.6rem .75rem;text-align:left;font-weight:600;color:#6b7280;font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;border-bottom:2px solid #e5e7eb;background:#fafbfc;position:sticky;top:0;z-index:1}
+.d360-table tbody td{padding:.55rem .75rem;border-bottom:1px solid #f3f4f6;color:#1f2937;transition:.1s}
+.d360-table tbody tr:hover td{background:rgba(90,103,216,.03)}
+.d360-table tbody tr:last-child td{border-bottom:none}
+.d360-table .tbl-badge{display:inline-block;padding:.1rem .45rem;border-radius:12px;font-size:.68rem;font-weight:600}
+.d360-table .tbl-badge.active{background:rgba(34,197,94,.1);color:#16a34a}
+.d360-table .tbl-badge.suspended{background:rgba(251,191,36,.1);color:#b45309}
+.d360-table-wrap{overflow-x:auto;max-height:500px;overflow-y:auto;border:1px solid #e5e7eb;border-radius:8px}
+
+/* ── Coming Soon Placeholder ── */
+.d360-coming-soon{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 2rem;color:#9ca3af;text-align:center}
+.d360-coming-soon i{font-size:2.5rem;margin-bottom:1rem;opacity:.5}
+.d360-coming-soon h5{font-size:1rem;font-weight:600;color:#6b7280;margin:0 0 .35rem}
+.d360-coming-soon p{font-size:.8rem;margin:0;max-width:400px}
+
+/* ── Environment / Temperature ── */
+.d360-temp-bar{height:6px;background:#e5e7eb;border-radius:3px;margin-top:.5rem;overflow:hidden}
+.d360-temp-fill{height:100%;border-radius:3px;transition:width .5s ease}
+
+/* ── STP Info ── */
+.d360-stp-grid{display:grid;grid-template-columns:1fr 1fr;gap:.25rem 4rem}
+
+/* ── PoE Meter ── */
+.d360-poe-meter{margin-top:1rem;padding:1rem 1.25rem;background:#fafbfc;border:1px solid #e5e7eb;border-radius:10px}
+.d360-poe-bar{height:10px;background:#e5e7eb;border-radius:5px;margin-top:.5rem;overflow:hidden}
+.d360-poe-fill{height:100%;background:linear-gradient(90deg,#22c55e,#16a34a);border-radius:5px;transition:width .5s ease}
+
+/* ── Dark mode additions ── */
+html.dark-theme .d360-status-card{background:#1a1d2e;border-color:#2d3748}
+html.dark-theme .d360-sc-name{color:#e2e8f0}
+html.dark-theme .d360-sc-detail{color:#718096}
+html.dark-theme .d360-table thead th{background:#1a1d2e;color:#a0aec0;border-bottom-color:#2d3748}
+html.dark-theme .d360-table tbody td{color:#e2e8f0;border-bottom-color:#2d3748}
+html.dark-theme .d360-table tbody tr:hover td{background:rgba(90,103,216,.08)}
+html.dark-theme .d360-table-wrap{border-color:#2d3748}
+html.dark-theme .d360-coming-soon{color:#4a5568}
+html.dark-theme .d360-coming-soon h5{color:#718096}
+html.dark-theme .d360-poe-meter{background:#1a1d2e;border-color:#2d3748}
+html.dark-theme .d360-temp-bar,.d360-poe-bar{background:#2d3748}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d360" id="appRoot">
+    <div class="d360-loading" id="pageLoading">
+        <div class="d360-spinner"></div>
+        <div style="font-weight:500">Loading Device 360&hellip;</div>
+    </div>
+
+    <!-- Port Details Panel -->
+    <div class="port-modal-overlay d-none" id="portModal" onclick="closePortDetails(event)">
+        <div class="port-modal-content" onclick="event.stopPropagation()">
+            <!-- Dynamic banner — built by JS -->
+            <div class="pm-banner pm-st-down" id="pm-banner">
+                <div class="pm-banner-icon"><i class="fas fa-ethernet"></i></div>
+                <div class="pm-banner-info">
+                    <h4 class="pm-banner-title" id="pm-title">Port Name</h4>
+                    <div class="pm-banner-sub" id="pm-banner-sub"></div>
+                </div>
+                <button class="pm-close-btn" onclick="closePortDetails()"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="pm-body" id="pm-body">
+                <!-- Populated dynamically by openPortDetails() -->
+            </div>
+        </div>
+    </div>
+
+    <div id="pageContent" style="display:none">
+        <!-- Breadcrumb -->
+        <div class="d360-bc">
+            <a href="/network/discovery">All Devices</a>
+            <span class="sep">/</span>
+            <span id="bc-hostname" style="color:#374151;font-weight:600"></span>
+        </div>
+
+        <!-- Hero Header -->
+        <div class="d360-hero">
+            <div class="d360-hero-top">
+                <div class="d-flex align-items-center">
+                    <div class="d360-dev-icon"><i class="fas fa-server"></i></div>
+                    <div>
+                        <div class="d360-dev-name" id="header-hostname"></div>
+                        <div class="d360-badges">
+                            <span class="d360-badge d360-badge-ok" id="header-vendor">Cisco</span>
+                            <span class="d360-badge" id="header-managed-status">Managed</span>
+                            <span class="d360-badge d360-badge-ok"><i class="fas fa-check-circle me-1"></i>Reachable</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <div class="d360-last-seen">Last Updated: <span id="header-last-seen">—</span>
+                        <i class="fas fa-sync-alt d360-refresh ms-2" id="btnLiveRefresh" title="Refresh Live Data" onclick="liveRefresh()"></i>
+                    </div>
+                </div>
+            </div>
+            <div class="d360-meta-row">
+                <div>IP Address<strong id="meta-ip"></strong></div>
+                <div>Model<strong id="meta-model"></strong></div>
+                <div>Role<strong id="meta-role" class="editable-field" onclick="editField('role')">CORE <i class="fas fa-pencil-alt text-muted ms-1" style="font-size:0.7em"></i></strong></div>
+                <div>Uptime<strong id="meta-uptime">—</strong></div>
+                <div>Site<strong id="meta-site" class="editable-field" onclick="editField('site')">Global / MAGE <i class="fas fa-pencil-alt text-muted ms-1" style="font-size:0.7em"></i></strong></div>
+            </div>
+        </div>
+
+        <!-- Body -->
+        <div class="d360-body">
+            <!-- Sidebar -->
+            <div class="d360-side" id="d360Sidebar">
+                <div class="d360-side-title">Details</div>
+                <a href="#" data-section="summary" class="active" onclick="sidebarNav(this,'summary')">Summary</a>
+
+                <a href="#" onclick="toggleSub(this)" class="expanded">System <i class="fas fa-chevron-right chevron"></i></a>
+                <div class="side-sub open">
+                    <a href="#" data-section="hw-sw" onclick="sidebarNav(this,'hw-sw')">Hardware & Software</a>
+                    <a href="#" data-section="power" onclick="sidebarNav(this,'power')">Power</a>
+                    <a href="#" data-section="fans" onclick="sidebarNav(this,'fans')">Fans</a>
+                    <a href="#" data-section="sfp" onclick="sidebarNav(this,'sfp')">SFP Modules</a>
+                    <a href="#" data-section="environment" onclick="sidebarNav(this,'environment')">Environment</a>
+                </div>
+
+                <a href="#" onclick="toggleSub(this)">Interfaces <i class="fas fa-chevron-right chevron"></i></a>
+                <div class="side-sub">
+                    <a href="#" data-section="vlans" onclick="sidebarNav(this,'vlans')">VLANs</a>
+                </div>
+
+                <a href="#" onclick="toggleSub(this)">Browse Configurations <i class="fas fa-chevron-right chevron"></i></a>
+                <div class="side-sub">
+                    <a href="#" data-section="configuration" onclick="sidebarNav(this,'configuration')">Configuration</a>
+                    <a href="#" data-section="config-drift" onclick="sidebarNav(this,'config-drift')">Config Drift</a>
+                </div>
+
+                <a href="#" data-section="udf" onclick="sidebarNav(this,'udf')">User Defined Fields</a>
+                <a href="#" data-section="stackwise" onclick="sidebarNav(this,'stackwise')">StackWise Virtual</a>
+                <a href="#" data-section="wireless" onclick="sidebarNav(this,'wireless')">Wireless Info</a>
+
+                <div class="d360-side-title" style="margin-top:.5rem">Configuration</div>
+                <a href="#" onclick="toggleSub(this)">Layer 2 <i class="fas fa-chevron-right chevron"></i></a>
+                <div class="side-sub">
+                    <a href="#" data-section="l2-vlan" onclick="sidebarNav(this,'l2-vlan')">VLAN</a>
+                    <a href="#" data-section="l2-discovery" onclick="sidebarNav(this,'l2-discovery')">Discovery Protocols</a>
+                    <a href="#" data-section="l2-stp" onclick="sidebarNav(this,'l2-stp')">STP</a>
+                    <a href="#" data-section="l2-vtp" onclick="sidebarNav(this,'l2-vtp')">VTP</a>
+                    <a href="#" data-section="l2-dhcp" onclick="sidebarNav(this,'l2-dhcp')">DHCP Snooping</a>
+                    <a href="#" data-section="l2-igmp" onclick="sidebarNav(this,'l2-igmp')">IGMP Snooping</a>
+                    <a href="#" data-section="l2-mld" onclick="sidebarNav(this,'l2-mld')">MLD Snooping</a>
+                    <a href="#" data-section="l2-udld" onclick="sidebarNav(this,'l2-udld')">UDLD</a>
+                    <a href="#" data-section="l2-auth" onclick="sidebarNav(this,'l2-auth')">Authentication</a>
+                    <a href="#" data-section="l2-logical" onclick="sidebarNav(this,'l2-logical')">Logical Ports</a>
+                    <a href="#" data-section="l2-portcfg" onclick="sidebarNav(this,'l2-portcfg')">Port Configuration</a>
+                </div>
+                <a href="#" onclick="toggleSub(this)">Security <i class="fas fa-chevron-right chevron"></i></a>
+                <div class="side-sub">
+                    <a href="#" data-section="sec-trustsec" onclick="sidebarNav(this,'sec-trustsec')">Cisco TrustSec</a>
+                    <a href="#" data-section="sec-portcfg" onclick="sidebarNav(this,'sec-portcfg')">Port Configuration</a>
+                </div>
+
+                <div class="d360-side-title" style="margin-top:.5rem">Security</div>
+                <a href="#" data-section="advisories" onclick="sidebarNav(this,'advisories')">Advisories</a>
+
+                <div class="d360-side-title" style="margin-top:.5rem">Field Notices</div>
+                <a href="#" data-section="field-notices" onclick="sidebarNav(this,'field-notices')">Field Notices</a>
+                <a href="#" data-section="potential-field-notices" onclick="sidebarNav(this,'potential-field-notices')">Potential Field Notices</a>
+
+                <div class="d360-side-title" style="margin-top:.5rem">Redundancy</div>
+                <a href="#" data-section="rep-rings" onclick="sidebarNav(this,'rep-rings')">REP Rings</a>
+
+                <div class="d360-side-title" style="margin-top:.5rem">Compliance</div>
+                <a href="#" data-section="compliance-summary" onclick="sidebarNav(this,'compliance-summary')">Summary</a>
+            </div>
+
+
+            <!-- Main -->
+            <div class="d360-main">
+                <!-- Port Layout Card (always visible) -->
+                <div class="d360-card d360-anim" id="portCard">
+                    <div class="d360-card-head" onclick="this.parentElement.querySelector('.d360-card-body').classList.toggle('d-none')">
+                        <h6><i class="fas fa-chevron-down"></i> Port Layout</h6>
+                        <div class="d360-legend" id="portLegend">
+                            <div><span class="d360-legend-dot" style="background:#22c55e"></span>Connected</div>
+                            <div><span class="d360-legend-dot" style="background:#ef4444"></span>Admin Down</div>
+                            <div><span class="d360-legend-dot" style="background:#cbd5e1"></span>Not Connected</div>
+                        </div>
+                    </div>
+                    <!-- VLAN Legend Panel — sibling of card-body, never affected by collapse -->
+                    <div id="vlanLegendPanel" style="display:none;flex-wrap:wrap;align-items:center;gap:0;padding:.5rem 1.1rem .5rem 1rem;border-bottom:1px solid #e5e7eb;background:#f8fafc;border-left:3px solid #6366f1"></div>
+                    <div class="d360-card-body">
+                        <div class="d360-toolbar">
+                            <div class="d360-sup-meta" id="supervisor-meta"></div>
+                            <div class="d-flex align-items-center" style="gap:.5rem">
+                                <button id="btnVlanLegend" class="btn-vlan-legend" title="Toggle VLAN Color Map"><i class="fas fa-layer-group"></i> VLAN Colors</button>
+                                <div class="d360-view-btns">
+                                    <button id="btnViewGrid" class="active" onclick="setViewMode('grid')" title="Grid View"><i class="fas fa-th"></i></button>
+                                    <button id="btnViewList" onclick="setViewMode('list')" title="List View"><i class="fas fa-list"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="port-summary" id="portSummary" style="display:none">
+                            <div class="port-stat"><span class="port-stat-dot st-up"></span> Connected <span class="port-stat-count" id="ps-up">0</span></div>
+                            <div class="port-stat"><span class="port-stat-dot st-down"></span> Not Connected <span class="port-stat-count" id="ps-down">0</span></div>
+                            <div class="port-stat"><span class="port-stat-dot st-admin"></span> Admin Down <span class="port-stat-count" id="ps-admin">0</span></div>
+                            <div style="margin-left:auto;font-weight:600;color:#1f2937">Total: <span id="ps-total">0</span></div>
+                        </div>
+                        <div class="d360-port-grid" id="portGridContainer">
+                            <div class="d360-loading" id="portLoadingState" style="width:100%">
+                                <div class="d360-spinner"></div>
+                                <div>Analyzing interfaces&hellip;</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Section Content -->
+                <div class="d360-card d360-anim" style="animation-delay:.1s" id="sectionCard">
+                    <div class="d360-card-head">
+                        <h6><i class="fas fa-chevron-down"></i> <span id="sectionTitle">System</span></h6>
+                    </div>
+                    <div class="d360-card-body" id="sectionContent">
+                        <div class="d360-loading" id="sectionLoading">
+                            <div class="d360-spinner"></div>
+                            <div>Loading section data&hellip;</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Field Modal -->
+<div class="modal fade" id="editFieldModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-sm">
+    <div class="modal-content border-0 shadow" style="border-radius:12px;overflow:hidden">
+      <div class="modal-header border-0 pb-1 pt-3 px-4">
+        <h6 class="modal-title fw-bold" id="editFieldModalTitle" style="color:#1e293b">Edit Field</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" style="font-size:.7rem"></button>
+      </div>
+      <div class="modal-body pt-2 pb-4 px-4">
+        <form id="editFieldForm" onsubmit="saveField(event)">
+            <input type="hidden" id="editFieldKey">
+            <div class="mb-3">
+                <label for="editFieldValue" class="form-label text-muted" style="font-size:.75rem;font-weight:600" id="editFieldLabel">New Value</label>
+                <input type="text" class="form-control" id="editFieldValue" autocomplete="off" style="font-size:.85rem;padding:.5rem .75rem;border-radius:6px">
+            </div>
+            <div class="d-flex justify-content-end gap-2 mt-4">
+                <button type="button" class="btn btn-light text-muted" data-bs-dismiss="modal" style="font-size:.8rem;font-weight:600;border-radius:6px">Cancel</button>
+                <button type="submit" class="btn btn-primary px-4" id="btnSaveField" style="font-size:.8rem;font-weight:600;border-radius:6px;background:var(--primary);border:none">Save</button>
+            </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/device360.js"></script>
+<script>init360({{ device_id }});</script>
+{% endblock %}
+

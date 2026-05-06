@@ -1,117 +1,678 @@
 {% extends "base.html" %}
 
-{% block title %}Hardware Timeline - KOSTAL ITSM{% endblock %}
+{% block title %}Asset Dashboard - KOSTAL ITSM{% endblock %}
 
 {% block content %}
-<div class="py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
+<!-- Premium Dashboard Styling -->
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+    .asset-dashboard {
+        font-family: 'Inter', sans-serif;
+        color: #2b3440;
+    }
+
+    h1, h2, h3, h4, h5, h6, .brand-font {
+        font-family: 'Outfit', sans-serif;
+    }
+
+    /* Glassmorphism Cards */
+    .glass-card {
+        background: rgba(255, 255, 255, 0.85);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.4);
+        border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .glass-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
+    }
+
+    /* Gradients & Colors */
+    .gradient-primary { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
+    .gradient-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
+    .gradient-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
+    .gradient-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
+    .gradient-info { background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); }
+    .gradient-dark { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
+
+    .text-gradient {
+        background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    /* Micro-Widgets */
+    .stat-widget {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        border-radius: 12px;
+        background: white;
+        border: 1px solid #f1f5f9;
+        box-shadow: 0 1px 5px rgba(0,0,0,0.02);
+    }
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+        margin-right: 12px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; font-weight: 600; margin-bottom: 0px;}
+    .stat-value { font-size: 0.95rem; font-weight: 600; color: #0f172a; word-break: break-all;}
+
+    /* Animations */
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-fade-in {
+        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+    }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+
+    /* Custom Table Scroll */
+    .table-container {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+    .table-container::-webkit-scrollbar { width: 6px; }
+    .table-container::-webkit-scrollbar-track { background: transparent; }
+    .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+    /* Timeline Modern */
+    .timeline-modern {
+        border-left: 3px solid #e2e8f0;
+        margin-left: 20px;
+        padding-left: 30px;
+    }
+    .timeline-node {
+        position: relative;
+        margin-bottom: 30px;
+    }
+    .timeline-node::before {
+        content: '';
+        position: absolute;
+        left: -40.5px;
+        top: 0;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: #3b82f6;
+        border: 4px solid white;
+        box-shadow: 0 0 0 2px #3b82f6;
+    }
+    .timeline-node:first-child::before {
+        background: #10b981;
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+        70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+    /* Assignee Card */
+    .assignee-card {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border-left: 4px solid #4f46e5;
+    }
+</style>
+
+<div class="container-fluid py-4 asset-dashboard">
+    <!-- Header Area -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 pb-3 border-bottom animate-fade-in">
         <div>
-            <h1 class="h2 mb-1"><i class="fas fa-history"></i> {{ asset_type|title }} Timeline</h1>
-            <p class="text-muted">Viewing history for asset ID: {{ asset_id }}</p>
+            <div class="d-flex align-items-center mb-2">
+                <div class="badge gradient-dark px-3 py-2 rounded-pill me-3 shadow-sm text-uppercase letter-spacing-1" id="assetBadge">Loading...</div>
+                <span class="text-muted fw-medium" id="assetSubtitle">Fetching hardware profile</span>
+            </div>
+            <h1 class="display-6 fw-bold mb-0 brand-font" id="assetTitle">
+                <i class="fas fa-circle-notch fa-spin text-primary me-2"></i> Loading Data...
+            </h1>
         </div>
-        <a href="/assets" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back to Assets
-        </a>
+        <div class="mt-3 mt-md-0 d-flex gap-2" id="headerActions">
+            <a href="/users_list" class="btn btn-light rounded-pill px-4 fw-semibold border shadow-sm hover-lift">
+                <i class="fas fa-arrow-left me-2"></i> Inventory
+            </a>
+            <button class="btn btn-primary rounded-pill px-4 fw-semibold shadow hover-lift" onclick="location.reload()">
+                <i class="fas fa-sync-alt me-2"></i> Refresh Data
+            </button>
+        </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-header bg-body-tertiary">
-                    <h5 class="mb-0"><i class="fas fa-stream"></i> Life Cycle & User Hand-offs</h5>
+    <!-- Main Dashboard Grid -->
+    <div class="row g-4" id="dashboardContent" style="display: none;">
+        
+        <!-- LEFT COLUMN: Identity & Owner -->
+        <div class="col-xl-4 animate-fade-in delay-1">
+            <!-- Asset Passport -->
+            <div class="glass-card p-4 mb-4">
+                <div class="d-flex justify-content-between align-items-start mb-4">
+                    <div class="stat-icon gradient-primary rounded-circle" style="width: 60px; height: 60px; font-size: 1.5rem;" id="mainIcon">
+                        <i class="fas fa-laptop"></i>
+                    </div>
+                    <div class="text-end">
+                        <div class="stat-label">System Status</div>
+                        <div id="statusIndicator"></div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <ul class="timeline" id="historyTimeline">
-                        <li class="p-5 text-center text-muted">
-                            <i class="fas fa-circle-notch fa-spin fa-2x"></i>
-                            <p>Loading chronological history...</p>
-                        </li>
-                    </ul>
+                
+                <h4 class="fw-bold mb-1 brand-font text-dark" id="modelDisplay">-</h4>
+                <p class="text-muted mb-4"><i class="fas fa-building me-2"></i><span id="vendorDisplay">-</span></p>
+                
+                <div class="mb-4">
+                    <div class="stat-label mb-1">Serial Number</div>
+                    <div class="fs-6 fw-bold text-dark font-monospace" id="snDisplay">-</div>
+                </div>
+
+                <div class="mb-4" id="hostnameContainer" style="display: none;">
+                    <div class="stat-label mb-1">Hostname / Device Name</div>
+                    <div class="fs-6 fw-bold text-dark font-monospace" id="hostnameDisplay">-</div>
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="text-muted fw-semibold small text-uppercase">Last Network Ping</span>
+                    <span class="badge bg-secondary rounded-pill" id="lastSeenDisplay">-</span>
+                </div>
+            </div>
+
+            <!-- Current Assignee Widget -->
+            <div id="assigneeWidget" class="mb-4"></div>
+
+            <!-- Connected Monitors Widget -->
+            <div id="monitorsWidget"></div>
+        </div>
+
+        <!-- RIGHT COLUMN: Telemetry & Logs -->
+        <div class="col-xl-8 animate-fade-in delay-2">
+            
+            <!-- Telemetry Row -->
+            <div class="row g-2 mb-4" id="telemetryRow">
+                <!-- Populated via JS -->
+            </div>
+
+            <!-- Lifecycle Timeline Card -->
+            <div class="glass-card p-4 assignee-card">
+                <div class="d-flex align-items-center mb-4 border-bottom pb-3">
+                    <div class="bg-white text-info rounded-circle d-flex justify-content-center align-items-center shadow-sm border me-3" style="width: 40px; height: 40px; font-size: 1rem;">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h5 class="mb-0 fw-bold brand-font text-dark">Asset Lifecycle & Handoffs</h5>
+                </div>
+                <div class="timeline-modern mt-3" id="historyTimeline">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- BOTTOM ROW: Software & Printers -->
+        <div class="col-12 animate-fade-in delay-3">
+            
+            <!-- Print Infrastructure Card -->
+            <div class="glass-card p-0 overflow-hidden d-none mb-4" id="printersCard">
+                <div class="d-flex justify-content-between align-items-center p-4 border-bottom bg-white">
+                    <h5 class="mb-0 fw-bold brand-font"><i class="fas fa-print text-primary me-2"></i> Print Infrastructure</h5>
+                    <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm" id="printerCount">0 Printers</span>
+                </div>
+                <div class="table-container bg-white" style="max-height: 350px;">
+                    <table class="table table-hover align-middle mb-0 border-0">
+                        <thead class="table-light sticky-top" style="z-index: 1;">
+                            <tr>
+                                <th class="ps-4 fw-semibold text-muted text-uppercase small">Printer Name</th>
+                                <th class="fw-semibold text-muted text-uppercase small">Driver</th>
+                                <th class="fw-semibold text-muted text-uppercase small">Port</th>
+                                <th class="fw-semibold text-muted text-uppercase small">Network</th>
+                                <th class="pe-4 fw-semibold text-muted text-uppercase small">Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="printerTableBody">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Software Inventory Card -->
+            <div class="glass-card p-0 overflow-hidden d-none" id="softwareCard">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center p-4 border-bottom bg-white gap-3">
+                    <h5 class="mb-0 fw-bold brand-font"><i class="fas fa-layer-group text-primary me-2"></i> Software Architecture</h5>
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="position-relative">
+                            <i class="fas fa-search position-absolute text-muted" style="top: 50%; left: 15px; transform: translateY(-50%);"></i>
+                            <input type="text" id="softwareSearch" class="form-control rounded-pill ps-5 bg-light border-0 shadow-none" placeholder="Search applications..." style="width: 250px;">
+                        </div>
+                        <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm text-nowrap" id="softwareCount">0 Apps</span>
+                    </div>
+                </div>
+                <div class="table-container bg-white" style="max-height: 500px;">
+                    <table class="table table-hover align-middle mb-0 border-0">
+                        <thead class="table-light sticky-top" style="z-index: 1;">
+                            <tr>
+                                <th class="ps-4 fw-semibold text-muted text-uppercase small">Application</th>
+                                <th class="fw-semibold text-muted text-uppercase small">Version</th>
+                                <th class="fw-semibold text-muted text-uppercase small">State</th>
+                                <th class="fw-semibold text-muted text-uppercase small">Detected</th>
+                                <th class="pe-4 fw-semibold text-muted text-uppercase small">Removed</th>
+                            </tr>
+                        </thead>
+                        <tbody id="softwareTableBody">
+                            <!-- Populated via JS -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
+
     </div>
 </div>
-
-<style>
-.timeline {
-    list-style-type: none;
-    padding: 0;
-    position: relative;
-}
-.timeline::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 20px;
-    width: 2px;
-    background-color: #dee2e6;
-}
-.timeline-item {
-    position: relative;
-    padding-left: 50px;
-    margin-bottom: 2rem;
-}
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: 14px;
-    top: 5px;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background-color: #0d6efd;
-    border: 3px solid #fff;
-    box-shadow: 0 0 0 2px #0d6efd;
-}
-</style>
 
 <script>
 document.addEventListener('DOMContentLoaded', async function() {
     const assetType = "{{ asset_type }}";
     const assetId = "{{ asset_id }}";
-    const timeline = document.getElementById('historyTimeline');
+    
+    // Formatting Helpers
+    const formatDate = (isoString) => {
+        if (!isoString) return '-';
+        const d = new Date(isoString);
+        return d.toLocaleString([], { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+    };
+
+    const typeIcons = {
+        'pc': 'fa-laptop',
+        'monitor': 'fa-desktop',
+        'docking_station': 'fa-plug',
+        'printer': 'fa-print',
+        'phone': 'fa-phone-alt',
+        'phone_number': 'fa-hashtag'
+    };
+    const typeNames = {
+        'pc': 'Computer System',
+        'monitor': 'Display Unit',
+        'docking_station': 'Docking Hub',
+        'printer': 'Printer',
+        'phone': 'VoIP Phone',
+        'phone_number': 'Phone Line / SIM'
+    };
+
+    // Start BOTH fetches in parallel immediately!
+    const detailPromise = fetch(`/api/hardware/detail/${assetType}/${assetId}`);
+    const historyPromise = fetch(`/api/hardware/history/${assetType}/${assetId}`);
 
     try {
-        const response = await fetch(`/api/hardware/history/${assetType}/${assetId}`);
-        const data = await response.json();
+        const res = await detailPromise;
+        if (!res.ok) throw new Error("Asset not found");
+        const asset = await res.json();
+
+        // Reveal dashboard
+        document.getElementById('dashboardContent').style.display = 'flex';
+        
+        // 1. Header & Passport
+        document.getElementById('assetTitle').innerHTML = asset.model || typeNames[assetType];
+        document.getElementById('assetSubtitle').innerHTML = `Internal DB ID: #${asset.id}`;
+        document.getElementById('assetBadge').innerHTML = `<i class="fas ${typeIcons[assetType]} me-1"></i> ${typeNames[assetType]}`;
+        
+        document.getElementById('mainIcon').innerHTML = `<i class="fas ${typeIcons[assetType]}"></i>`;
+        document.getElementById('modelDisplay').innerText = asset.model || 'Unknown Model';
+        document.getElementById('vendorDisplay').innerText = asset.vendor || 'Unknown Vendor';
+        document.getElementById('snDisplay').innerText = asset.serial_number;
+        
+        if (asset.name) {
+            document.getElementById('hostnameContainer').style.display = 'block';
+            document.getElementById('hostnameDisplay').innerText = asset.name;
+        }
+        
+        if (assetType === 'printer' && asset.ip_address) {
+            const btnHtml = `<a href="http://${asset.ip_address}" target="_blank" class="btn btn-dark rounded-pill px-4 fw-semibold shadow hover-lift"><i class="fas fa-globe me-2"></i> Open Web UI</a>`;
+            document.getElementById('headerActions').insertAdjacentHTML('afterbegin', btnHtml);
+        }
+        
+        // Last Network Ping Color Logic
+        const lastSeenEl = document.getElementById('lastSeenDisplay');
+        lastSeenEl.innerText = formatDate(asset.last_seen_at);
+        if (asset.last_seen_at) {
+            const lastSeenDate = new Date(asset.last_seen_at);
+            const diffDays = Math.ceil(Math.abs(new Date() - lastSeenDate) / (1000 * 60 * 60 * 24));
+            
+            lastSeenEl.classList.remove('bg-secondary');
+            if (diffDays <= 14) {
+                lastSeenEl.classList.add('bg-success');
+            } else if (diffDays < 28) {
+                lastSeenEl.classList.add('text-white');
+                lastSeenEl.style.backgroundColor = '#b7791f'; // Brown/Orange
+            } else {
+                lastSeenEl.classList.add('bg-danger');
+                lastSeenEl.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> ${formatDate(asset.last_seen_at)}`;
+            }
+        }
+
+        const isAvail = asset.status === 'Available';
+        document.getElementById('statusIndicator').innerHTML = `
+            <span class="badge rounded-pill bg-${isAvail ? 'success' : 'primary'} fs-6 px-3 py-2 shadow-sm">
+                <i class="fas ${isAvail ? 'fa-check-circle' : 'fa-user-lock'} me-1"></i> ${asset.status}
+            </span>
+        `;
+
+        // 2. Assignee Widget
+        const assigneeDiv = document.getElementById('assigneeWidget');
+        if (asset.current_assignee) {
+            assigneeDiv.innerHTML = `
+                <div class="glass-card p-4 assignee-card position-relative overflow-hidden">
+                    <div class="position-absolute top-0 end-0 opacity-10 p-3" style="font-size: 5rem; transform: rotate(-15deg); color: #4f46e5;">
+                        <i class="fas fa-id-badge"></i>
+                    </div>
+                    <div class="stat-label mb-2 position-relative z-index-1">Currently Deployed To</div>
+                    <div class="d-flex align-items-center position-relative z-index-1">
+                        <div class="bg-white text-primary rounded-circle d-flex justify-content-center align-items-center shadow-sm border" style="width: 50px; height: 50px; font-size: 1.2rem;">
+                            <i class="fas fa-user-tie"></i>
+                        </div>
+                        <div class="ms-3">
+                            <h4 class="mb-0 fw-bold"><a href="/admin/users/${asset.current_assignee.id}" class="text-decoration-none text-dark">${asset.current_assignee.name}</a></h4>
+                            ${asset.current_assignee.email ? `<small class="text-muted"><i class="fas fa-envelope me-1"></i>${asset.current_assignee.email}</small>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (isAvail) {
+            assigneeDiv.innerHTML = `
+                <div class="glass-card p-4 border-start border-success border-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);">
+                    <div class="d-flex align-items-center">
+                        <div class="text-success" style="font-size: 2.5rem;"><i class="fas fa-box-open"></i></div>
+                        <div class="ms-3">
+                            <h5 class="mb-0 fw-bold text-success">In Stock</h5>
+                            <p class="mb-0 text-muted small">Asset is stored in inventory and ready to be deployed.</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 2b. Connected Monitors Widget
+        const monitorsDiv = document.getElementById('monitorsWidget');
+        if (asset.connected_monitors && asset.connected_monitors.length > 0) {
+            let monitorsHtml = `
+                <div class="glass-card p-4">
+                    <h6 class="fw-bold brand-font mb-3"><i class="fas fa-desktop text-success me-2"></i> Connected Monitors</h6>
+                    <ul class="list-group list-group-flush bg-transparent">
+            `;
+            asset.connected_monitors.forEach(mon => {
+                monitorsHtml += `
+                    <li class="list-group-item bg-transparent px-0 border-light d-flex align-items-center">
+                        <i class="fas fa-desktop fs-4 text-muted me-3"></i>
+                        <div>
+                            <div class="fw-bold"><a href="/hardware/monitor/${mon.id}" class="text-decoration-none text-dark">${mon.model || 'Unknown Model'}</a></div>
+                            <small class="text-muted">S/N: ${mon.serial_number} &bull; ${mon.vendor || 'Unknown'}</small>
+                        </div>
+                    </li>
+                `;
+            });
+            monitorsHtml += `</ul></div>`;
+            monitorsDiv.innerHTML = monitorsHtml;
+        }
+
+        // 2c. Connected Host PC Widget (For Monitors)
+        if (assetType === 'monitor' && asset.connected_pc) {
+            let pcHtml = `
+                <div class="glass-card p-4 mt-4 border-start border-primary border-4">
+                    <h6 class="fw-bold brand-font mb-3"><i class="fas fa-laptop-house text-primary me-2"></i> Connected Host PC</h6>
+                    <ul class="list-group list-group-flush bg-transparent">
+                        <li class="list-group-item bg-transparent px-0 border-0 d-flex align-items-center">
+                            <i class="fas fa-laptop fs-4 text-muted me-3"></i>
+                            <div>
+                                <div class="fw-bold"><a href="/hardware/pc/${asset.connected_pc.id}" class="text-decoration-none text-dark">${asset.connected_pc.model || 'Unknown Model'}</a></div>
+                                <small class="text-muted">S/N: ${asset.connected_pc.serial_number} &bull; ${asset.connected_pc.vendor || 'Unknown'}</small>
+                            </div>
+                        </li>
+                    </ul>
+                </div>
+            `;
+            // Append to monitorsDiv since it's the same column location
+            monitorsDiv.innerHTML += pcHtml;
+        }
+
+        // 3. Telemetry Micro-Widgets
+        let telemetryHtml = '';
+        const buildWidget = (icon, colorClass, label, value) => `
+            <div class="col-sm-6 col-md-4">
+                <div class="stat-widget">
+                    <div class="stat-icon gradient-${colorClass}"><i class="fas ${icon}"></i></div>
+                    <div class="overflow-hidden">
+                        <div class="stat-label">${label}</div>
+                        <div class="stat-value text-break" style="font-size: 0.85rem;">${value || '<span class="text-muted fw-normal">N/A</span>'}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        if (assetType === 'pc') {
+            telemetryHtml += buildWidget('fa-network-wired', 'info', 'IPv4', asset.ip_address);
+            telemetryHtml += buildWidget('fa-wifi', 'dark', 'MAC', asset.mac_address);
+            
+            // OS
+            const osVal = asset.windows_version ? `<i class="fab fa-windows text-primary me-1"></i>${asset.windows_version.split('(')[0].trim()}` : null;
+            telemetryHtml += buildWidget('fa-desktop', 'primary', 'OS', osVal);
+            
+            // Intune
+            const isEnrolled = asset.intune_status === 'Enrolled';
+            const intuneVal = asset.intune_status ? `<span class="text-${isEnrolled ? 'success' : 'danger'}"><i class="fas fa-${isEnrolled ? 'cloud-check' : 'cloud-upload-alt'} me-1"></i>${asset.intune_status}</span>` : null;
+            telemetryHtml += buildWidget('fa-cloud', isEnrolled ? 'success' : 'danger', 'MDM', intuneVal);
+
+            // Antivirus
+            const hasAV = asset.antivirus_status && !asset.antivirus_status.includes('None');
+            const avVal = asset.antivirus_status ? `<span class="text-${hasAV ? 'success' : 'warning'}"><i class="fas fa-shield-alt me-1"></i>${asset.antivirus_status.split(' ')[0]}</span>` : null;
+            telemetryHtml += buildWidget('fa-shield-virus', hasAV ? 'success' : 'warning', 'Antivirus', avVal);
+            
+            // RAM & Storage & Print
+            telemetryHtml += buildWidget('fa-memory', 'secondary', 'RAM', asset.ram);
+            telemetryHtml += buildWidget('fa-hdd', 'warning', 'Storage', asset.storage);
+            telemetryHtml += buildWidget('fa-print', 'info', '30-Day Prints', `${asset.print_volume_30d} Pages`);
+            
+            // Network Location Placeholder
+            if (asset.mac_address) {
+                telemetryHtml += `
+                <div class="col-sm-6 col-md-4">
+                    <div class="stat-widget">
+                        <div class="stat-icon gradient-info"><i class="fas fa-route"></i></div>
+                        <div class="overflow-hidden">
+                            <div class="stat-label">Switch Port</div>
+                            <div class="stat-value text-break" style="font-size: 0.85rem;" id="netLocWidgetContent">
+                                <i class="fas fa-circle-notch fa-spin text-info me-1"></i> Locating...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+
+        } else if (assetType === 'phone' || assetType === 'phone_number') {
+            if (asset.phone_number) {
+                telemetryHtml += buildWidget('fa-hashtag', 'primary', 'Extension / Number', asset.phone_number);
+            }
+        } else if (assetType === 'printer') {
+            const ipLink = asset.ip_address ? `<a href="http://${asset.ip_address}" target="_blank" class="text-decoration-none fw-bold text-info" title="Open Printer Web Interface">${asset.ip_address} <i class="fas fa-external-link-alt ms-1 small"></i></a>` : null;
+            telemetryHtml += buildWidget('fa-network-wired', 'info', 'IPv4 (Web UI)', ipLink || asset.ip_address);
+            telemetryHtml += buildWidget('fa-microchip', 'dark', 'MAC', asset.mac_address);
+            
+            if (asset.mac_address) {
+                telemetryHtml += `
+                <div class="col-sm-6 col-md-4">
+                    <div class="stat-widget">
+                        <div class="stat-icon gradient-info"><i class="fas fa-route"></i></div>
+                        <div class="overflow-hidden">
+                            <div class="stat-label">Switch Port</div>
+                            <div class="stat-value text-break" style="font-size: 0.85rem;" id="netLocWidgetContent">
+                                <i class="fas fa-circle-notch fa-spin text-info me-1"></i> Locating...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+        }
+
+        document.getElementById('telemetryRow').innerHTML = telemetryHtml;
+
+        if ((assetType === 'pc' || assetType === 'printer') && asset.mac_address) {
+            fetch(`/api/discovery/locate_mac/${encodeURIComponent(asset.mac_address)}`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+                }
+            })
+                .then(r => {
+                    if (!r.ok) throw new Error('Network response was not ok');
+                    return r.json();
+                })
+                .then(data => {
+                    const contentDiv = document.getElementById('netLocWidgetContent');
+                    if (data.found) {
+                        contentDiv.innerHTML = `
+                            <a href="/network/discovery" class="text-info text-decoration-none fw-bold" title="${data.switch_ip}">${data.switch_name}</a>
+                            <span class="text-muted small ms-1">(${data.port_name})</span>
+                        `;
+                    } else {
+                        contentDiv.innerHTML = `<span class="text-muted small">Not found on network</span>`;
+                    }
+                })
+                .catch(e => {
+                    document.getElementById('netLocWidgetContent').innerHTML = `<span class="text-danger small">Scan Failed</span>`;
+                });
+        }
+
+        // 4. Software Table
+        if (assetType === 'pc') {
+            document.getElementById('softwareCard').classList.remove('d-none');
+            const swBody = document.getElementById('softwareTableBody');
+            
+            if (asset.software && asset.software.length > 0) {
+                document.getElementById('softwareCount').innerText = `${asset.software.length} Total Apps`;
+                
+                asset.software.sort((a, b) => {
+                    if (a.is_active === b.is_active) return a.name.localeCompare(b.name);
+                    return a.is_active ? -1 : 1;
+                });
+
+                swBody.innerHTML = asset.software.map(sw => `
+                    <tr style="transition: all 0.2s;" class="${!sw.is_active ? 'opacity-50 bg-light' : ''}">
+                        <td class="ps-4 fw-medium text-dark"><i class="fas fa-cube text-muted me-2 opacity-50"></i>${sw.name}</td>
+                        <td><span class="badge bg-light text-dark border">${sw.version || 'Unknown'}</span></td>
+                        <td>
+                            ${sw.is_active ? 
+                                '<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-50"><i class="fas fa-check me-1"></i> Active</span>' : 
+                                '<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-50"><i class="fas fa-times me-1"></i> Removed</span>'}
+                        </td>
+                        <td><small class="text-muted">${formatDate(sw.installed_date)}</small></td>
+                        <td class="pe-4"><small class="text-danger">${sw.is_active ? '-' : formatDate(sw.removed_date)}</small></td>
+                    </tr>
+                `).join('');
+
+                // Search Functionality
+                document.getElementById('softwareSearch').addEventListener('input', function(e) {
+                    const term = e.target.value.toLowerCase();
+                    const rows = swBody.querySelectorAll('tr');
+                    let visibleCount = 0;
+                    rows.forEach(row => {
+                        const appName = row.cells[0]?.textContent?.toLowerCase() || '';
+                        if (appName.includes(term)) {
+                            row.style.display = '';
+                            visibleCount++;
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    });
+                    document.getElementById('softwareCount').innerText = `${visibleCount} Apps`;
+                });
+            } else {
+                swBody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted"><i class="fas fa-ghost fa-2x mb-3 opacity-50"></i><br>No software inventory available. Pending remote discovery.</td></tr>`;
+            }
+
+            // 4b. Printers Table
+            document.getElementById('printersCard').classList.remove('d-none');
+            const prBody = document.getElementById('printerTableBody');
+            
+            if (asset.printers && asset.printers.length > 0) {
+                document.getElementById('printerCount').innerText = `${asset.printers.length} Printers`;
+                
+                prBody.innerHTML = asset.printers.map(pr => `
+                    <tr>
+                        <td class="ps-4 fw-medium text-dark">
+                            <i class="fas fa-print text-muted me-2 ${pr.is_default ? 'text-success' : 'opacity-50'}"></i>
+                            ${pr.name}
+                        </td>
+                        <td><span class="text-muted small">${pr.driver_name || 'Generic'}</span></td>
+                        <td><code>${pr.port_name || '-'}</code></td>
+                        <td>${pr.is_network ? '<span class="badge bg-info">Network</span>' : '<span class="badge bg-secondary">Local</span>'}</td>
+                        <td class="pe-4">
+                            ${pr.is_default ? '<span class="badge bg-success bg-opacity-10 text-success border border-success"><i class="fas fa-star me-1"></i> Default</span>' : ''}
+                        </td>
+                    </tr>
+                `).join('');
+            } else {
+                prBody.innerHTML = `<tr><td colspan="5" class="text-center py-5 text-muted"><i class="fas fa-print fa-2x mb-3 opacity-50"></i><br>No printers found on this device.</td></tr>`;
+            }
+        }
+
+    } catch(e) {
+        document.getElementById('assetTitle').innerHTML = `<span class="text-danger">Critical Failure</span>`;
+        document.getElementById('dashboardContent').innerHTML = `
+            <div class="col-12 animate-fade-in">
+                <div class="alert alert-danger shadow-sm border-0 rounded-4 p-4 d-flex align-items-center">
+                    <i class="fas fa-exclamation-triangle fa-3x me-4"></i>
+                    <div>
+                        <h4 class="fw-bold">Unable to load asset profile</h4>
+                        <p class="mb-0">The system encountered an error: ${e.message}</p>
+                    </div>
+                </div>
+            </div>`;
+    }
+
+    // 5. Timeline History
+    try {
+        const res = await historyPromise;
+        const data = await res.json();
+        const timeline = document.getElementById('historyTimeline');
 
         if (data.length === 0) {
-            timeline.innerHTML = '<li class="p-4 text-center text-muted"><p>No assignment history available for this asset.</p></li>';
+            timeline.innerHTML = `<div class="text-muted text-center py-4"><i class="fas fa-info-circle me-2"></i> No chronological data recorded.</div>`;
             return;
         }
 
         timeline.innerHTML = data.map((entry, index) => {
-            const date = new Date(entry.assigned_date).toLocaleDateString();
-            const time = new Date(entry.assigned_date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-            // Format returning logic
-            let returnText = entry.returned_date ? 
-                `<span class="text-secondary"><i class="fas fa-arrow-left"></i> Returned: ${new Date(entry.returned_date).toLocaleDateString()}</span>` : 
-                `<span class="badge bg-success">Currently Active</span>`;
-
+            const isCurrent = index === 0 && !entry.returned_date;
             return `
-                <li class="timeline-item">
-                    <div class="d-flex justify-content-between mb-1">
-                        <span class="fw-bold text-primary">Assigned to ID ${entry.new_user_id || 'Unknown'}</span>
-                        <span class="text-muted"><i class="fas fa-calendar-alt"></i> ${date} ${time}</span>
+                <div class="timeline-node">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h6 class="fw-bold mb-0 ${isCurrent ? 'text-primary' : 'text-dark'}">
+                            Assigned to ${entry.new_user_name || 'Unknown'}
+                            ${isCurrent ? '<span class="badge bg-primary ms-2 shadow-sm">Current</span>' : ''}
+                        </h6>
+                        <span class="text-muted small fw-semibold"><i class="fas fa-calendar-alt me-1"></i> ${formatDate(entry.assigned_date)}</span>
                     </div>
-                    <p class="mb-1 text-body">
-                        Moved from User ID ${entry.previous_user_id || 'Inventory Stock'}. 
-                        ${returnText}
-                    </p>
-                    ${entry.notes ? `<small class="text-muted"><i>Notes: ${entry.notes}</i></small>` : ''}
-                </li>
+                    <div class="text-muted small mb-2">
+                        <i class="fas fa-exchange-alt me-1"></i> Transferred from <strong>${entry.previous_user_name || 'Inventory Stock'}</strong>
+                    </div>
+                    ${entry.notes ? `<div class="bg-light p-2 rounded small text-secondary border border-light mt-2"><i class="fas fa-comment text-warning me-1"></i> ${entry.notes}</div>` : ''}
+                    ${entry.returned_date ? `<div class="text-danger small mt-2 fw-medium"><i class="fas fa-undo-alt me-1"></i> Returned to stock on ${formatDate(entry.returned_date)}</div>` : ''}
+                </div>
             `;
         }).join('');
-
-    } catch (e) {
-        timeline.innerHTML = '<li class="p-4 text-danger"><p>Failed to load timeline. Please ensure the backend is reachable.</p></li>';
+    } catch(e) {
+        document.getElementById('historyTimeline').innerHTML = `<div class="text-danger">Failed to load history.</div>`;
     }
 });
 </script>
 {% endblock %}
-
-

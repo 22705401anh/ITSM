@@ -122,7 +122,7 @@
                 <div class="card-body">
                     <div class="row g-2">
                         <div class="col-md-3">
-                            <a href="/assets" class="btn btn-outline-primary w-100 py-2 rounded-pill">
+                            <a href="/users_list" class="btn btn-outline-primary w-100 py-2 rounded-pill">
                                 <i class="fas fa-boxes me-2"></i>
                                 <span>Asset Inventory</span>
                             </a>
@@ -151,6 +151,43 @@
         </div>
     </div>
 
+    <!-- Stale Assets Section -->
+    <div class="row g-3 mb-4" id="staleAssetsContainer">
+        <div class="col-12">
+            <div class="card shadow-sm border-0 rounded-3 border-start border-danger border-4">
+                <div class="card-header bg-white border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-danger fw-bold"><i class="fas fa-exclamation-triangle me-2"></i> Action Required: Stale Network Assets</h5>
+                    <span class="badge bg-danger rounded-pill" id="staleAssetsCount">Searching...</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="max-height: 300px;">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-light sticky-top">
+                                <tr>
+                                    <th class="ps-4">Type</th>
+                                    <th>Model</th>
+                                    <th>Serial Number</th>
+                                    <th>Last Seen Ping</th>
+                                    <th class="pe-4 text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="staleAssetsList">
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="fas fa-spinner fa-spin fa-2x mb-3 text-primary opacity-75"></i>
+                                        <h5 class="fw-bold">Scanning Network...</h5>
+                                        <p class="mb-0">Querying telemetry database for offline hardware assets.</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Asset Visualization Section -->
     <div class="row g-3 mb-4">
         <!-- Asset Status Overview -->
@@ -172,9 +209,9 @@
                             </div>
                             <strong id="availableCount">0</strong>
                         </div>
-                        <div class="progress" style="height: 24px;">
+                        <div class="progress position-relative" style="height: 24px;">
                             <div class="progress-bar bg-success" id="availableBar" style="width: 0%" role="progressbar">
-                                <span class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center text-white small fw-bold" id="availablePercent">0%</span>
+                                <span class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center text-white small fw-bold" id="availablePercent" style="left: 0; top: 0;">0%</span>
                             </div>
                         </div>
                     </div>
@@ -188,9 +225,9 @@
                             </div>
                             <strong id="inUseCount">0</strong>
                         </div>
-                        <div class="progress" style="height: 24px;">
+                        <div class="progress position-relative" style="height: 24px;">
                             <div class="progress-bar bg-primary" id="inUseBar" style="width: 0%" role="progressbar">
-                                <span class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center text-white small fw-bold" id="inUsePercent">0%</span>
+                                <span class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center text-white small fw-bold" id="inUsePercent" style="left: 0; top: 0;">0%</span>
                             </div>
                         </div>
                     </div>
@@ -204,9 +241,9 @@
                             </div>
                             <strong id="maintenanceCount">0</strong>
                         </div>
-                        <div class="progress" style="height: 24px;">
+                        <div class="progress position-relative" style="height: 24px;">
                             <div class="progress-bar bg-warning" id="maintenanceBar" style="width: 0%" role="progressbar">
-                                <span class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center text-body small fw-bold" id="maintenancePercent">0%</span>
+                                <span class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center text-body small fw-bold" id="maintenancePercent" style="left: 0; top: 0;">0%</span>
                             </div>
                         </div>
                     </div>
@@ -220,9 +257,9 @@
                             </div>
                             <strong id="damageCount">0</strong>
                         </div>
-                        <div class="progress" style="height: 24px;">
+                        <div class="progress position-relative" style="height: 24px;">
                             <div class="progress-bar bg-danger" id="damageBar" style="width: 0%" role="progressbar">
-                                <span class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center text-white small fw-bold" id="damagePercent">0%</span>
+                                <span class="position-absolute w-100 h-100 d-flex align-items-center justify-content-center text-white small fw-bold" id="damagePercent" style="left: 0; top: 0;">0%</span>
                             </div>
                         </div>
                     </div>
@@ -236,7 +273,7 @@
                 <div class="card-header bg-body-tertiary border-bottom">
                     <div class="d-flex align-items-center justify-content-between">
                         <h5 class="mb-0"><i class="fas fa-layer-group text-info"></i> Assets by Type</h5>
-                        <a href="/assets" class="btn btn-sm btn-outline-primary">View All</a>
+                        <a href="/users_list" class="btn btn-sm btn-outline-primary">View All</a>
                     </div>
                 </div>
                 <div class="card-body">
@@ -348,22 +385,47 @@
     <!-- (Quick Actions moved to top) -->
 
     <!-- System Health & Documentation -->
-    <div class="row g-3">
+    <div class="row g-3 mb-4">
+        <!-- Database Topology Widget -->
         <div class="col-lg-6">
-            <div class="card shadow-sm">
-                <div class="card-header bg-body-tertiary border-bottom">
-                    <h5 class="mb-0"><i class="fas fa-heartbeat text-success"></i> System Health</h5>
+            <div class="card shadow-sm h-100">
+                <div class="card-header bg-body-tertiary border-bottom d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-server text-primary"></i> Database Architecture</h5>
+                    <span class="badge bg-success rounded-pill" id="dbArchBadge">Loading...</span>
                 </div>
                 <div class="card-body">
-                    <div class="alert alert-success mb-3">
-                        <i class="fas fa-check-circle me-2"></i>
-                        <strong>All Systems Operational</strong>
-                        <small class="d-block text-muted mt-1">Last updated: <span id="lastUpdate">just now</span></small>
+                    <div id="dbTopologyLoader" class="text-center py-4">
+                        <i class="fas fa-spinner fa-spin fa-2x text-primary mb-2"></i>
+                        <p class="text-muted small">Querying database engines...</p>
                     </div>
-                    <div class="text-muted small">
-                        <p class="mb-2"><i class="fas fa-database me-2 text-primary"></i> Database: Connected</p>
-                        <p class="mb-2"><i class="fas fa-server me-2 text-info"></i> API: Running</p>
-                        <p class="mb-0"><i class="fas fa-users me-2 text-secondary"></i> Users: Active</p>
+                    <div id="dbTopologyContent" class="d-none">
+                        <!-- Primary DB -->
+                        <div class="d-flex align-items-center mb-3 p-3 rounded" style="background-color: #f8f9fa; border-left: 4px solid #0d6efd;">
+                            <div class="me-3">
+                                <i class="fas fa-database fa-2x text-primary opacity-75"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 fw-bold">Primary Engine</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-primary bg-opacity-10 text-primary fs-6" id="primaryEngineName">...</span>
+                                    <small class="text-success fw-bold" id="primaryEngineStatus"><i class="fas fa-circle me-1" style="font-size: 8px;"></i>...</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Fallback DB -->
+                        <div id="fallbackDbContainer" class="d-flex align-items-center p-3 rounded border" style="border-left: 4px solid #6c757d !important;">
+                            <div class="me-3">
+                                <i class="fas fa-hdd fa-2x text-secondary opacity-75"></i>
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-1 fw-bold">Failover Replica (Mirror)</h6>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary fs-6" id="fallbackEngineName">...</span>
+                                    <small class="text-muted fw-bold" id="fallbackEngineStatus"><i class="fas fa-circle me-1" style="font-size: 8px;"></i>...</small>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -597,9 +659,8 @@
 async function loadDashboard() {
     try {
         // Load asset statistics
-        const assetRes = await fetch('/api/assets/stats/summary');
-        if (!assetRes.ok) throw new Error('Failed to load asset stats');
-        const assetData = await assetRes.json();
+        const assetData = await apiRequest('GET', '/assets/stats/summary');
+        if (!assetData) throw new Error('Failed to load asset stats');
 
         // Update main asset count
         const total = assetData.total_assets || 0;
@@ -717,17 +778,36 @@ async function loadDashboard() {
 
         // Load AD Users count
         try {
-            document.getElementById('adSyncStatus').textContent = "Fetching directory data...";
-            const adRes = await fetch('/api/admin/ad-users');
-            if (adRes.ok) {
-                const adUsers = await adRes.json();
-                const count = Array.isArray(adUsers) ? adUsers.length : 0;
-                document.getElementById('adUserCount').textContent = count;
-                document.getElementById('topAdUserCount').textContent = count;
-                document.getElementById('adSyncStatus').textContent = "Up to date";
+            const cacheKey = 'adUsersCountCache';
+            const cacheTimeKey = 'adUsersCountCacheTime';
+            const cachedCount = localStorage.getItem(cacheKey);
+            const cachedTime = localStorage.getItem(cacheTimeKey);
+            const now = new Date().getTime();
+            
+            if (cachedCount && cachedTime && (now - parseInt(cachedTime)) < 10 * 60 * 1000) {
+                // Use cached data if less than 10 minutes old
+                document.getElementById('adUserCount').textContent = cachedCount;
+                document.getElementById('topAdUserCount').textContent = cachedCount;
+                document.getElementById('adSyncStatus').textContent = "Up to date (Cached)";
                 document.getElementById('adSyncBar').classList.remove('progress-bar-animated', 'progress-bar-striped');
             } else {
-                throw new Error("Failed to fetch AD Users");
+                document.getElementById('adSyncStatus').textContent = "Fetching directory data...";
+                const adRes = await fetch('/api/admin/ad-users');
+                if (adRes.ok) {
+                    const adUsers = await adRes.json();
+                    const count = Array.isArray(adUsers) ? adUsers.length : 0;
+                    
+                    // Update cache
+                    localStorage.setItem(cacheKey, count);
+                    localStorage.setItem(cacheTimeKey, now.toString());
+                    
+                    document.getElementById('adUserCount').textContent = count;
+                    document.getElementById('topAdUserCount').textContent = count;
+                    document.getElementById('adSyncStatus').textContent = "Up to date";
+                    document.getElementById('adSyncBar').classList.remove('progress-bar-animated', 'progress-bar-striped');
+                } else {
+                    throw new Error("Failed to fetch AD Users");
+                }
             }
         } catch (e) {
             console.warn('Could not load AD user data:', e);
@@ -738,12 +818,71 @@ async function loadDashboard() {
             document.getElementById('adSyncBar').classList.add('bg-danger');
         }
 
+        // Stale Assets are now loaded concurrently at the start of the script.
+
         // Update last refresh time
         const now = new Date();
         document.getElementById('lastUpdate').textContent = now.toLocaleTimeString();
 
     } catch (error) {
         console.error('Error loading dashboard:', error);
+    }
+}
+
+async function loadStaleAssets() {
+    try {
+        const staleRes = await fetch('/api/hardware/stale');
+        if (staleRes.ok) {
+            const staleAssets = await staleRes.json();
+            
+            if (staleAssets.length > 0) {
+                document.getElementById('staleAssetsCount').textContent = `${staleAssets.length} Assets Offline > 14 Days`;
+                
+                document.getElementById('staleAssetsList').innerHTML = staleAssets.map(asset => {
+                    let icon = 'fa-laptop';
+                    let typeLabel = 'Computer';
+                    if (asset.type === 'monitor') { icon = 'fa-desktop'; typeLabel = 'Monitor'; }
+                    if (asset.type === 'docking_station') { icon = 'fa-plug'; typeLabel = 'Docking Station'; }
+                    if (asset.type === 'printer') { icon = 'fa-print'; typeLabel = 'Printer'; }
+                    
+                    let timeDisplay = '';
+                    if (asset.last_seen) {
+                        const date = new Date(asset.last_seen);
+                        const diffDays = Math.ceil(Math.abs(new Date() - date) / (1000 * 60 * 60 * 24));
+                        timeDisplay = `${diffDays} days ago`;
+                    } else {
+                        timeDisplay = 'Never Seen';
+                    }
+                    
+                    return `
+                    <tr>
+                        <td class="ps-4 text-muted"><i class="fas ${icon} me-2"></i> ${typeLabel}</td>
+                        <td class="fw-bold">${asset.model || 'Unknown Model'}</td>
+                        <td><code>${asset.serial_number}</code></td>
+                        <td><span class="badge bg-danger"><i class="fas ${asset.last_seen ? 'fa-history' : 'fa-eye-slash'} me-1"></i> ${timeDisplay}</span></td>
+                        <td class="pe-4 text-end">
+                            <a href="/hardware/${asset.type}/${asset.id}" class="btn btn-sm btn-outline-primary rounded-pill px-3">View Details</a>
+                        </td>
+                    </tr>
+                    `;
+                }).join('');
+            } else {
+                document.getElementById('staleAssetsCount').textContent = `0 Assets Offline > 14 Days`;
+                document.getElementById('staleAssetsList').innerHTML = `
+                    <tr>
+                        <td colspan="5" class="text-center py-5 text-muted">
+                            <i class="fas fa-check-circle fa-3x mb-3 text-success opacity-75"></i>
+                            <h5 class="fw-bold">All Clear!</h5>
+                            <p class="mb-0">All hardware assets are communicating properly on the network.</p>
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+    } catch (e) {
+        console.warn('Could not load stale assets data:', e);
+        document.getElementById('staleAssetsCount').textContent = `Error`;
+        document.getElementById('staleAssetsList').innerHTML = `<tr><td colspan="5" class="text-center text-danger">Failed to connect to telemetry database.</td></tr>`;
     }
 }
 
@@ -774,11 +913,50 @@ async function syncADUsers() {
     }
 }
 
+async function loadDatabaseTopology() {
+    try {
+        const res = await fetch('/api/admin/settings/database/status');
+        if (res.ok) {
+            const data = await res.json();
+            
+            document.getElementById('dbTopologyLoader').classList.add('d-none');
+            document.getElementById('dbTopologyContent').classList.remove('d-none');
+            
+            document.getElementById('dbArchBadge').textContent = data.architecture;
+            
+            // Primary
+            document.getElementById('primaryEngineName').textContent = data.primary.engine;
+            document.getElementById('primaryEngineStatus').innerHTML = `<i class="fas fa-circle me-1" style="font-size: 8px;"></i> ${data.primary.status}`;
+            
+            // Fallback
+            if (data.fallback) {
+                document.getElementById('fallbackDbContainer').classList.remove('d-none');
+                document.getElementById('fallbackDbContainer').classList.add('d-flex');
+                document.getElementById('fallbackEngineName').textContent = data.fallback.engine;
+                document.getElementById('fallbackEngineStatus').innerHTML = `<i class="fas fa-circle me-1" style="font-size: 8px;"></i> ${data.fallback.status}`;
+            } else {
+                document.getElementById('fallbackDbContainer').classList.add('d-none');
+                document.getElementById('fallbackDbContainer').classList.remove('d-flex');
+            }
+        }
+    } catch (e) {
+        console.warn('Could not load DB topology:', e);
+    }
+}
+
 // Load dashboard on page load
-document.addEventListener('DOMContentLoaded', loadDashboard);
+document.addEventListener('DOMContentLoaded', () => {
+    loadDashboard();
+    loadStaleAssets(); // Run concurrently to avoid 20s delay
+    loadDatabaseTopology();
+});
 
 // Refresh dashboard every 5 minutes
-setInterval(loadDashboard, 5 * 60 * 1000);
+setInterval(() => {
+    loadDashboard();
+    loadStaleAssets();
+    loadDatabaseTopology();
+}, 5 * 60 * 1000);
 </script>
 {% endblock %}
 

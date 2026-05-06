@@ -1,5 +1,6 @@
 """Asset management API endpoints"""
 from fastapi import APIRouter, Depends, HTTPException, Query, status, Request
+from app.dependencies import check_permission
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
 from typing import List, Optional
@@ -10,19 +11,104 @@ from app.db import get_db
 from app.schemas.asset import (
     AssetCreate, AssetUpdate, AssetResponse,
     AssetType, AssetStatus,
-    LicenseCreate, LicenseResponse, LicenseAccessHistoryResponse,
     MaintenanceCreate, MaintenanceResponse
 )
-from app.models.asset import Asset, AssetMaintenance, LicenseRegistration, LicenseAccessHistory
+from app.models.asset import Asset, AssetMaintenance
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/assets", tags=["assets"])
+router = APIRouter(prefix="/assets", tags=["assets"], dependencies=[Depends(check_permission("hardware"))])
+
+
+from app.models.hardware import PC, Monitor, DockingStation, Phone, PhoneNumber
+from app.models.user import User
+
+
+# ============ STATISTICS (must be BEFORE /{asset_id}) ============
+
+@router.get("/stats/summary", tags=["assets"])
+async def get_asset_statistics(
+    db: Session = Depends(get_db),
+):
+    """Get asset management statistics"""
+    try:
+        # Count legacy assets
+        legacy_count = db.query(Asset).filter(Asset.is_active == True).count()
+
+        # Count hardware-based assets (users with any hardware)
+        users_with_hardware = 0
+        unassigned_pcs = 0
+        try:
+            # Get distinct user IDs that have hardware assigned to eliminate N+1 queries
+            assigned_pc_users = set(row[0] for row in db.query(PC.current_user_id).filter(PC.current_user_id.isnot(None)).all())
+            assigned_monitor_users = set(row[0] for row in db.query(Monitor.current_user_id).filter(Monitor.current_user_id.isnot(None)).all())
+            assigned_dock_users = set(row[0] for row in db.query(DockingStation.current_user_id).filter(DockingStation.current_user_id.isnot(None)).all())
+            assigned_phone_users = set(row[0] for row in db.query(Phone.current_user_id).filter(Phone.current_user_id.isnot(None)).all())
+            
+            all_hardware_users = assigned_pc_users | assigned_monitor_users | assigned_dock_users | assigned_phone_users
+            users_with_hardware = len(all_hardware_users)
+            
+            unassigned_pcs = db.query(PC).filter(PC.current_user_id == None).count()
+        except Exception as e:
+            logger.error(f"Error counting hardware: {str(e)}")
+
+        total_assets = legacy_count + users_with_hardware + unassigned_pcs
+
+        by_type = {}
+        for asset_type in AssetType:
+            count = db.query(Asset).filter(
+                Asset.asset_type == asset_type,
+                Asset.is_active == True
+            ).count()
+            by_type[asset_type.value] = count
+        # Add hardware counts
+        by_type["computer"] = by_type.get("computer", 0) + users_with_hardware + unassigned_pcs
+
+        by_status = {}
+        for asset_status in AssetStatus:
+            count = db.query(Asset).filter(
+                Asset.status == asset_status,
+                Asset.is_active == True
+            ).count()
+            by_status[asset_status.value] = count
+        # Hardware-based counts
+        by_status["in_use"] = by_status.get("in_use", 0) + users_with_hardware
+        by_status["available"] = by_status.get("available", 0) + unassigned_pcs
+
+        from app.models.asset import LicenseRegistration
+        total_licenses = db.query(LicenseRegistration).filter(
+            LicenseRegistration.is_active == True
+        ).count()
+
+        return {
+            "total_assets": total_assets,
+            "by_type": by_type,
+            "by_status": by_status,
+            "total_licenses": total_licenses,
+        }
+
+    except Exception as e:
+        logger.error(f"Error getting statistics: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+# ============ TAG LOOKUP (must be BEFORE /{asset_id}) ============
+
+@router.get("/tag/{asset_tag}", response_model=AssetResponse)
+async def get_asset_by_tag(
+    asset_tag: str,
+    db: Session = Depends(get_db),
+):
+    """Get asset by tag"""
+    asset = db.query(Asset).filter(
+        Asset.asset_tag == asset_tag,
+        Asset.is_active == True
+    ).first()
+    if not asset:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    return asset
 
 
 # ============ ASSET MANAGEMENT ============
-
-from app.models.hardware import PC, Monitor, DockingStation, Phone
-from app.models.user import User
 
 @router.get("/")
 async def list_assets(
@@ -33,10 +119,13 @@ async def list_assets(
     search: Optional[str] = Query(None),
     db: Session = Depends(get_db),
 ):
-    """List all assets with filtering and search, now combining hardware models"""
+    """List all assets with filtering and search, combining hardware models.
+    
+    Returns specs in array format: specs.pcs[], specs.monitors[], etc.
+    so the frontend can display multiple devices per user.
+    """
     logger.info(f"list_assets called with asset_type={asset_type}, status={status}, search={search}")
     try:
-        # We will build virtual bundles per user, plus unassigned hardware
         results = []
 
         try:
@@ -46,42 +135,70 @@ async def list_assets(
             users = []
 
         logger.info(f"Found {len(users)} users")
-        id_counter = 1
+
+        # Fetch all assigned hardware in 4 queries instead of 4 per user (N+1 fix)
+        from collections import defaultdict
+        
+        assigned_pcs = db.query(PC).filter(PC.current_user_id.isnot(None)).all()
+        user_pcs = defaultdict(list)
+        for p in assigned_pcs: user_pcs[p.current_user_id].append(p)
+            
+        assigned_monitors = db.query(Monitor).filter(Monitor.current_user_id.isnot(None)).all()
+        user_monitors = defaultdict(list)
+        for m in assigned_monitors: user_monitors[m.current_user_id].append(m)
+            
+        assigned_docks = db.query(DockingStation).filter(DockingStation.current_user_id.isnot(None)).all()
+        user_docks = defaultdict(list)
+        for d in assigned_docks: user_docks[d.current_user_id].append(d)
+            
+        assigned_phones = db.query(Phone).filter(Phone.current_user_id.isnot(None)).all()
+        user_phones = defaultdict(list)
+        for ph in assigned_phones: user_phones[ph.current_user_id].append(ph)
+
+        assigned_phone_numbers = db.query(PhoneNumber).filter(PhoneNumber.current_user_id.isnot(None)).all()
+        user_phone_numbers = defaultdict(list)
+        for pn in assigned_phone_numbers: user_phone_numbers[pn.current_user_id].append(pn)
 
         for u in users:
             try:
-                pcs = db.query(PC).filter(PC.current_user_id == u.id).all()
-                monitors = db.query(Monitor).filter(Monitor.current_user_id == u.id).all()
-                docks = db.query(DockingStation).filter(DockingStation.current_user_id == u.id).all()
-                phones = db.query(Phone).filter(Phone.current_user_id == u.id).all()
+                pcs = user_pcs[u.id]
+                monitors = user_monitors[u.id]
+                docks = user_docks[u.id]
+                phones = user_phones[u.id]
+                phone_numbers = user_phone_numbers[u.id]
 
-                pc = pcs[0] if pcs else None
-                monitor = monitors[0] if monitors else None
-                dock = docks[0] if docks else None
-                phone = phones[0] if phones else None
-
+                # Build specs with arrays so the frontend can render multiple devices
                 specs = {
                     "department": getattr(u, 'department', '') or "",
-                    "hostname": pc.name if pc else "",
-                    "laptop_model": pc.model if pc else "",
-                    "laptop_sn": pc.serial_number if pc else "",
-                    "monitor_model": monitor.model if monitor else "",
-                    "monitor_sn": monitor.serial_number if monitor else "",
-                    "docking_sn": dock.serial_number if dock else "",
-                    "phone_model": phone.model if phone else "",
-                    "phone_number": phone.phone_number if phone else "",
-                    "accessories": ""
+                    "pcs": [{"id": p_item.id, "name": p_item.name or "", "model": p_item.model or "", "sn": p_item.serial_number or ""} for p_item in pcs],
+                    "monitors": [{"id": m_item.id, "model": m_item.model or "", "sn": m_item.serial_number or ""} for m_item in monitors],
+                    "docking_sn": docks[0].serial_number if docks else "",
+                    "docking_id": docks[0].id if docks else None,
+                    "phone_model": phones[0].model if phones else "",
+                    "phone_number": phone_numbers[0].phone_number if phone_numbers else "",
+                    "phone_id": phones[0].id if phones else None,
+                    "phone_number_id": phone_numbers[0].id if phone_numbers else None,
+                    "accessories": "",
+                    # Keep flat fields for backward compatibility
+                    "hostname": pcs[0].name if pcs else "",
+                    "laptop_model": pcs[0].model if pcs else "",
+                    "laptop_sn": pcs[0].serial_number if pcs else "",
+                    "monitor_model": monitors[0].model if monitors else "",
+                    "monitor_sn": monitors[0].serial_number if monitors else "",
                 }
 
+                import json
+                main_pc = pcs[0] if pcs else None
+
                 bundle = {
-                    "id": 1000000 + (pc.id if pc else (monitor.id if monitor else id_counter)),
+                    "id": 1000000 + u.id,
                     "name": u.full_name,
                     "description": "",
-                    "asset_type": "computer" if pc else "other",
+                    "asset_type": "computer" if pcs else "other",
                     "status": "in_use" if (pcs or monitors or docks or phones) else "available",
-                    "asset_tag": str(u.id),  # Using user ID as asset tag for the UI
-                    "serial_number": pc.serial_number if pc else "",
-                    "model_number": pc.model if pc else "",
+                    "asset_tag": str(u.id),
+                    "serial_number": main_pc.serial_number if main_pc else "",
+                    "model_number": main_pc.model if main_pc else "",
                     "manufacturer": "",
                     "location": "",
                     "assigned_user_id": u.id,
@@ -89,7 +206,7 @@ async def list_assets(
                     "purchase_cost": None,
                     "warranty_expiry": None,
                     "depreciation_rate": None,
-                    "specifications": str(specs).replace("'", '"'), # Send as JSON string approximation
+                    "specifications": json.dumps(specs),
                     "license_key": None,
                     "license_expiry": None,
                     "end_of_life_date": None,
@@ -98,26 +215,50 @@ async def list_assets(
                     "created_at": datetime.utcnow().isoformat(),
                     "updated_at": datetime.utcnow().isoformat()
                 }
+
+                # Apply filters
+                if asset_type and bundle["asset_type"] != asset_type:
+                    continue
+                if status and bundle["status"] != status:
+                    continue
+
+                # Apply search filter
+                if search:
+                    search_lower = search.lower()
+                    searchable = f"{u.full_name} {specs.get('hostname', '')} {specs.get('laptop_sn', '')} {specs.get('monitor_sn', '')} {specs.get('docking_sn', '')} {specs.get('phone_number', '')} {specs.get('phone_model', '')} {specs.get('department', '')}".lower()
+                    if search_lower not in searchable:
+                        continue
+
                 results.append(bundle)
-                id_counter += 1
             except Exception as e:
                 logger.error(f"Error processing user {u.id}: {str(e)}")
                 continue
 
         # Include unassigned PCs
         unassigned_pcs = db.query(PC).filter(PC.current_user_id == None).all()
-        for pc in unassigned_pcs:
+        for un_pc in unassigned_pcs:
             try:
-                specs = {"laptop_model": pc.model, "laptop_sn": pc.serial_number, "hostname": pc.name}
+                import json
+                specs = {
+                    "pcs": [{"id": un_pc.id, "name": un_pc.name or "", "model": un_pc.model or "", "sn": un_pc.serial_number or ""}],
+                    "monitors": [],
+                    "docking_sn": "",
+                    "phone_model": "",
+                    "phone_number": "",
+                    "accessories": "",
+                    "hostname": un_pc.name or "",
+                    "laptop_model": un_pc.model or "",
+                    "laptop_sn": un_pc.serial_number or "",
+                }
                 bundle = {
-                    "id": 1000000 + pc.id, 
+                    "id": 1000000 + un_pc.id, 
                     "name": "Unassigned PC", 
                     "description": "", 
                     "asset_type": "computer",
                     "status": "available", 
-                    "asset_tag": f"PC-{pc.id}", 
-                    "serial_number": pc.serial_number,
-                    "model_number": pc.model, 
+                    "asset_tag": f"PC-{un_pc.id}", 
+                    "serial_number": un_pc.serial_number,
+                    "model_number": un_pc.model, 
                     "manufacturer": "", 
                     "location": "", 
                     "assigned_user_id": None,
@@ -125,7 +266,7 @@ async def list_assets(
                     "purchase_cost": None, 
                     "warranty_expiry": None, 
                     "depreciation_rate": None,
-                    "specifications": str(specs).replace("'", '"'), 
+                    "specifications": json.dumps(specs), 
                     "license_key": None, 
                     "license_expiry": None,
                     "end_of_life_date": None, 
@@ -134,15 +275,41 @@ async def list_assets(
                     "created_at": datetime.utcnow().isoformat(),
                     "updated_at": datetime.utcnow().isoformat()
                 }
+
+                if asset_type and bundle["asset_type"] != asset_type:
+                    continue
+                if status and bundle["status"] != status:
+                    continue
+
+                if search:
+                    search_lower = search.lower()
+                    searchable = f"Unassigned PC {un_pc.name or ''} {un_pc.serial_number or ''} {un_pc.model or ''}".lower()
+                    if search_lower not in searchable:
+                        continue
+
                 results.append(bundle)
             except Exception as e:
-                logger.error(f"Error processing PC {pc.id}: {str(e)}")
+                logger.error(f"Error processing unassigned PC {un_pc.id}: {str(e)}")
                 continue
 
         # Include legacy manual assets
         try:
             legacy_assets = db.query(Asset).filter(Asset.is_active == True).all()
             for la in legacy_assets:
+                la_status = la.status.value if hasattr(la.status, "value") else la.status
+                la_type = la.asset_type.value if hasattr(la.asset_type, "value") else la.asset_type
+                
+                if asset_type and la_type != asset_type:
+                    continue
+                if status and la_status != status:
+                    continue
+
+                if search:
+                    search_lower = search.lower()
+                    searchable = f"{la.name or ''} {la.serial_number or ''} {la.asset_tag or ''} {la.model_number or ''}".lower()
+                    if search_lower not in searchable:
+                        continue
+
                 bundle = {
                     "id": la.id, 
                     "name": la.name, 
@@ -176,6 +343,275 @@ async def list_assets(
     except Exception as e:
         logger.error(f"Error in list_assets: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error loading assets: {str(e)}")
+
+
+@router.get("/export")
+async def export_assets(
+    asset_type: Optional[str] = Query(None),
+    status: Optional[str] = Query(None),
+    search: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+):
+    """Export all assets to Excel"""
+    import io
+    import json
+    import pandas as pd
+    from fastapi.responses import StreamingResponse
+    
+    try:
+        # Re-use list_assets logic to get the filtered list
+        results = await list_assets(
+            skip=0, limit=10000, 
+            asset_type=asset_type, 
+            status=status, 
+            search=search, 
+            db=db
+        )
+        
+        export_data = []
+        for r in results:
+            specs_str = r.get("specifications", "{}")
+            try:
+                specs = json.loads(specs_str) if isinstance(specs_str, str) else specs_str
+                if not isinstance(specs, dict):
+                    specs = {}
+            except:
+                specs = {}
+                
+            pcs = specs.get("pcs", [])
+            monitors = specs.get("monitors", [])
+            
+            num_rows = max(len(pcs), len(monitors), 1)
+            
+            for i in range(num_rows):
+                # Fill down PC: if we run out of PCs but have monitors, assign them to the last available PC
+                pc = pcs[i] if i < len(pcs) else (pcs[-1] if pcs else {})
+                mon = monitors[i] if i < len(monitors) else {}
+                
+                export_data.append({
+                    "ID": r.get("id", ""),
+                    "Name / Assigned User": r.get("name", ""),
+                    "Status": r.get("status", ""),
+                    "Asset Type": r.get("asset_type", ""),
+                    "PC Hostname": pc.get("name", ""),
+                    "PC Model": pc.get("model", ""),
+                    "PC Serial Number": pc.get("sn", ""),
+                    "Monitor Model": mon.get("model", ""),
+                    "Monitor Serial Number": mon.get("sn", ""),
+                    "Docking Station": specs.get("docking_sn", "") if i == 0 else "",
+                    "Phone Model": specs.get("phone_model", "") if i == 0 else "",
+                    "Phone Number": specs.get("phone_number", "") if i == 0 else "",
+                    "Accessories": specs.get("accessories", "") if i == 0 else "",
+                    "Department": specs.get("department", "")
+                })
+            
+        df_dashboard = pd.DataFrame(export_data)
+        df = df_dashboard.copy()
+        if 'Status' in df:
+            df = df.drop(columns=['Status'])
+            
+        output = io.BytesIO()
+        
+        import openpyxl
+        from openpyxl.worksheet.table import Table, TableStyleInfo
+        from openpyxl.chart import PieChart, BarChart, Reference
+        from openpyxl.chart.label import DataLabelList
+        from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
+        from openpyxl.utils import get_column_letter
+        
+        with pd.ExcelWriter(output, engine='openpyxl') as writer:
+            # 1. Write the raw data
+            df.to_excel(writer, index=False, sheet_name='Data', startrow=1)
+            workbook = writer.book
+            data_sheet = writer.sheets['Data']
+            
+            # Format Data sheet
+            data_sheet.title = "Asset Database"
+            data_sheet.sheet_view.showGridLines = False
+            
+            # Add Title to Data sheet
+            data_sheet['A1'] = "Detailed Hardware Inventory Database"
+            data_sheet['A1'].font = Font(size=16, bold=True, color="1F4E78")
+            
+            # Auto width & Freeze panes
+            for col_idx, column_cells in enumerate(data_sheet.columns, 1):
+                col_letter = get_column_letter(col_idx)
+                max_length = 0
+                for cell in column_cells:
+                    try:
+                        if len(str(cell.value)) > max_length:
+                            max_length = len(str(cell.value))
+                    except:
+                        pass
+                adjusted_width = min(max_length + 4, 45)  # Add more padding
+                data_sheet.column_dimensions[col_letter].width = adjusted_width
+                
+            data_sheet.freeze_panes = "A3" # Freeze header row
+            
+            # Add table formatting
+            if len(df) > 0:
+                tab = Table(displayName="AssetsDatabase", ref=f"A2:{data_sheet.cell(row=len(df)+2, column=len(df.columns)).coordinate}")
+                # Use a very clean, light styling
+                style = TableStyleInfo(name="TableStyleLight8", showFirstColumn=False, showLastColumn=False, showRowStripes=True, showColumnStripes=False)
+                tab.tableStyleInfo = style
+                data_sheet.add_table(tab)
+                
+                # Professional Row Heights and Alignment
+                data_sheet.row_dimensions[2].height = 25  # Header row height
+                for row in range(3, len(df)+3):
+                    data_sheet.row_dimensions[row].height = 22
+                    # Center align ID and Asset Type (which is now column 3)
+                    data_sheet.cell(row=row, column=1).alignment = Alignment(horizontal='center', vertical='center')
+                    data_sheet.cell(row=row, column=3).alignment = Alignment(horizontal='center', vertical='center')
+                    # Left align the rest but center vertically
+                    for col in range(2, len(df.columns) + 1):
+                        if col not in [1, 3]:
+                            data_sheet.cell(row=row, column=col).alignment = Alignment(vertical='center')
+
+            # 2. Create Executive Summary Dashboard Sheet
+            summary_sheet = workbook.create_sheet('Executive Summary') # Append to the end
+            workbook.active = data_sheet # Make Asset Database the default active sheet
+            summary_sheet.sheet_view.showGridLines = False
+            
+            # Modern Header
+            summary_sheet['B2'] = " KOSTAL ITSM"
+            summary_sheet['B2'].font = Font(size=24, bold=True, color="FFFFFF")
+            summary_sheet['B2'].fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+            summary_sheet['B2'].alignment = Alignment(horizontal="left", vertical="center")
+            
+            summary_sheet['E2'] = "HARDWARE INVENTORY REPORT "
+            summary_sheet['E2'].font = Font(size=14, bold=True, color="FFFFFF")
+            summary_sheet['E2'].fill = PatternFill(start_color="1F4E78", end_color="1F4E78", fill_type="solid")
+            summary_sheet['E2'].alignment = Alignment(horizontal="right", vertical="center")
+            
+            summary_sheet.merge_cells('B2:D3')
+            summary_sheet.merge_cells('E2:K3')
+            
+            # Date Generated
+            from datetime import datetime
+            summary_sheet['B4'] = f"Generated on: {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            summary_sheet['B4'].font = Font(italic=True, color="7F7F7F")
+            
+            # KPI Cards
+            kpi_titles = ["Total Assets", "Active in Use", "Available / Spares", "Maintenance Required"]
+            
+            total_assets = len(df_dashboard)
+            in_use = len(df_dashboard[df_dashboard['Status'].str.lower() == 'in_use']) if 'Status' in df_dashboard else 0
+            available = len(df_dashboard[df_dashboard['Status'].str.lower() == 'available']) if 'Status' in df_dashboard else 0
+            maintenance = len(df_dashboard[df_dashboard['Status'].str.lower().isin(['damaged', 'maintenance'])]) if 'Status' in df_dashboard else 0
+            
+            kpi_values = [total_assets, in_use, available, maintenance]
+            cols = ['B', 'E', 'H', 'J']
+            
+            thin_border = Border(left=Side(style='thin', color="CCCCCC"), 
+                                 right=Side(style='thin', color="CCCCCC"), 
+                                 top=Side(style='thin', color="CCCCCC"), 
+                                 bottom=Side(style='thin', color="CCCCCC"))
+            
+            for i in range(4):
+                col = cols[i]
+                end_col = chr(ord(col) + 1) if i < 3 else 'K'
+                
+                # Title
+                summary_sheet[f'{col}6'] = kpi_titles[i]
+                summary_sheet[f'{col}6'].font = Font(size=11, color="7F7F7F", bold=True)
+                summary_sheet[f'{col}6'].alignment = Alignment(horizontal="center", vertical="center")
+                summary_sheet[f'{col}6'].fill = PatternFill(start_color="F9F9F9", end_color="F9F9F9", fill_type="solid")
+                
+                # Value
+                summary_sheet[f'{col}7'] = kpi_values[i]
+                summary_sheet[f'{col}7'].font = Font(size=24, bold=True, color="2E75B6")
+                summary_sheet[f'{col}7'].alignment = Alignment(horizontal="center", vertical="center")
+                summary_sheet[f'{col}7'].fill = PatternFill(start_color="F9F9F9", end_color="F9F9F9", fill_type="solid")
+                
+                summary_sheet.merge_cells(f'{col}6:{end_col}6')
+                summary_sheet.merge_cells(f'{col}7:{end_col}8')
+                
+                # Apply borders
+                for r_idx in range(6, 9):
+                    for c_idx in range(openpyxl.utils.column_index_from_string(col), openpyxl.utils.column_index_from_string(end_col)+1):
+                        summary_sheet.cell(row=r_idx, column=c_idx).border = thin_border
+
+            # Put data used for charts far out of sight (Column CV / 100) so charts render correctly
+            data_start_col = 100 
+            status_counts = df_dashboard['Status'].value_counts() if 'Status' in df_dashboard else pd.Series()
+            
+            summary_sheet.cell(row=1, column=data_start_col).value = "Status"
+            summary_sheet.cell(row=1, column=data_start_col+1).value = "Count"
+            row_idx = 2
+            for status, count in status_counts.items():
+                summary_sheet.cell(row=row_idx, column=data_start_col).value = status if status else "Unknown"
+                summary_sheet.cell(row=row_idx, column=data_start_col+1).value = count
+                row_idx += 1
+                
+            # Create Pie Chart
+            if not status_counts.empty and row_idx > 2:
+                pie = PieChart()
+                pie.title = "Equipment Status Distribution"
+                pie.style = 2  
+                labels = Reference(summary_sheet, min_col=data_start_col, min_row=2, max_row=row_idx-1)
+                data = Reference(summary_sheet, min_col=data_start_col+1, min_row=1, max_row=row_idx-1)
+                pie.add_data(data, titles_from_data=True)
+                pie.set_categories(labels)
+                pie.dataLabels = DataLabelList()
+                pie.dataLabels.showPercent = True
+                pie.width = 14
+                pie.height = 9
+                summary_sheet.add_chart(pie, "B11")
+                
+            # Equipment Assignment Stats
+            if 'PC Hostname' in df:
+                has_pc = df['PC Hostname'].apply(lambda x: "Assigned" if str(x).strip() else "Not Assigned").value_counts()
+                summary_sheet.cell(row=1, column=data_start_col+3).value = "Assignment"
+                summary_sheet.cell(row=1, column=data_start_col+4).value = "Count"
+                
+                r2 = 2
+                for cat, count in has_pc.items():
+                    summary_sheet.cell(row=r2, column=data_start_col+3).value = cat
+                    summary_sheet.cell(row=r2, column=data_start_col+4).value = count
+                    r2 += 1
+                    
+                if not has_pc.empty and r2 > 2:
+                    bar = BarChart()
+                    bar.title = "PC Allocation"
+                    bar.style = 13
+                    labels2 = Reference(summary_sheet, min_col=data_start_col+3, min_row=2, max_row=r2-1)
+                    data2 = Reference(summary_sheet, min_col=data_start_col+4, min_row=1, max_row=r2-1)
+                    bar.add_data(data2, titles_from_data=True)
+                    bar.set_categories(labels2)
+                    bar.varyColors = True
+                    bar.legend = None
+                    bar.width = 14
+                    bar.height = 9
+                    summary_sheet.add_chart(bar, "G11")
+                
+            # Clean up column widths
+            summary_sheet.column_dimensions['A'].width = 3
+            summary_sheet.column_dimensions['B'].width = 15
+            summary_sheet.column_dimensions['C'].width = 10
+            summary_sheet.column_dimensions['D'].width = 15
+            summary_sheet.column_dimensions['E'].width = 15
+            summary_sheet.column_dimensions['F'].width = 10
+            summary_sheet.column_dimensions['G'].width = 15
+            summary_sheet.column_dimensions['H'].width = 15
+            summary_sheet.column_dimensions['I'].width = 10
+            summary_sheet.column_dimensions['J'].width = 15
+            summary_sheet.column_dimensions['K'].width = 15
+            
+            
+        output.seek(0)
+        
+        headers = {
+            'Content-Disposition': 'attachment; filename="hardware_inventory.xlsx"'
+        }
+        return StreamingResponse(
+            output, 
+            headers=headers, 
+            media_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        )
+    except Exception as e:
+        logger.error(f"Error exporting assets: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error exporting assets: {str(e)}")
 
 
 @router.get("/{asset_id}", response_model=AssetResponse)
@@ -212,49 +648,6 @@ async def create_asset(
             **asset_create.model_dump()
         )
         db.add(asset)
-        db.flush()
-
-        # Synchronize with Hardware Stock tables for new UI
-        from app.models.hardware import PC, Monitor, DockingStation, Phone
-        stock_model = None
-        sn = asset_create.serial_number or asset_create.asset_tag
-        hw_status = "Available" if asset_create.status == "available" else "Assigned"
-
-        if asset_create.asset_type in [AssetType.COMPUTER, AssetType.LAPTOP]:
-            stock_model = PC(
-                name=asset_create.name,
-                serial_number=sn,
-                model=asset_create.model_number,
-                status=hw_status,
-                notes="Created via Inventory"
-            )
-        elif asset_create.asset_type == AssetType.MONITOR:
-            stock_model = Monitor(
-                serial_number=sn,
-                model=asset_create.model_number,
-                status=hw_status,
-                notes="Created via Inventory"
-            )
-        elif asset_create.asset_type == AssetType.PHONE:
-            stock_model = Phone(
-                serial_number=sn,
-                phone_number=None,
-                model=asset_create.model_number,
-                status=hw_status,
-                notes="Created via Inventory"
-            )
-        # Assuming asset type might be passed as string 'docking' from UI even if not in enum sometimes
-        elif str(asset_create.asset_type) == "docking":
-            stock_model = DockingStation(
-                serial_number=sn,
-                model=asset_create.model_number,
-                status=hw_status,
-                notes="Created via Inventory"
-            )
-
-        if stock_model:
-            db.add(stock_model)
-
         db.commit()
         db.refresh(asset)
 
@@ -331,21 +724,6 @@ async def delete_asset(
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@router.get("/tag/{asset_tag}", response_model=AssetResponse)
-async def get_asset_by_tag(
-    asset_tag: str,
-    db: Session = Depends(get_db),
-):
-    """Get asset by tag"""
-    asset = db.query(Asset).filter(
-        Asset.asset_tag == asset_tag,
-        Asset.is_active == True
-    ).first()
-    if not asset:
-        raise HTTPException(status_code=404, detail="Asset not found")
-    return asset
-
-
 # ============ MAINTENANCE MANAGEMENT ============
 
 @router.post("/{asset_id}/maintenance", response_model=MaintenanceResponse, status_code=201)
@@ -398,176 +776,3 @@ async def get_asset_maintenance(
     ).order_by(AssetMaintenance.maintenance_date.desc()).offset(skip).limit(limit).all()
 
     return records
-
-
-# ============ LICENSE MANAGEMENT ============
-
-@router.post("/licenses", response_model=LicenseResponse, status_code=201)
-async def create_license(
-    license_create: LicenseCreate,
-    db: Session = Depends(get_db),
-):
-    """Register a new license"""
-    try:
-        # Check if license key already exists
-        existing = db.query(LicenseRegistration).filter(
-            LicenseRegistration.license_key == license_create.license_key
-        ).first()
-        if existing:
-            raise HTTPException(status_code=400, detail="License key already registered")
-
-        license_reg = LicenseRegistration(**license_create.model_dump())
-        db.add(license_reg)
-        db.commit()
-        db.refresh(license_reg)
-
-        logger.info(f"License registered: {license_reg.license_name}")
-        return license_reg
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error registering license: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.get("/licenses", response_model=List[LicenseResponse])
-async def list_licenses(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=1000),
-    db: Session = Depends(get_db),
-):
-    """List all registered licenses"""
-    licenses = db.query(LicenseRegistration).filter(
-        LicenseRegistration.is_active == True
-    ).offset(skip).limit(limit).all()
-    return licenses
-
-
-@router.get("/licenses/{license_id}", response_model=LicenseResponse)
-async def get_license(
-    license_id: int,
-    db: Session = Depends(get_db),
-):
-    """Get specific license details"""
-    license_reg = db.query(LicenseRegistration).filter(
-        LicenseRegistration.id == license_id,
-        LicenseRegistration.is_active == True
-    ).first()
-    if not license_reg:
-        raise HTTPException(status_code=404, detail="License not found")
-    return license_reg
-
-
-@router.put("/licenses/{license_id}", response_model=LicenseResponse)
-async def update_license(
-    license_id: int,
-    license_update: LicenseCreate,
-    db: Session = Depends(get_db),
-):
-    """Update license information"""
-    try:
-        license_reg = db.query(LicenseRegistration).filter(
-            LicenseRegistration.id == license_id
-        ).first()
-        if not license_reg:
-            raise HTTPException(status_code=404, detail="License not found")
-
-        for field, value in license_update.model_dump(exclude_unset=True).items():
-            setattr(license_reg, field, value)
-
-        db.commit()
-        db.refresh(license_reg)
-
-        logger.info(f"License updated: {license_reg.license_name}")
-        return license_reg
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error updating license: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@router.post("/licenses/{license_id}/allocate")
-async def allocate_license(
-    license_id: int,
-    count: int = Query(..., ge=1),
-    db: Session = Depends(get_db),
-):
-    """Allocate licenses"""
-    try:
-        license_reg = db.query(LicenseRegistration).filter(
-            LicenseRegistration.id == license_id
-        ).first()
-        if not license_reg:
-            raise HTTPException(status_code=404, detail="License not found")
-
-        available = license_reg.total_licenses - license_reg.used_licenses
-        if available < count:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Only {available} licenses available"
-            )
-
-        license_reg.used_licenses += count
-        db.commit()
-
-        logger.info(f"Allocated {count} licenses from {license_reg.license_name}")
-        return {
-            "message": "Licenses allocated successfully",
-            "allocated": count,
-            "remaining": license_reg.total_licenses - license_reg.used_licenses
-        }
-
-    except HTTPException:
-        raise
-    except Exception as e:
-        db.rollback()
-        logger.error(f"Error allocating licenses: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-# ============ STATISTICS ============
-
-@router.get("/stats/summary", tags=["assets"])
-async def get_asset_statistics(
-    db: Session = Depends(get_db),
-):
-    """Get asset management statistics"""
-    try:
-        total_assets = db.query(Asset).filter(Asset.is_active == True).count()
-
-        by_type = {}
-        for asset_type in AssetType:
-            count = db.query(Asset).filter(
-                Asset.asset_type == asset_type,
-                Asset.is_active == True
-            ).count()
-            by_type[asset_type.value] = count
-
-        by_status = {}
-        for asset_status in AssetStatus:
-            count = db.query(Asset).filter(
-                Asset.status == asset_status,
-                Asset.is_active == True
-            ).count()
-            by_status[asset_status.value] = count
-
-        total_licenses = db.query(LicenseRegistration).filter(
-            LicenseRegistration.is_active == True
-        ).count()
-
-        return {
-            "total_assets": total_assets,
-            "by_type": by_type,
-            "by_status": by_status,
-            "total_licenses": total_licenses,
-        }
-
-    except Exception as e:
-        logger.error(f"Error getting statistics: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
-

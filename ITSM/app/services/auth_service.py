@@ -60,7 +60,9 @@ class AuthService:
         self,
         login_request: LoginRequest,
     ) -> Optional[User]:
-        """Authenticate user by username and password."""
+        """Authenticate user by username and password.
+        Supports both local and LDAP (Active Directory) authentication.
+        """
 
         user = self.db.query(User).filter(
             User.username == login_request.username
@@ -69,11 +71,18 @@ class AuthService:
         if not user:
             return None
 
-        if not verify_password(login_request.password, user.hashed_password):
-            return None
-
         if not user.is_active:
             raise ValueError("User account is inactive")
+
+        # Check if this is an AD-managed user
+        if user.hashed_password == "AD_MANAGED_USER":
+            # Authenticate against LDAP
+            if not self._ldap_authenticate(login_request.username, login_request.password):
+                return None
+        else:
+            # Local password authentication
+            if not verify_password(login_request.password, user.hashed_password):
+                return None
 
         # Update last login
         user.last_login = datetime.utcnow()
@@ -81,6 +90,106 @@ class AuthService:
 
         logger.info(f"User {user.username} logged in successfully")
         return user
+
+    def _ldap_authenticate(self, username: str, password: str) -> bool:
+        """Authenticate a user against Active Directory via LDAP bind.
+        Tries NTLM (DOMAIN\\user) first, falls back to simple bind with UPN.
+        """
+        from ldap3 import Server, Connection, NTLM, SIMPLE
+        from app.utils.ldap_config import get_ldap_config
+
+        ldap_cfg = get_ldap_config(self.db)
+
+        server = Server(
+            ldap_cfg['server'], 
+            port=ldap_cfg['port'], 
+            connect_timeout=5
+        )
+
+        # Extract domain info from LDAP_BASE_DN
+        domain_parts = [p.strip().replace("DC=", "") for p in ldap_cfg['base_dn'].split(",") if p.strip().startswith("DC=")]
+        domain_short = domain_parts[0].upper() if domain_parts else "MA"
+        domain_fqdn = ".".join(domain_parts)  # e.g. ma.kostal.int
+
+        # Attempt 1: NTLM with DOMAIN\username
+        try:
+            bind_user = f"{domain_short}\\{username}"
+            logger.info(f"LDAP auth attempt (NTLM): {bind_user} -> {ldap_cfg['server']}")
+            user_conn = Connection(
+                server,
+                user=bind_user,
+                password=password,
+                authentication=NTLM,
+                auto_bind=True,
+                receive_timeout=5
+            )
+            user_conn.unbind()
+            logger.info(f"LDAP authentication successful for {username} (NTLM)")
+            return True
+        except Exception as e:
+            logger.warning(f"LDAP NTLM bind failed for {username}: {str(e)}")
+
+        # Attempt 2: Simple bind with UPN (user@domain.fqdn)
+        try:
+            bind_user = f"{username}@{domain_fqdn}"
+            logger.info(f"LDAP auth attempt (UPN): {bind_user} -> {ldap_cfg['server']}")
+            user_conn = Connection(
+                server,
+                user=bind_user,
+                password=password,
+                authentication=SIMPLE,
+                auto_bind=True,
+                receive_timeout=5
+            )
+            user_conn.unbind()
+            logger.info(f"LDAP authentication successful for {username} (UPN)")
+            return True
+        except Exception as e:
+            logger.warning(f"LDAP UPN bind failed for {username}: {str(e)}")
+
+        logger.error(f"All LDAP authentication methods failed for {username}")
+        return False
+
+    def authenticate_sso_user(self, email: str, name: str = None) -> User:
+        """
+        Authenticate a user via SSO.
+        Finds the user by email, or creates a new AD_MANAGED_USER stub.
+        """
+        user = self.db.query(User).filter(User.email == email).first()
+
+        if user:
+            if not user.is_active:
+                raise ValueError("User account is inactive")
+            user.last_login = datetime.utcnow()
+            self.db.flush()
+            logger.info(f"User {user.username} logged in successfully via SSO")
+            return user
+
+        # Auto-provision SSO user
+        username = email.split('@')[0]
+        
+        # Check if username already exists
+        existing_username = self.db.query(User).filter(User.username == username).first()
+        if existing_username:
+            # Append random string to username if conflict
+            import random, string
+            suffix = ''.join(random.choices(string.ascii_lowercase + string.digits, k=4))
+            username = f"{username}_{suffix}"
+
+        db_user = User(
+            username=username,
+            email=email,
+            full_name=name or username,
+            hashed_password="AD_MANAGED_USER", # Managed externally
+            is_active=True,
+            last_login=datetime.utcnow()
+        )
+
+        self.db.add(db_user)
+        self.db.flush()
+
+        logger.info(f"New user {username} provisioned automatically via SSO")
+        return db_user
 
     def create_tokens(self, user: User) -> Tuple[str, str, int]:
         """Create access and refresh tokens for a user."""

@@ -8,6 +8,7 @@ from datetime import datetime
 
 from app.db import get_db
 from app.models.documentation import ProblemResolution, GeneralDocument, DocumentAttachment
+from app.dependencies import check_permission
 from app.schemas.documentation import (
     ProblemResolutionCreate, ProblemResolutionResponse,
     GeneralDocumentCreate, GeneralDocumentResponse,
@@ -15,7 +16,7 @@ from app.schemas.documentation import (
 )
 
 logger = logging.getLogger(__name__)
-router = APIRouter(prefix="/documentation", tags=["documentation"])
+router = APIRouter(prefix="/documentation", tags=["documentation"], dependencies=[Depends(check_permission("knowledge"))])
 
 # Upload directory
 UPLOAD_DIR = "uploads/documentation"

@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Request
-from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 import os
@@ -25,14 +24,35 @@ async def login_page(request: Request):
 
 @router.get("/register", response_class=HTMLResponse)
 async def register_page(request: Request):
-    """Registration page."""
-    return templates.TemplateResponse(request, "auth/register.html", {})
+    """Registration is disabled. Redirect to login."""
+    from fastapi.responses import RedirectResponse
+    return RedirectResponse(url="/login")
 
 
 @router.get("/profile", response_class=HTMLResponse)
 async def profile_page(request: Request):
     """User profile page."""
     return templates.TemplateResponse(request, "auth/profile.html", {})
+
+
+@router.get("/logout", response_class=HTMLResponse)
+async def logout_page(request: Request):
+    """Logout: clear client-side tokens and redirect to login."""
+    return HTMLResponse(content="""
+    <!DOCTYPE html>
+    <html>
+    <head><title>Logging out...</title></head>
+    <body>
+        <script>
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            sessionStorage.clear();
+            window.location.href = '/login';
+        </script>
+        <noscript><meta http-equiv="refresh" content="0;url=/login"></noscript>
+    </body>
+    </html>
+    """)
 
 
 @router.get("/tickets", response_class=HTMLResponse)
@@ -77,9 +97,9 @@ async def changes_create(request: Request):
     return templates.TemplateResponse(request, "changes/create.html", {})
 
 
-@router.get("/assets", response_class=HTMLResponse)
-async def assets_list(request: Request):
-    """Assets list page."""
+@router.get("/users_list", response_class=HTMLResponse)
+async def users_list_page(request: Request):
+    """Users list page."""
     return templates.TemplateResponse(request, "assets/list.html", {})
 
 
@@ -208,8 +228,13 @@ async def projects_create(request: Request):
 
 @router.get("/admin/users", response_class=HTMLResponse)
 async def admin_users(request: Request):
-    """Admin users management page."""
+    """Admin users database page."""
     return templates.TemplateResponse(request, "admin/users.html", {})
+
+@router.get("/admin/access", response_class=HTMLResponse)
+async def admin_access(request: Request):
+    """Admin platform access management page."""
+    return templates.TemplateResponse(request, "admin/access.html", {})
 
 
 @router.get("/admin/users/{user_id}", response_class=HTMLResponse)
@@ -223,6 +248,22 @@ async def admin_ad_users(request: Request):
     """Real-time Active Directory users page."""
     return templates.TemplateResponse(request, "admin/ad_users.html", {})
 
+@router.get("/network/discovery", response_class=HTMLResponse)
+async def network_discovery(request: Request):
+    """Network Discovery page."""
+    return templates.TemplateResponse(request, "network/discovery.html", {})
+
+@router.get("/network/topology", response_class=HTMLResponse)
+async def network_topology(request: Request):
+    """Network Topology map page."""
+    return templates.TemplateResponse(request, "network/topology.html", {})
+
+
+@router.get("/network/discovery/{device_id}", response_class=HTMLResponse)
+async def network_discovery_device_360(request: Request, device_id: int):
+    """Network Discovery Device 360 page."""
+    return templates.TemplateResponse(request, "network/device_360.html", {"device_id": device_id})
+
 
 @router.get("/admin/entities", response_class=HTMLResponse)
 async def admin_entities(request: Request):
@@ -234,3 +275,23 @@ async def admin_entities(request: Request):
 async def admin_settings(request: Request):
     """Admin settings page."""
     return templates.TemplateResponse(request, "admin/settings.html", {})
+
+
+# --- Onboarding Workflow Routes ---
+
+@router.get("/onboarding", response_class=HTMLResponse)
+async def onboarding_dashboard(request: Request):
+    """Onboarding Dashboard."""
+    return templates.TemplateResponse(request, "onboarding/dashboard.html", {})
+
+@router.get("/onboarding/new", response_class=HTMLResponse)
+async def onboarding_new(request: Request):
+    """HR New Request Form."""
+    return templates.TemplateResponse(request, "onboarding/new_request.html", {})
+
+@router.get("/onboarding/{request_id}", response_class=HTMLResponse)
+async def onboarding_detail(request: Request, request_id: int):
+    """Dynamic Manager Approval / IT Provisioning View."""
+    return templates.TemplateResponse(request, "onboarding/detail.html", {"request_id": request_id})
+
+

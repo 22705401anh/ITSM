@@ -1,103 +1,174 @@
 {% extends "base.html" %}
 {% block title %}License Management - KOSTAL ITSM{% endblock %}
+{% block extra_css %}
+<style>
+    /* Modern Dashboard Styling */
+    .page-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        border: 1px solid #edf2f7;
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-right: 16px;
+    }
+
+    .stat-icon.total { background: #e2e8f0; color: #4a5568; }
+    .stat-icon.active { background: #c6f6d5; color: #276749; }
+    .stat-icon.expiring { background: #fefcbf; color: #975a16; }
+    .stat-icon.expired { background: #fed7d7; color: #c53030; }
+
+    /* Table Improvements */
+    .custom-table {
+        border-collapse: separate;
+        border-spacing: 0 8px;
+    }
+
+    .custom-table thead th {
+        border: none;
+        background: transparent;
+        color: #718096;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding-bottom: 4px;
+    }
+
+    .custom-table tbody tr {
+        background: white;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .custom-table tbody tr:hover {
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+        transform: translateY(-1px);
+    }
+
+    .custom-table tbody td {
+        border: none;
+        padding: 16px;
+        vertical-align: middle;
+    }
+
+    .custom-table tbody td:first-child {
+        border-top-left-radius: 8px;
+        border-bottom-left-radius: 8px;
+    }
+
+    .custom-table tbody td:last-child {
+        border-top-right-radius: 8px;
+        border-bottom-right-radius: 8px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h2 mb-1"><i class="fas fa-certificate"></i> License Management</h1>
-            <p class="text-muted">Track and manage software licenses</p>
+    <!-- Header Section -->
+    <div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+        <div class="mb-3 mb-md-0">
+            <h1 class="h3 mb-2 fw-bold text-body"><i class="fas fa-certificate text-primary me-2"></i> License Management</h1>
+            <p class="text-muted mb-0">Track and manage software licenses and expiry dates.</p>
         </div>
-        <button onclick="showAddLicense()" class="btn btn-primary">
-            <i class="fas fa-plus-circle"></i> Add License
+        <button onclick="showAddLicense()" class="btn btn-primary rounded-pill px-4 fw-semibold shadow hover-lift">
+            <i class="fas fa-plus me-1"></i> Add License
         </button>
     </div>
 
-    <!-- Statistics -->
+    <!-- Statistics Grid -->
     <div class="row g-3 mb-4">
         <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2">Total Licenses</p>
-                            <h3 class="mb-0" id="totalCount">0</h3>
-                        </div>
-                        <i class="fas fa-certificate fa-2x text-primary opacity-25"></i>
-                    </div>
+            <div class="stat-card h-100">
+                <div class="stat-icon total"><i class="fas fa-certificate"></i></div>
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Total Licenses</div>
+                    <div class="h4 mb-0 fw-bold text-body" id="totalCount">0</div>
                 </div>
             </div>
         </div>
 
         <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2">Active</p>
-                            <h3 class="mb-0 text-success" id="activeCount">0</h3>
-                        </div>
-                        <i class="fas fa-check-circle fa-2x text-success opacity-25"></i>
-                    </div>
+            <div class="stat-card h-100">
+                <div class="stat-icon active"><i class="fas fa-check-circle"></i></div>
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Active</div>
+                    <div class="h4 mb-0 fw-bold text-success" id="activeCount">0</div>
                 </div>
             </div>
         </div>
 
         <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2">Expiring Soon</p>
-                            <h3 class="mb-0 text-warning" id="expiringCount">0</h3>
-                        </div>
-                        <i class="fas fa-exclamation-circle fa-2x text-warning opacity-25"></i>
-                    </div>
+            <div class="stat-card h-100">
+                <div class="stat-icon expiring"><i class="fas fa-exclamation-circle"></i></div>
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Expiring Soon</div>
+                    <div class="h4 mb-0 fw-bold text-warning" id="expiringCount">0</div>
                 </div>
             </div>
         </div>
 
         <div class="col-md-3">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2">Expired</p>
-                            <h3 class="mb-0 text-danger" id="expiredCount">0</h3>
-                        </div>
-                        <i class="fas fa-times-circle fa-2x text-danger opacity-25"></i>
-                    </div>
+            <div class="stat-card h-100">
+                <div class="stat-icon expired"><i class="fas fa-times-circle"></i></div>
+                <div>
+                    <div class="text-muted small fw-bold text-uppercase">Expired</div>
+                    <div class="h4 mb-0 fw-bold text-danger" id="expiredCount">0</div>
                 </div>
             </div>
         </div>
     </div>
 
     <!-- Licenses Table -->
-    <div class="card">
-        <div class="table-responsive">
-            <table class="table table-hover mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>License Name</th>
-                        <th>Type</th>
-                        <th>Total</th>
-                        <th>Used</th>
-                        <th>Available</th>
-                        <th>Expiry Date</th>
-                        <th>Status</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="licensesList">
-                    <tr>
-                        <td colspan="8" class="text-center py-4">
-                            <span class="spinner-border spinner-border-sm me-2"></span>
-                            Loading licenses...
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="table-responsive">
+        <table class="table custom-table w-100">
+            <thead>
+                <tr>
+                    <th class="ps-4">License Name</th>
+                    <th>Type</th>
+                    <th>Total</th>
+                    <th>Used</th>
+                    <th>Available</th>
+                    <th>Expiry Date</th>
+                    <th>Status</th>
+                    <th class="text-end pe-4">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="licensesList">
+                <tr>
+                    <td colspan="8" class="text-center py-5 bg-body rounded-3 shadow-sm">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 text-muted">Loading licenses...</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -180,13 +251,26 @@
 
 <script src="{{ url_for('static', path='js/notifications.js') }}"></script>
 <script>
+
+// Helper to inject auth token into fetch requests
+async function apiFetch(url, options = {}) {
+    if (!options.headers) {
+        options.headers = {};
+    }
+    const token = localStorage.getItem('access_token');
+    if (token) {
+        options.headers['Authorization'] = 'Bearer ' + token;
+    }
+    return window.fetch(url, options);
+}
+
 function showAddLicense() {
     new bootstrap.Modal(document.getElementById('addLicenseModal')).show();
 }
 
 async function loadLicenses() {
     try {
-        const res = await fetch('/api/licenses');
+        const res = await apiFetch('/api/licenses?_t=' + new Date().getTime());
         const licenses = await res.json();
 
         let active = 0, expiring = 0, expired = 0;
@@ -228,18 +312,21 @@ async function loadLicenses() {
 
             return `
                 <tr>
-                    <td><strong>${l.license_name}</strong></td>
-                    <td><span class="badge bg-info">${l.license_type}</span></td>
-                    <td>${l.total_licenses}</td>
-                    <td>${l.used_licenses}</td>
-                    <td><strong>${available}</strong></td>
-                    <td>${l.expiry_date ? new Date(l.expiry_date).toLocaleDateString() : 'Perpetual'}</td>
-                    <td><span class="badge ${statusClass}">${statusIcon} ${status}</span></td>
-                    <td>
-                        <button onclick="viewLicense(${l.id})" class="btn btn-sm btn-info" title="View Details">
+                    <td class="ps-4">
+                        <div class="fw-bold text-body">${l.license_name}</div>
+                        ${l.vendor ? `<div class="small text-muted">${l.vendor}</div>` : ''}
+                    </td>
+                    <td><span class="badge bg-light text-secondary border px-2 py-1">${l.license_type}</span></td>
+                    <td class="fw-semibold text-body">${l.total_licenses}</td>
+                    <td class="text-secondary">${l.used_licenses}</td>
+                    <td><span class="fw-bold ${available === 0 ? 'text-danger' : 'text-success'}">${available}</span></td>
+                    <td class="text-secondary">${l.expiry_date ? new Date(l.expiry_date).toLocaleDateString() : 'Perpetual'}</td>
+                    <td><span class="badge ${statusClass} rounded-pill px-3 py-2 shadow-sm">${statusIcon} ${status}</span></td>
+                    <td class="text-end pe-4">
+                        <button onclick="viewLicense(${l.id})" class="btn btn-sm btn-light border rounded-circle text-primary me-1 shadow-sm" style="width: 32px; height: 32px;" title="View Details">
                             <i class="fas fa-eye"></i>
                         </button>
-                        <button onclick="deleteLicense(${l.id})" class="btn btn-sm btn-outline-danger">
+                        <button onclick="deleteLicense(${l.id})" class="btn btn-sm btn-light border rounded-circle text-danger shadow-sm" style="width: 32px; height: 32px;">
                             <i class="fas fa-trash"></i>
                         </button>
                     </td>
@@ -260,10 +347,11 @@ async function loadLicenses() {
 
 async function viewLicense(id) {
     try {
-        const res = await fetch(`/api/licenses/${id}`);
+        const ts = new Date().getTime();
+        const res = await apiFetch(`/api/licenses/${id}?_t=${ts}`);
         const license = await res.json();
 
-        const historyRes = await fetch(`/api/licenses/${id}/access-history?limit=50`);
+        const historyRes = await apiFetch(`/api/licenses/${id}/access-history?limit=50&_t=${ts}`);
         const history = await historyRes.json();
 
         let html = `
@@ -339,13 +427,95 @@ async function viewLicense(id) {
             ` : ''}
 
             <hr>
+            
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h6 class="mb-0"><i class="fas fa-users text-primary"></i> Current Assignments</h6>
+                ${license.used_licenses < license.total_licenses ? `
+                <button class="btn btn-sm btn-primary rounded-pill shadow-sm" onclick="showAssignForm(${id})">
+                    <i class="fas fa-plus"></i> Assign
+                </button>
+                ` : '<span class="badge bg-danger">Fully Assigned</span>'}
+            </div>
+            
+            <!-- Assign Form (Hidden by default) -->
+            <div id="assignFormContainer_${id}" class="card bg-light border-0 mb-3 d-none">
+                <div class="card-body py-3">
+                    <h6 class="card-title text-primary small fw-bold text-uppercase mb-3">New Assignment</h6>
+                    <form onsubmit="submitAssignment(event, ${id})">
+                        <div class="row g-2">
+                            <div class="col-md-5">
+                                <label class="small text-muted mb-1">Assign to User</label>
+                                <div class="position-relative">
+                                    <input type="text" id="searchUser_${id}" class="form-control form-control-sm" placeholder="Search by name..." 
+                                           onkeyup="filterUserDropdown(${id})" onfocus="showUserDropdown(${id})" onblur="hideUserDropdown(${id})">
+                                    <input type="hidden" id="assignUser_${id}">
+                                    <div id="userDropdown_${id}" class="dropdown-menu w-100 shadow" style="max-height: 200px; overflow-y: auto; position: absolute; z-index: 1050;">
+                                        <!-- Populated via JS -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-1 d-flex align-items-center justify-content-center pt-3">
+                                <span class="text-muted small">OR</span>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="small text-muted mb-1">Assign to PC</label>
+                                <div class="position-relative">
+                                    <input type="text" id="searchPc_${id}" class="form-control form-control-sm" placeholder="Search by name or serial..." 
+                                           onkeyup="filterPcDropdown(${id})" onfocus="showPcDropdown(${id})" onblur="hidePcDropdown(${id})">
+                                    <input type="hidden" id="assignPc_${id}">
+                                    <div id="pcDropdown_${id}" class="dropdown-menu w-100 shadow" style="max-height: 200px; overflow-y: auto; position: absolute; z-index: 1050;">
+                                        <!-- Populated via JS -->
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 mt-2">
+                                <input type="text" class="form-control form-control-sm" id="assignNotes_${id}" placeholder="Assignment notes (optional)">
+                            </div>
+                            <div class="col-12 mt-2 text-end">
+                                <button type="button" class="btn btn-sm btn-secondary me-2" onclick="document.getElementById('assignFormContainer_${id}').classList.add('d-none')">Cancel</button>
+                                <button type="submit" class="btn btn-sm btn-primary">Confirm Assignment</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
 
-            <h6><i class="fas fa-history"></i> Access History (Who Viewed This License & When)</h6>
-            <div class="table-responsive">
-                <table class="table table-sm">
-                    <thead class="table-light">
+            <div class="table-responsive mb-4">
+                <table class="table table-sm align-middle">
+                    <thead class="table-light text-uppercase" style="font-size: 0.75rem;">
                         <tr>
-                            <th>User ID</th>
+                            <th>Assigned To</th>
+                            <th>Date</th>
+                            <th>Notes</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${license.assignments && license.assignments.length > 0 ? license.assignments.map(a => `
+                            <tr>
+                                <td>
+                                    ${a.user_name ? `<span class="badge bg-info text-dark bg-opacity-10 border border-info"><i class="fas fa-user me-1"></i>${a.user_name}</span>` : ''}
+                                    ${a.pc_name ? `<span class="badge bg-dark text-dark bg-opacity-10 border border-dark"><i class="fas fa-laptop me-1"></i>${a.pc_name}</span>` : ''}
+                                </td>
+                                <td><small>${new Date(a.assigned_date).toLocaleDateString()}</small></td>
+                                <td><small class="text-muted">${a.notes || '-'}</small></td>
+                                <td class="text-end">
+                                    <button class="btn btn-sm btn-outline-danger" style="padding: 2px 6px;" onclick="revokeAssignment(${a.id}, ${license.id})">Revoke</button>
+                                </td>
+                            </tr>
+                        `).join('') : '<tr><td colspan="4" class="text-center text-muted py-3">No active assignments</td></tr>'}
+                    </tbody>
+                </table>
+            </div>
+
+            <hr>
+
+            <h6 class="text-muted"><i class="fas fa-history"></i> License Activity Log</h6>
+            <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+                <table class="table table-sm">
+                    <thead class="table-light" style="position: sticky; top: 0; z-index: 1;">
+                        <tr>
+                            <th>User Name</th>
                             <th>Action</th>
                             <th>IP Address</th>
                             <th>Date & Time</th>
@@ -354,8 +524,8 @@ async function viewLicense(id) {
                     <tbody>
                         ${history && history.length > 0 ? history.map(h => `
                             <tr>
-                                <td><strong>User #${h.user_id}</strong></td>
-                                <td><span class="badge bg-info">${h.action}</span></td>
+                                <td><strong>${h.user_name || 'User #' + h.user_id}</strong></td>
+                                <td><span class="badge ${h.action.includes('ssign') ? 'bg-primary' : h.action.includes('evoke') ? 'bg-danger' : 'bg-info'}">${h.action}</span></td>
                                 <td><small>${h.ip_address || 'Unknown'}</small></td>
                                 <td><small>${new Date(h.created_at).toLocaleString()}</small></td>
                             </tr>
@@ -366,11 +536,16 @@ async function viewLicense(id) {
         `;
 
         document.getElementById('licenseDetails').innerHTML = html;
-        new bootstrap.Modal(document.getElementById('viewLicenseModal')).show();
+        const modalEl = document.getElementById('viewLicenseModal');
+        let modalInstance = bootstrap.Modal.getInstance(modalEl);
+        if (!modalInstance) {
+            modalInstance = new bootstrap.Modal(modalEl);
+        }
+        modalInstance.show();
 
     } catch (e) {
         console.error('Error loading license:', e);
-        Notification.error('Error', 'Error loading license: ' + e.message);
+        ITSMNotification.error('Error', 'Error loading license: ' + e.message);
     }
 }
 
@@ -390,24 +565,32 @@ function toggleLicenseKey(id) {
 }
 
 async function deleteLicense(id) {
-    if (confirm('Are you sure you want to delete this license?')) {
+    const isConfirmed = await ITSMNotification.confirm(
+        'Delete License',
+        'Are you sure you want to delete this license? This action cannot be undone.',
+        'Delete',
+        'Cancel',
+        'error'
+    );
+    
+    if (isConfirmed) {
         try {
-            const res = await fetch(`/api/licenses/${id}`, { method: 'DELETE' });
+            const res = await apiFetch(`/api/licenses/${id}`, { method: 'DELETE' });
 
             if (res.ok) {
-                Notification.success(
+                ITSMNotification.success(
                     'License Deleted',
                     'The license has been successfully deleted.',
                     () => loadLicenses()
                 );
             } else {
-                Notification.error(
+                ITSMNotification.error(
                     'Failed to Delete',
                     'Could not delete the license. Please try again.'
                 );
             }
         } catch (e) {
-            Notification.error(
+            ITSMNotification.error(
                 'Error',
                 'Network error: ' + e.message
             );
@@ -426,7 +609,7 @@ document.getElementById('licenseForm').addEventListener('submit', async (e) => {
     });
 
     try {
-        const res = await fetch('/api/licenses', {
+        const res = await apiFetch('/api/licenses', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
@@ -437,25 +620,208 @@ document.getElementById('licenseForm').addEventListener('submit', async (e) => {
             bootstrap.Modal.getInstance(document.getElementById('addLicenseModal')).hide();
             e.target.reset();
 
-            Notification.success(
+            ITSMNotification.success(
                 'License Created Successfully!',
                 `License "${license.license_name}" has been registered with ${license.total_licenses} licenses.`,
                 () => loadLicenses()
             );
         } else {
             const error = await res.json();
-            Notification.error(
+            ITSMNotification.error(
                 'Failed to Create License',
                 error.detail || 'An error occurred while creating the license. Please try again.'
             );
         }
     } catch (e) {
-        Notification.error(
+        ITSMNotification.error(
             'Error',
             'Network error: ' + e.message
         );
     }
 });
+
+async function showAssignForm(licenseId) {
+    document.getElementById(`assignFormContainer_${licenseId}`).classList.remove('d-none');
+    
+    // Fetch users and PCs if not already populated
+    const userDropdown = document.getElementById(`userDropdown_${licenseId}`);
+    if (userDropdown.children.length === 0) {
+        try {
+            const [usersRes, stockRes] = await Promise.all([
+                apiFetch('/api/admin/users'),
+                apiFetch('/api/hardware/stock/all')
+            ]);
+            
+            if (usersRes.ok) {
+                const users = await usersRes.json();
+                users.forEach(u => {
+                    const item = document.createElement('a');
+                    item.className = 'dropdown-item user-option';
+                    item.href = '#';
+                    item.textContent = u.full_name || u.username;
+                    item.dataset.id = u.id;
+                    item.onmousedown = (e) => {
+                        e.preventDefault(); // Prevent blur from firing before click
+                        document.getElementById(`assignUser_${licenseId}`).value = u.id;
+                        document.getElementById(`searchUser_${licenseId}`).value = item.textContent;
+                        userDropdown.style.display = 'none';
+                    };
+                    userDropdown.appendChild(item);
+                });
+            }
+            
+            if (stockRes.ok) {
+                const stock = await stockRes.json();
+                const pcDropdown = document.getElementById(`pcDropdown_${licenseId}`);
+                stock.items.filter(i => i.asset_type === 'pc').forEach(pc => {
+                    const item = document.createElement('a');
+                    item.className = 'dropdown-item pc-option';
+                    item.href = '#';
+                    item.textContent = `${pc.name || pc.model} [${pc.serial_number}]`;
+                    item.dataset.id = pc.id;
+                    item.onmousedown = (e) => {
+                        e.preventDefault(); // Prevent blur
+                        document.getElementById(`assignPc_${licenseId}`).value = pc.id;
+                        document.getElementById(`searchPc_${licenseId}`).value = item.textContent;
+                        pcDropdown.style.display = 'none';
+                    };
+                    pcDropdown.appendChild(item);
+                });
+            }
+        } catch (e) {
+            console.error('Failed to load assignable entities', e);
+        }
+    }
+}
+
+function showUserDropdown(licenseId) {
+    document.getElementById(`userDropdown_${licenseId}`).style.display = 'block';
+}
+
+function hideUserDropdown(licenseId) {
+    // Timeout needed to allow click event to fire on dropdown items before it hides
+    setTimeout(() => {
+        const dropdown = document.getElementById(`userDropdown_${licenseId}`);
+        if (dropdown) dropdown.style.display = 'none';
+    }, 200);
+}
+
+function filterUserDropdown(licenseId) {
+    const input = document.getElementById(`searchUser_${licenseId}`);
+    const filter = input.value.toLowerCase();
+    const dropdown = document.getElementById(`userDropdown_${licenseId}`);
+    const items = dropdown.getElementsByClassName('user-option');
+
+    let hasVisible = false;
+    for (let i = 0; i < items.length; i++) {
+        const txtValue = items[i].textContent || items[i].innerText;
+        if (txtValue.toLowerCase().indexOf(filter) > -1) {
+            items[i].style.display = "";
+            hasVisible = true;
+        } else {
+            items[i].style.display = "none";
+        }
+    }
+    
+    dropdown.style.display = hasVisible ? 'block' : 'none';
+}
+
+function showPcDropdown(licenseId) {
+    document.getElementById(`pcDropdown_${licenseId}`).style.display = 'block';
+}
+
+function hidePcDropdown(licenseId) {
+    setTimeout(() => {
+        const dropdown = document.getElementById(`pcDropdown_${licenseId}`);
+        if (dropdown) dropdown.style.display = 'none';
+    }, 200);
+}
+
+function filterPcDropdown(licenseId) {
+    const input = document.getElementById(`searchPc_${licenseId}`);
+    const filter = input.value.toLowerCase();
+    const dropdown = document.getElementById(`pcDropdown_${licenseId}`);
+    const items = dropdown.getElementsByClassName('pc-option');
+
+    let hasVisible = false;
+    for (let i = 0; i < items.length; i++) {
+        const txtValue = items[i].textContent || items[i].innerText;
+        if (txtValue.toLowerCase().indexOf(filter) > -1) {
+            items[i].style.display = "";
+            hasVisible = true;
+        } else {
+            items[i].style.display = "none";
+        }
+    }
+    
+    dropdown.style.display = hasVisible ? 'block' : 'none';
+}
+
+async function submitAssignment(e, licenseId) {
+    e.preventDefault();
+    const userId = document.getElementById(`assignUser_${licenseId}`).value;
+    const pcId = document.getElementById(`assignPc_${licenseId}`).value;
+    const notes = document.getElementById(`assignNotes_${licenseId}`).value;
+    
+    if (!userId && !pcId) {
+        alert("Please select either a user or a PC to assign.");
+        return;
+    }
+    
+    try {
+        const res = await apiFetch(`/api/licenses/${licenseId}/assign`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                user_id: userId ? parseInt(userId) : null,
+                pc_id: pcId ? parseInt(pcId) : null,
+                notes: notes
+            })
+        });
+        
+        if (res.ok) {
+            ITSMNotification.success('Assigned', 'License successfully assigned.');
+            // Reload the view modal
+            viewLicense(licenseId);
+            // Reload main table
+            loadLicenses();
+        } else {
+            const data = await res.json();
+            ITSMNotification.error('Error', data.detail || 'Assignment failed');
+        }
+    } catch (e) {
+        ITSMNotification.error('Error', e.message);
+    }
+}
+
+async function revokeAssignment(assignmentId, licenseId) {
+    const isConfirmed = await ITSMNotification.confirm(
+        'Revoke Assignment',
+        'Are you sure you want to revoke this license assignment? This will free up the license capacity.',
+        'Revoke',
+        'Cancel',
+        'error'
+    );
+    
+    if (!isConfirmed) return;
+    
+    try {
+        const res = await apiFetch(`/api/licenses/assignments/${assignmentId}/revoke`, {
+            method: 'POST'
+        });
+        
+        if (res.ok) {
+            ITSMNotification.success('Revoked', 'Assignment has been revoked.');
+            viewLicense(licenseId);
+            loadLicenses();
+        } else {
+            const data = await res.json();
+            ITSMNotification.error('Error', data.detail || 'Failed to revoke');
+        }
+    } catch (e) {
+        ITSMNotification.error('Error', e.message);
+    }
+}
 
 document.addEventListener('DOMContentLoaded', loadLicenses);
 </script>

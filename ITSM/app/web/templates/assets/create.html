@@ -10,7 +10,7 @@
 <nav aria-label="breadcrumb" class="mt-3">
     <ol class="breadcrumb">
         <li class="breadcrumb-item"><a href="/">Dashboard</a></li>
-        <li class="breadcrumb-item"><a href="/assets">Assets</a></li>
+        <li class="breadcrumb-item"><a href="/users_list">Assets</a></li>
         <li class="breadcrumb-item active">Add New Asset</li>
     </ol>
 </nav>
@@ -166,7 +166,7 @@
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Create Asset
                             </button>
-                            <a href="/assets" class="btn btn-secondary">
+                            <a href="/users_list" class="btn btn-secondary">
                                 <i class="fas fa-times"></i> Cancel
                             </a>
                         </div>
@@ -235,7 +235,7 @@ document.getElementById('assetForm').addEventListener('submit', async (e) => {
             const asset = await response.json();
 
             // Show professional success notification then redirect
-            Notification.success(
+            ITSMNotification.success(
                 'Asset Created Successfully!',
                 `Asset "${asset.name}" has been added to your inventory.`,
                 () => {
@@ -244,13 +244,13 @@ document.getElementById('assetForm').addEventListener('submit', async (e) => {
             );
         } else {
             const error = await response.json();
-            Notification.error(
+            ITSMNotification.error(
                 'Failed to Create Asset',
                 error.detail || 'An error occurred while creating the asset. Please try again.'
             );
         }
     } catch (error) {
-        Notification.error(
+        ITSMNotification.error(
             'Network Error',
             'Could not connect to the server: ' + error.message
         );

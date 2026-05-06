@@ -14,6 +14,21 @@ function setToken(token) {
     localStorage.setItem(ACCESS_TOKEN_KEY, token);
 }
 
+// Handle SSO tokens from URL
+(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessToken = urlParams.get('access_token');
+    const refreshToken = urlParams.get('refresh_token');
+    if (accessToken) {
+        setToken(accessToken);
+        if (refreshToken) {
+            localStorage.setItem('refresh_token', refreshToken);
+        }
+        // Clean up URL
+        window.history.replaceState({}, document.title, window.location.pathname);
+    }
+})();
+
 // Clear token
 function clearToken() {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
@@ -157,8 +172,12 @@ document.addEventListener('DOMContentLoaded', function() {
     // Check authentication on page load
     redirectIfNotAuthenticated();
 
-    // Setup stat card handlers
     setupStatCardHandlers();
+
+    // Load current user profile for navbar
+    if (isLoggedIn()) {
+        loadCurrentUser();
+    }
 
     // Setup HTMX event handlers
     htmx.on('htmx:beforeRequest', function(event) {
@@ -180,6 +199,29 @@ document.addEventListener('DOMContentLoaded', function() {
 function logout() {
     clearToken();
     window.location.href = '/login';
+}
+
+// Store current user globally
+window.currentUser = null;
+
+// Load current user for navbar and permissions
+async function loadCurrentUser() {
+    const user = await apiRequest('GET', '/auth/me');
+    if (user) {
+        window.currentUser = user;
+        
+        const nameEl = document.getElementById('navbarAccountName');
+        const iconEl = document.getElementById('navbarAccountIcon');
+        
+        if (nameEl) nameEl.textContent = user.full_name || user.username;
+        
+        if (iconEl && user.profile_image) {
+            iconEl.innerHTML = `<img src="${user.profile_image}" alt="User" class="rounded-circle me-1" style="width: 24px; height: 24px; object-fit: cover; border: 1px solid #dee2e6;">`;
+        }
+        
+        // Dispatch event for components that need user permissions (like sidebar)
+        document.dispatchEvent(new CustomEvent('userLoaded', { detail: user }));
+    }
 }
 
 // Export functions for use in templates

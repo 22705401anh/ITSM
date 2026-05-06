@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block title %}Onboarding Request | KOSTAL ITSM{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="/">Home</a></li>
+        <li class="breadcrumb-item"><a href="/onboarding">Employee Onboarding</a></li>
+        <li class="breadcrumb-item active" aria-current="page">Request Detail</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="py-4 max-w-4xl mx-auto" style="max-width: 1000px;">
+    
+    <!-- Top Bar: Title & Status -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1 fw-bold text-body" id="reqTitle">Loading Request...</h1>
+            <p class="text-muted mb-0"><i class="fas fa-building me-1"></i> <span id="reqDept"></span> • <i class="fas fa-calendar-alt me-1"></i> Start: <span id="reqStart" class="text-primary fw-semibold"></span></p>
+        </div>
+        <div>
+            <span id="reqStatus" class="badge rounded-pill px-4 py-2 fs-6 shadow-sm">...</span>
+        </div>
+    </div>
+
+    <div class="row g-4">
+        <!-- Main Content Area -->
+        <div class="col-lg-8">
+            
+            <!-- SECTION: Manager Approval Form -->
+            <div id="managerApprovalSection" class="card border-0 shadow-sm rounded-4 mb-4 d-none">
+                <div class="card-body p-4 p-md-5">
+                    <div class="d-flex align-items-center mb-4">
+                        <div class="bg-warning bg-opacity-10 text-warning rounded-circle p-3 me-3">
+                            <i class="fas fa-user-tie fa-lg"></i>
+                        </div>
+                        <div>
+                            <h5 class="fw-bold mb-0">Manager Approval Required</h5>
+                            <p class="text-muted small mb-0">Please select the required resources for the new employee.</p>
+                        </div>
+                    </div>
+                    
+                    <form id="approvalForm">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Hardware Selection</label>
+                            <div class="row g-2">
+                                <div class="col-md-6"><div class="form-check border rounded p-2"><input class="form-check-input ms-1" type="checkbox" name="hw" value="Standard Laptop" id="hw1"> <label class="form-check-label" for="hw1"><i class="fas fa-laptop text-secondary mx-2"></i> Standard Laptop</label></div></div>
+                                <div class="col-md-6"><div class="form-check border rounded p-2"><input class="form-check-input ms-1" type="checkbox" name="hw" value="Developer Laptop" id="hw2"> <label class="form-check-label" for="hw2"><i class="fas fa-laptop-code text-secondary mx-2"></i> Developer Laptop</label></div></div>
+                                <div class="col-md-6"><div class="form-check border rounded p-2"><input class="form-check-input ms-1" type="checkbox" name="hw" value="Docking Station" id="hw3"> <label class="form-check-label" for="hw3"><i class="fas fa-hdd text-secondary mx-2"></i> Docking Station</label></div></div>
+                                <div class="col-md-6"><div class="form-check border rounded p-2"><input class="form-check-input ms-1" type="checkbox" name="hw" value="Dual Monitors" id="hw4"> <label class="form-check-label" for="hw4"><i class="fas fa-desktop text-secondary mx-2"></i> Dual Monitors</label></div></div>
+                                <div class="col-md-6"><div class="form-check border rounded p-2"><input class="form-check-input ms-1" type="checkbox" name="hw" value="Mobile Phone" id="hw5"> <label class="form-check-label" for="hw5"><i class="fas fa-mobile-alt text-secondary mx-2"></i> Mobile Phone</label></div></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Software & Licenses</label>
+                            <div class="row g-2">
+                                <div class="col-md-6"><div class="form-check border rounded p-2"><input class="form-check-input ms-1" type="checkbox" name="sw" value="Office 365 E3" id="sw1" checked> <label class="form-check-label" for="sw1"><i class="fab fa-microsoft text-secondary mx-2"></i> Office 365 E3</label></div></div>
+                                <div class="col-md-6"><div class="form-check border rounded p-2"><input class="form-check-input ms-1" type="checkbox" name="sw" value="SAP GUI" id="sw2"> <label class="form-check-label" for="sw2"><i class="fas fa-server text-secondary mx-2"></i> SAP GUI</label></div></div>
+                                <div class="col-md-6"><div class="form-check border rounded p-2"><input class="form-check-input ms-1" type="checkbox" name="sw" value="AutoCAD" id="sw3"> <label class="form-check-label" for="sw3"><i class="fas fa-drafting-compass text-secondary mx-2"></i> AutoCAD</label></div></div>
+                                <div class="col-md-6"><div class="form-check border rounded p-2"><input class="form-check-input ms-1" type="checkbox" name="sw" value="Visual Studio" id="sw4"> <label class="form-check-label" for="sw4"><i class="fas fa-code text-secondary mx-2"></i> Visual Studio</label></div></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Access Requirements</label>
+                            <div class="row g-2">
+                                <div class="col-md-6"><div class="form-check border rounded p-2"><input class="form-check-input ms-1" type="checkbox" name="acc" value="VPN Access" id="acc1"> <label class="form-check-label" for="acc1"><i class="fas fa-network-wired text-secondary mx-2"></i> VPN Access</label></div></div>
+                                <div class="col-md-6"><div class="form-check border rounded p-2"><input class="form-check-input ms-1" type="checkbox" name="acc" value="Dept File Share" id="acc2" checked> <label class="form-check-label" for="acc2"><i class="fas fa-folder-open text-secondary mx-2"></i> Dept File Share</label></div></div>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Additional Comments / Justification</label>
+                            <textarea class="form-control bg-light" id="approvalComments" rows="3" placeholder="Add any specific requirements here..."></textarea>
+                        </div>
+
+                        <div class="d-flex justify-content-end">
+                            <button type="submit" class="btn btn-primary rounded-pill px-4" id="approveBtn">
+                                Approve & Generate Tasks <i class="fas fa-check-circle ms-2"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SECTION: IT Tasks -->
+            <div id="itTasksSection" class="card border-0 shadow-sm rounded-4 mb-4 d-none">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-4 text-primary border-bottom pb-2">IT Provisioning Tasks</h5>
+                    <div id="taskList"></div>
+                </div>
+            </div>
+
+        </div>
+        
+        <!-- Right Sidebar Area -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-3 text-uppercase small text-muted">Request Details</h6>
+                    <div class="mb-3">
+                        <div class="small text-muted">Employment Type</div>
+                        <div class="fw-semibold" id="reqType"></div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="small text-muted">Location</div>
+                        <div class="fw-semibold" id="reqLoc"></div>
+                    </div>
+                    <div class="mb-3">
+                        <div class="small text-muted">Assigned Manager</div>
+                        <div class="fw-semibold" id="reqManager"></div>
+                    </div>
+                    <hr class="text-muted">
+                    <div class="mb-2">
+                        <div class="small text-muted">Request ID</div>
+                        <div class="fw-semibold font-monospace">ONB-{{ request_id }}</div>
+                    </div>
+                    <div>
+                        <div class="small text-muted">Submitted</div>
+                        <div class="fw-semibold" id="reqSubmitted"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const reqId = {{ request_id }};
+
+document.addEventListener('DOMContentLoaded', loadData);
+
+async function loadData() {
+    try {
+        const data = await apiRequest('GET', `/onboarding/${reqId}`);
+        if (!data) throw new Error("Not found");
+        
+        document.getElementById('reqTitle').textContent = `Onboarding: ${data.employee_name}`;
+        document.getElementById('reqDept').textContent = `${data.job_title} | ${data.department}`;
+        document.getElementById('reqStart').textContent = new Date(data.start_date).toLocaleDateString();
+        
+        document.getElementById('reqType').textContent = data.employment_type;
+        document.getElementById('reqLoc').textContent = data.location;
+        document.getElementById('reqManager').textContent = data.manager_name || 'Unassigned';
+        document.getElementById('reqSubmitted').textContent = new Date(data.submitted_at).toLocaleDateString();
+        
+        const badge = document.getElementById('reqStatus');
+        badge.textContent = data.status;
+        if (data.status === 'Manager Approval') {
+            badge.className = 'badge bg-warning text-dark rounded-pill px-4 py-2 fs-6 shadow-sm';
+            document.getElementById('managerApprovalSection').classList.remove('d-none');
+        } else {
+            document.getElementById('managerApprovalSection').classList.add('d-none');
+            
+            if (data.status === 'IT Provisioning') badge.className = 'badge bg-info text-dark rounded-pill px-4 py-2 fs-6 shadow-sm';
+            else if (data.status === 'Completed') badge.className = 'badge bg-success rounded-pill px-4 py-2 fs-6 shadow-sm';
+            
+            // Show Tasks
+            document.getElementById('itTasksSection').classList.remove('d-none');
+            renderTasks(data.tasks);
+        }
+        
+    } catch (e) {
+        console.error(e);
+        alert("Failed to load onboarding request.");
+    }
+}
+
+document.getElementById('approvalForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('approveBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Approving...';
+    
+    const hw = Array.from(document.querySelectorAll('input[name="hw"]:checked')).map(el => el.value);
+    const sw = Array.from(document.querySelectorAll('input[name="sw"]:checked')).map(el => el.value);
+    const acc = Array.from(document.querySelectorAll('input[name="acc"]:checked')).map(el => el.value);
+    const comments = document.getElementById('approvalComments').value;
+    
+    try {
+        const data = await apiRequest('POST', `/onboarding/${reqId}/approve`, {
+            hardware_selections: hw,
+            software_selections: sw,
+            access_selections: acc,
+            comments: comments
+        });
+        
+        if (data) {
+            window.location.reload();
+        } else {
+            btn.disabled = false;
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Network error.");
+        btn.disabled = false;
+    }
+});
+
+function renderTasks(tasks) {
+    const list = document.getElementById('taskList');
+    if (!tasks || tasks.length === 0) {
+        list.innerHTML = '<div class="text-muted">No tasks generated.</div>';
+        return;
+    }
+    
+    list.innerHTML = tasks.map(t => {
+        const isDone = t.status === 'Completed';
+        const iconClass = isDone ? 'text-success fa-check-circle' : 'text-secondary fa-circle';
+        
+        let typeIcon = 'fa-cog';
+        if (t.task_type === 'account') typeIcon = 'fa-user';
+        if (t.task_type === 'hardware') typeIcon = 'fa-laptop';
+        if (t.task_type === 'software') typeIcon = 'fa-box';
+        if (t.task_type === 'access') typeIcon = 'fa-key';
+        
+        return `
+            <div class="d-flex align-items-center p-3 border rounded mb-2 ${isDone ? 'bg-light opacity-75' : 'bg-white'}">
+                <i class="fas ${iconClass} fa-lg me-3"></i>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold ${isDone ? 'text-decoration-line-through text-muted' : ''}">${t.title}</div>
+                    <div class="small text-muted"><i class="fas ${typeIcon} fa-fw me-1"></i> Assigned to: ${t.assigned_group || 'IT Support'}</div>
+                </div>
+                ${!isDone ? `
+                    <button class="btn btn-sm btn-outline-success rounded-pill px-3" onclick="completeTask(${t.id})">
+                        Mark Done
+                    </button>
+                ` : `<span class="badge bg-success-subtle text-success border border-success-subtle px-2">Completed</span>`}
+            </div>
+        `;
+    }).join('');
+}
+
+async function completeTask(taskId) {
+    try {
+        const data = await apiRequest('POST', `/onboarding/task/${taskId}/complete`);
+        if (data) {
+            loadData(); // Reload UI
+        }
+    } catch(e) {
+        console.error(e);
+    }
+}
+</script>
+{% endblock %}

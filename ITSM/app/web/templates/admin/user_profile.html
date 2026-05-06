@@ -25,7 +25,7 @@
                     <h5 class="mb-0 fw-bold"><i class="fas fa-id-card me-2 text-primary"></i> Profile Information</h5>
                 </div>
                 <div class="card-body">
-                    <div class="text-center mb-4">
+                    <div class="text-center mb-4" id="userProfileImageContainer">
                         <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem;">
                             <i class="fas fa-user"></i>
                         </div>
@@ -36,12 +36,16 @@
                             <span id="userStatus" class="badge bg-secondary">Unknown</span>
                         </li>
                         <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
+                            <span class="text-muted small">Platform Access</span>
+                            <span id="platformAccess" class="badge bg-secondary">Unknown</span>
+                        </li>
+                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
                             <span class="text-muted small">Department</span>
                             <span id="userDepartment" class="fw-semibold">-</span>
                         </li>
                         <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                            <span class="text-muted small">Job Title</span>
-                            <span id="userTitle" class="fw-semibold">-</span>
+                            <span class="text-muted small"><i class="fas fa-phone-alt me-1 opacity-50"></i>Phone</span>
+                            <span id="userPhone" class="fw-semibold">-</span>
                         </li>
                         <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
                             <span class="text-muted small">Username</span>
@@ -72,8 +76,14 @@
 
     <!-- Assignment History -->
     <div class="card shadow-sm border-0 mt-4">
-        <div class="card-header bg-body-tertiary border-0 pt-4 pb-0">
-            <h5 class="mb-0 fw-bold"><i class="fas fa-history me-2 text-info"></i> Equipment History</h5>
+        <div class="card-header bg-body-tertiary border-0 pt-4 pb-0 d-flex justify-content-between align-items-end">
+            <h5 class="mb-2 fw-bold"><i class="fas fa-history me-2 text-info"></i> Equipment History</h5>
+            <div class="mb-2" style="width: 250px;">
+                <div class="input-group input-group-sm border rounded-pill overflow-hidden bg-white">
+                    <span class="input-group-text bg-white border-0 text-muted ps-3"><i class="fas fa-search"></i></span>
+                    <input type="text" id="historySearch" class="form-control border-0 shadow-none" placeholder="Search history...">
+                </div>
+            </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
@@ -180,12 +190,22 @@ async function loadUserProfile() {
         document.getElementById('userNameTitle').textContent = user.full_name;
         document.getElementById('userEmailSubtitle').textContent = user.email || 'No email provided';
         document.getElementById('userDepartment').textContent = user.department || '-';
-        document.getElementById('userTitle').textContent = user.title || '-';
+        document.getElementById('userPhone').textContent = user.phone || '-';
         document.getElementById('userUsername').textContent = user.username;
         
+        if (user.profile_image) {
+            document.getElementById('userProfileImageContainer').innerHTML = `
+                <img src="${user.profile_image}" alt="Profile Image" class="rounded-circle shadow-sm" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid white;">
+            `;
+        }
+
         const statusBadge = document.getElementById('userStatus');
-        statusBadge.textContent = user.is_active ? 'Active' : 'Disabled';
-        statusBadge.className = `badge bg-${user.is_active ? 'success' : 'danger'}`;
+        statusBadge.textContent = user.ad_active !== false ? 'Working (Active)' : 'Not Working (Disabled)';
+        statusBadge.className = `badge bg-${user.ad_active !== false ? 'success' : 'danger'}`;
+        
+        const accessBadge = document.getElementById('platformAccess');
+        accessBadge.textContent = user.is_active ? 'Granted' : 'Denied';
+        accessBadge.className = `badge bg-${user.is_active ? 'success' : 'secondary'}`;
         
     } catch (e) {
         document.getElementById('userNameTitle').textContent = "Error loading user";
@@ -197,7 +217,9 @@ function getIconForType(type) {
     if(type === 'pc') return 'fa-laptop';
     if(type === 'monitor') return 'fa-desktop';
     if(type === 'docking_station') return 'fa-plug';
+    if(type === 'printer') return 'fa-print';
     if(type === 'phone') return 'fa-mobile-alt';
+    if(type === 'phone_number') return 'fa-hashtag';
     return 'fa-box';
 }
 
@@ -205,7 +227,9 @@ function getLabelForType(type) {
     if(type === 'pc') return 'Computer';
     if(type === 'monitor') return 'Monitor';
     if(type === 'docking_station') return 'Docking Station';
+    if(type === 'printer') return 'Printer';
     if(type === 'phone') return 'Phone';
+    if(type === 'phone_number') return 'Phone Number';
     return type;
 }
 
@@ -261,8 +285,12 @@ async function loadHardware() {
                     <td class="ps-4 text-muted small">${dateStr}</td>
                     <td><span class="badge bg-${isAssigned ? 'success' : 'secondary'} bg-opacity-25 text-${isAssigned ? 'success' : 'secondary'} border border-${isAssigned ? 'success' : 'secondary'} px-2">${h.action}</span></td>
                     <td><i class="fas ${getIconForType(h.hw_type)} me-2 text-muted"></i> ${getLabelForType(h.hw_type)}</td>
-                    <td>${h.hw_model || '-'}</td>
-                    <td><code class="bg-body-tertiary text-body px-2 py-1 rounded border">${h.hw_serial || '-'}</code></td>
+                    <td>
+                        ${h.hw_model ? `<a href="/hardware/${h.hw_type}/${h.hw_id}" class="text-decoration-none fw-semibold text-primary hover-underline">${h.hw_model}</a>` : '-'}
+                    </td>
+                    <td>
+                        ${h.hw_serial ? `<a href="/hardware/${h.hw_type}/${h.hw_id}" class="text-decoration-none"><code class="bg-body-tertiary text-body px-2 py-1 rounded border hover-underline">${h.hw_serial}</code></a>` : '-'}
+                    </td>
                     <td class="text-muted small">${h.notes || '-'}</td>
                 </tr>
                 `;
@@ -404,6 +432,16 @@ document.getElementById('returnForm').addEventListener('submit', async (e) => {
     }
 });
 
+// Search functionality for Equipment History
+document.getElementById('historySearch')?.addEventListener('keyup', function() {
+    const term = this.value.toLowerCase();
+    const rows = document.querySelectorAll('#historyList tr.align-middle');
+    
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(term) ? '' : 'none';
+    });
+});
 </script>
 {% endblock %}
 

@@ -16,7 +16,12 @@ class User(Base, TimestampMixin, IsActiveMixin):
     username: Mapped[str] = mapped_column(String(100), unique=True, nullable=False, index=True)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     full_name: Mapped[str] = mapped_column(String(255), nullable=False)
+    department: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    title: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
+    profile_image: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
     hashed_password: Mapped[str] = mapped_column(String(255), nullable=False)
+    role: Mapped[str] = mapped_column(String(50), default="user", server_default="user")
+    assigned_pages: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
 
     # Profile and organization
     entity_id: Mapped[Optional[int]] = mapped_column(
@@ -39,6 +44,7 @@ class User(Base, TimestampMixin, IsActiveMixin):
     # Status tracking
     last_login: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
     last_login_ip: Mapped[Optional[str]] = mapped_column(String(45), nullable=True)
+    ad_active: Mapped[bool] = mapped_column(Boolean, default=True)
 
     # Groups membership (many-to-many)
     groups: Mapped[List["Group"]] = relationship(

@@ -1,124 +1,407 @@
-<aside id="sidebar" class="bg-body-tertiary sidebar sticky-top sidebar-expanded">
-<div class="position-sticky pt-3">
-    <ul class="nav flex-column">
+<aside id="sidebar" class="sidebar shadow-lg">
+    <div class="position-sticky pt-3 pb-4">
+
+        <!-- Dashboard (No Collapse) -->
+        <ul class="nav flex-column mb-3 px-2">
             <li class="nav-item">
-                <a class="nav-link" href="/">
-                    <i class="fas fa-chart-line"></i> <span class="sidebar-label">Dashboard</span>
+                <a class="nav-link sidebar-link rounded-3" href="/" data-title="Dashboard">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-chart-line sidebar-icon"></i> 
+                        <span class="sidebar-label ms-2 fw-medium">Dashboard</span>
+                    </div>
                 </a>
+            </li>
+        </ul>
+
+        <h6 class="sidebar-heading px-4 mt-3 mb-2 text-uppercase small fw-bold" style="letter-spacing: 0.05em;">Modules</h6>
+        
+        <ul class="nav flex-column px-2" id="sidebarAccordion">
+            
+            <!-- Assets -->
+            <li class="nav-item">
+                <a class="nav-link sidebar-link rounded-3 collapsed d-flex justify-content-between align-items-center" href="#collapseAssets" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseAssets" data-title="Assets">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-laptop sidebar-icon"></i>
+                        <span class="sidebar-label ms-2 fw-medium">Assets</span>
+                    </div>
+                    <i class="fas fa-chevron-right sidebar-arrow"></i>
+                </a>
+                <div class="collapse" id="collapseAssets" data-bs-parent="#sidebarAccordion">
+                    <ul class="nav flex-column ms-4 py-1">
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/users_list" data-bs-toggle="tooltip" data-bs-placement="right" title="Users">
+                                <span class="sidebar-label">Users</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/assets/stock" data-bs-toggle="tooltip" data-bs-placement="right" title="Hardware Stock">
+                                <span class="sidebar-label">Hardware Stock</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/licenses" data-bs-toggle="tooltip" data-bs-placement="right" title="Licenses">
+                                <span class="sidebar-label">Licenses</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
 
-            <hr class="my-2">
-
-            <li class="nav-item">
-                <span class="nav-link text-muted small"><span class="sidebar-label">Service Management</span></span>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/problems">
-                    <i class="fas fa-exclamation-circle"></i> <span class="sidebar-label">Problems</span>
+            <!-- Network -->
+            <li class="nav-item mt-1">
+                <a class="nav-link sidebar-link rounded-3 collapsed d-flex justify-content-between align-items-center" href="#collapseNetwork" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseNetwork" data-title="Network">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-network-wired sidebar-icon"></i>
+                        <span class="sidebar-label ms-2 fw-medium">Network</span>
+                    </div>
+                    <i class="fas fa-chevron-right sidebar-arrow"></i>
                 </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/changes">
-                    <i class="fas fa-exchange-alt"></i> <span class="sidebar-label">Changes</span>
-                </a>
-            </li>
-
-            <hr class="my-2">
-
-            <li class="nav-item">
-                <span class="nav-link text-muted small"><span class="sidebar-label">Assets</span></span>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/assets">
-                    <i class="fas fa-server"></i> <span class="sidebar-label">Inventory</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/assets/stock">
-                    <i class="fas fa-boxes"></i> <span class="sidebar-label">Hardware Stock</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/licenses">
-                    <i class="fas fa-certificate"></i> <span class="sidebar-label">Licenses</span>
-                </a>
+                <div class="collapse" id="collapseNetwork" data-bs-parent="#sidebarAccordion">
+                    <ul class="nav flex-column ms-4 py-1">
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/network/discovery" data-bs-toggle="tooltip" data-bs-placement="right" title="Discovery">
+                                <span class="sidebar-label">Discovery</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/network/topology" data-bs-toggle="tooltip" data-bs-placement="right" title="Topology Map">
+                                <span class="sidebar-label">Topology Map</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
 
-            <hr class="my-2">
-
-            <li class="nav-item">
-                <span class="nav-link text-muted small"><span class="sidebar-label">Documentation</span></span>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/documentation/problems">
-                    <i class="fas fa-tools"></i> <span class="sidebar-label">Problem Solutions</span>
+            <!-- Service Management -->
+            <li class="nav-item mt-1">
+                <a class="nav-link sidebar-link rounded-3 collapsed d-flex justify-content-between align-items-center" href="#collapseService" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseService" data-title="Service Mgmt">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-headset sidebar-icon"></i>
+                        <span class="sidebar-label ms-2 fw-medium">Service Mgmt</span>
+                    </div>
+                    <i class="fas fa-chevron-right sidebar-arrow"></i>
                 </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/documentation/general">
-                    <i class="fas fa-file-alt"></i> <span class="sidebar-label">General Docs</span>
-                </a>
-            </li>
-
-            <hr class="my-2">
-
-            <li class="nav-item">
-                <span class="nav-link text-muted small"><span class="sidebar-label">Management</span></span>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/contracts">
-                    <i class="fas fa-file-contract"></i> <span class="sidebar-label">Contracts</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/reservations">
-                    <i class="fas fa-calendar"></i> <span class="sidebar-label">Reservations</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/projects">
-                    <i class="fas fa-project-diagram"></i> <span class="sidebar-label">Projects</span>
-                </a>
+                <div class="collapse" id="collapseService" data-bs-parent="#sidebarAccordion">
+                    <ul class="nav flex-column ms-4 py-1">
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/onboarding" data-bs-toggle="tooltip" data-bs-placement="right" title="Onboarding">
+                                <span class="sidebar-label">Onboarding</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/problems" data-bs-toggle="tooltip" data-bs-placement="right" title="Problems">
+                                <span class="sidebar-label">Problems</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/changes" data-bs-toggle="tooltip" data-bs-placement="right" title="Changes">
+                                <span class="sidebar-label">Changes</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
 
-            <hr class="my-2">
+            <!-- Management -->
+            <li class="nav-item mt-1">
+                <a class="nav-link sidebar-link rounded-3 collapsed d-flex justify-content-between align-items-center" href="#collapseMgmt" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseMgmt" data-title="Management">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-briefcase sidebar-icon"></i>
+                        <span class="sidebar-label ms-2 fw-medium">Management</span>
+                    </div>
+                    <i class="fas fa-chevron-right sidebar-arrow"></i>
+                </a>
+                <div class="collapse" id="collapseMgmt" data-bs-parent="#sidebarAccordion">
+                    <ul class="nav flex-column ms-4 py-1">
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/contracts" data-bs-toggle="tooltip" data-bs-placement="right" title="Contracts">
+                                <span class="sidebar-label">Contracts</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/reservations" data-bs-toggle="tooltip" data-bs-placement="right" title="Reservations">
+                                <span class="sidebar-label">Reservations</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/projects" data-bs-toggle="tooltip" data-bs-placement="right" title="Projects">
+                                <span class="sidebar-label">Projects</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
 
-            <li class="nav-item">
-                <span class="nav-link text-muted small"><span class="sidebar-label">Knowledge</span></span>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/kb">
-                    <i class="fas fa-book"></i> <span class="sidebar-label">Knowledge Base</span>
+            <!-- Documentation & Knowledge -->
+            <li class="nav-item mt-1">
+                <a class="nav-link sidebar-link rounded-3 collapsed d-flex justify-content-between align-items-center" href="#collapseDocs" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseDocs" data-title="Knowledge">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-book-open sidebar-icon"></i>
+                        <span class="sidebar-label ms-2 fw-medium">Knowledge</span>
+                    </div>
+                    <i class="fas fa-chevron-right sidebar-arrow"></i>
                 </a>
+                <div class="collapse" id="collapseDocs" data-bs-parent="#sidebarAccordion">
+                    <ul class="nav flex-column ms-4 py-1">
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/kb" data-bs-toggle="tooltip" data-bs-placement="right" title="Knowledge Base">
+                                <span class="sidebar-label">Knowledge Base</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/documentation/problems" data-bs-toggle="tooltip" data-bs-placement="right" title="Problem Solutions">
+                                <span class="sidebar-label">Problem Solutions</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/documentation/general" data-bs-toggle="tooltip" data-bs-placement="right" title="General Docs">
+                                <span class="sidebar-label">General Docs</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
+        </ul>
 
-            <hr class="my-2">
+        <h6 class="sidebar-heading px-4 mt-4 mb-2 text-uppercase small fw-bold" style="letter-spacing: 0.05em;">System</h6>
 
+        <ul class="nav flex-column px-2" id="sidebarAdminAccordion">
+            <!-- Administration -->
             <li class="nav-item">
-                <span class="nav-link text-muted small"><span class="sidebar-label">Administration</span></span>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/admin/users">
-                    <i class="fas fa-users"></i> <span class="sidebar-label">Local Users</span>
+                <a class="nav-link sidebar-link rounded-3 collapsed d-flex justify-content-between align-items-center" href="#collapseAdmin" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseAdmin" data-title="Administration">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-cogs sidebar-icon"></i>
+                        <span class="sidebar-label ms-2 fw-medium">Administration</span>
+                    </div>
+                    <i class="fas fa-chevron-right sidebar-arrow"></i>
                 </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/admin/ad-users">
-                    <i class="fas fa-users-cog"></i> <span class="sidebar-label">AD Users</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/admin/entities">
-                    <i class="fas fa-sitemap"></i> <span class="sidebar-label">Entities</span>
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link sub-link" href="/admin/settings">
-                    <i class="fas fa-cog"></i> <span class="sidebar-label">Settings</span>
-                </a>
+                <div class="collapse" id="collapseAdmin" data-bs-parent="#sidebarAdminAccordion">
+                    <ul class="nav flex-column ms-4 py-1">
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/admin/access" data-bs-toggle="tooltip" data-bs-placement="right" title="Platform Access">
+                                <span class="sidebar-label">Platform Access</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/admin/users" data-bs-toggle="tooltip" data-bs-placement="right" title="User Database">
+                                <span class="sidebar-label">User Database</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/admin/ad-users" data-bs-toggle="tooltip" data-bs-placement="right" title="AD Users">
+                                <span class="sidebar-label">AD Users</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/admin/entities" data-bs-toggle="tooltip" data-bs-placement="right" title="Entities">
+                                <span class="sidebar-label">Entities</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/admin/settings" data-bs-toggle="tooltip" data-bs-placement="right" title="Settings">
+                                <span class="sidebar-label">Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </li>
         </ul>
     </div>
 </aside>
 
+<!-- Sidebar Auto-Expand & Active State Logic -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const currentPath = window.location.pathname;
 
+    // Highlight dashboard if exactly root
+    if (currentPath === '/' || currentPath === '/dashboard') {
+        const dashLink = document.querySelector('.sidebar-link[href="/"]');
+        if (dashLink) {
+            dashLink.classList.add('active');
+            dashLink.style.backgroundColor = 'var(--bs-primary)';
+            dashLink.style.color = '#fff';
+            const icon = dashLink.querySelector('i');
+            if(icon) icon.classList.add('text-white');
+        }
+        return;
+    }
+
+    let bestMatch = null;
+    let bestLength = 0;
+    const allSubLinks = document.querySelectorAll('.sub-link');
+
+    allSubLinks.forEach(link => {
+        const href = link.getAttribute('href');
+        if (href && href !== '/' && currentPath.startsWith(href)) {
+            if (href.length > bestLength) {
+                bestLength = href.length;
+                bestMatch = link;
+            }
+        }
+    });
+
+    if (bestMatch) {
+        // Highlight the sub-link
+        bestMatch.classList.add('active');
+
+        // Find the parent collapse div
+        const parentCollapse = bestMatch.closest('.collapse');
+        if (parentCollapse) {
+            // Auto expand it
+            parentCollapse.classList.add('show');
+            
+            // Find the parent nav-link that controls this collapse
+            const collapseId = parentCollapse.getAttribute('id');
+            const parentToggle = document.querySelector(`[data-bs-target="#${collapseId}"]`) || 
+                                 document.querySelector(`[href="#${collapseId}"]`);
+            
+            if (parentToggle) {
+                parentToggle.classList.remove('collapsed');
+                parentToggle.setAttribute('aria-expanded', 'true');
+                parentToggle.classList.add('active');
+                
+                // Style parent arrow
+                const arrow = parentToggle.querySelector('.sidebar-arrow');
+                if(arrow) {
+                    arrow.classList.remove('fa-chevron-right');
+                    arrow.classList.add('fa-chevron-down');
+                }
+            }
+        }
+    }
+
+    // Add arrow toggling event listeners for all parent links
+    document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(toggle => {
+        toggle.addEventListener('click', function() {
+            const arrow = this.querySelector('.sidebar-arrow');
+            if (arrow) {
+                if (this.classList.contains('collapsed')) {
+                    // It will expand
+                    arrow.classList.remove('fa-chevron-right');
+                    arrow.classList.add('fa-chevron-down');
+                } else {
+                    // It will collapse
+                    arrow.classList.remove('fa-chevron-down');
+                    arrow.classList.add('fa-chevron-right');
+                }
+            }
+        });
+    });
+});
+
+// Granular Page-Level Access Protection
+document.addEventListener('userLoaded', function(e) {
+    const user = e.detail;
+    // Administrators see everything
+    if (user.role === 'admin') return; 
+    
+    const assignedPages = user.assigned_pages ? user.assigned_pages.split(',').map(s => s.trim()) : [];
+    
+    const currentPath = window.location.pathname;
+
+    // Strict Path-Level Access Enforcement
+    if (currentPath.startsWith('/network') && !assignedPages.includes('network')) {
+        window.location.href = '/';
+        return;
+    }
+    if ((currentPath.startsWith('/assets') || currentPath.startsWith('/hardware') || currentPath.startsWith('/users_list')) && !assignedPages.includes('hardware')) {
+        window.location.href = '/';
+        return;
+    }
+    if (currentPath.startsWith('/licenses') && !assignedPages.includes('licenses')) {
+        window.location.href = '/';
+        return;
+    }
+    if (currentPath.startsWith('/onboarding') && !assignedPages.includes('onboarding')) {
+        window.location.href = '/';
+        return;
+    }
+    if ((currentPath.startsWith('/kb') || currentPath.startsWith('/documentation')) && !assignedPages.includes('knowledge')) {
+        window.location.href = '/';
+        return;
+    }
+    if (currentPath.startsWith('/admin') && !assignedPages.includes('settings')) {
+        window.location.href = '/';
+        return;
+    }
+    
+    // Hide Administration section if user doesn't have 'settings' permission
+    if (!assignedPages.includes('settings')) {
+        const adminToggle = document.querySelector('a[href="#collapseAdmin"]');
+        if (adminToggle) adminToggle.closest('.nav-item').style.display = 'none';
+        
+        const headings = document.querySelectorAll('.sidebar-heading');
+        headings.forEach(h => {
+            if (h.textContent.includes('System')) h.style.display = 'none';
+        });
+    }
+    
+    // Hide Management entirely for standard users
+    const mgmtToggle = document.querySelector('a[href="#collapseMgmt"]');
+    if (mgmtToggle) mgmtToggle.closest('.nav-item').style.display = 'none';
+
+    // Handle Assets Section
+    if (!assignedPages.includes('hardware') && !assignedPages.includes('licenses')) {
+        const assetsToggle = document.querySelector('a[href="#collapseAssets"]');
+        if (assetsToggle) assetsToggle.closest('.nav-item').style.display = 'none';
+    } else {
+        if (!assignedPages.includes('hardware')) {
+            const stockLink = document.querySelector('a.sub-link[href="/assets/stock"]');
+            const usersLink = document.querySelector('a.sub-link[href="/users_list"]');
+            if (stockLink) stockLink.closest('.nav-item').style.display = 'none';
+            if (usersLink) usersLink.closest('.nav-item').style.display = 'none';
+        }
+        if (!assignedPages.includes('licenses')) {
+            const licLink = document.querySelector('a.sub-link[href="/licenses"]');
+            if (licLink) licLink.closest('.nav-item').style.display = 'none';
+        }
+    }
+
+    // Handle Network Section
+    if (!assignedPages.includes('network')) {
+        const netToggle = document.querySelector('a[href="#collapseNetwork"]');
+        if (netToggle) netToggle.closest('.nav-item').style.display = 'none';
+    }
+
+    // Handle Service Management Section
+    if (!assignedPages.includes('onboarding')) {
+        // Hide entire service management if no onboarding
+        const serviceToggle = document.querySelector('a[href="#collapseService"]');
+        if (serviceToggle) serviceToggle.closest('.nav-item').style.display = 'none';
+    } else {
+        // Has onboarding, but should not see problems/changes globally
+        const probLink = document.querySelector('a.sub-link[href="/problems"]');
+        const changeLink = document.querySelector('a.sub-link[href="/changes"]');
+        if (probLink) probLink.closest('.nav-item').style.display = 'none';
+        if (changeLink) changeLink.closest('.nav-item').style.display = 'none';
+    }
+
+    // Handle Knowledge Section
+    if (!assignedPages.includes('knowledge')) {
+        const docsToggle = document.querySelector('a[href="#collapseDocs"]');
+        if (docsToggle) docsToggle.closest('.nav-item').style.display = 'none';
+    }
+
+    // Handle Dashboard Section & Redirection
+    if (!assignedPages.includes('dashboard')) {
+        const dashLink = document.querySelector('a.sidebar-link[href="/"]');
+        if (dashLink) dashLink.closest('.nav-item').style.display = 'none';
+
+        // Redirect away from dashboard if currently on it
+        const currentPath = window.location.pathname;
+        if (currentPath === '/' || currentPath === '/dashboard') {
+            // Find the first assigned page they DO have access to
+            if (assignedPages.includes('onboarding')) window.location.href = '/onboarding';
+            else if (assignedPages.includes('knowledge')) window.location.href = '/kb';
+            else if (assignedPages.includes('hardware')) window.location.href = '/assets/stock';
+            else if (assignedPages.includes('licenses')) window.location.href = '/licenses';
+            else if (assignedPages.includes('network')) window.location.href = '/network/discovery';
+            else {
+                // If they have literally no permissions assigned, show an alert and clear the dashboard content
+                document.getElementById('mainContainer').innerHTML = '<div class="alert alert-warning m-4"><h4 class="alert-heading"><i class="fas fa-lock"></i> Access Restricted</h4><p>You do not have permission to view any modules. Please contact an administrator.</p></div>';
+            }
+        }
+    }
+});
+</script>

@@ -197,7 +197,7 @@ function renderUsers(users) {
             <td>${(user.title && user.title !== 'None') ? user.title : '<span class="text-muted">-</span>'}</td>
             <td>${(user.company && user.company !== 'None') ? user.company : '<span class="text-muted">-</span>'}</td>
             <td class="text-end">
-                <button class="btn btn-sm btn-outline-primary" title="Import User to ITSM" onclick="alert('Import feature coming soon!')">
+                <button class="btn btn-sm btn-outline-primary" title="Import User to ITSM" onclick="importUser('${user.username}', this)">
                     <i class="fas fa-download"></i> Import
                 </button>
             </td>
@@ -257,6 +257,35 @@ async function syncADUsers() {
     } finally {
         syncBtn.disabled = false;
         syncBtn.innerHTML = '<i class="fas fa-cloud-download-alt"></i> Sync AD Users to DB';
+    }
+}
+
+async function importUser(username, btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+
+    try {
+        const res = await fetch('/api/admin/import-ad-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            btn.innerHTML = '<i class="fas fa-check"></i> Imported';
+            btn.className = 'btn btn-sm btn-outline-success disabled';
+            alert(data.message);
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-download"></i> Import';
+            alert(data.detail || 'Import failed');
+        }
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-download"></i> Import';
+        alert('Network error: ' + e.message);
     }
 }
 </script>

@@ -2,20 +2,582 @@
 
 {% block title %}User Profile - KOSTAL ITSM{% endblock %}
 
-{% block content %}
-<div class="py-4">
-    <h1 class="h2">User Profile</h1>
+{% block extra_css %}
+<style>
+    /* Premium Profile Design Variables */
+    :root {
+        --profile-primary: #4f46e5;
+        --profile-primary-light: #818cf8;
+        --profile-secondary: #0ea5e9;
+        --surface-color: var(--bs-body-bg);
+        --text-main: var(--bs-body-color);
+        --text-muted: #6b7280;
+        --border-soft: var(--bs-border-color);
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        --radius-lg: 1rem;
+        --radius-xl: 1.5rem;
+    }
 
-    <div class="card">
-        <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-user"></i> Profile Information</h5>
+    [data-bs-theme="dark"] {
+        --text-muted: #9ca3af;
+        --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+        --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        --shadow-float: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    }
+
+    .profile-page {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    /* Cover & Avatar */
+    .profile-cover {
+        height: 200px;
+        position: relative;
+        margin-bottom: 4rem;
+        z-index: 1;
+    }
+
+    .profile-cover-bg {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        border-radius: var(--radius-xl);
+        background: url('/static/images/profile-cover.png') center/cover no-repeat, linear-gradient(135deg, var(--profile-primary) 0%, var(--profile-secondary) 100%);
+        overflow: hidden;
+        box-shadow: var(--shadow-md);
+        z-index: -1;
+    }
+
+    .profile-cover-bg::after {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: url('data:image/svg+xml;utf8,<svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><path d="M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z" fill="rgba(255,255,255,0.1)" fill-rule="evenodd"/></svg>');
+        opacity: 0.6;
+    }
+
+    .profile-avatar-wrapper {
+        position: absolute;
+        bottom: -3.5rem;
+        left: 3rem;
+        z-index: 10;
+    }
+
+    .profile-avatar {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        border: 5px solid var(--surface-color);
+        background-color: var(--surface-color);
+        object-fit: cover;
+        box-shadow: var(--shadow-lg);
+        transition: transform 0.3s ease;
+    }
+
+    .avatar-upload-container {
+        position: relative;
+        cursor: pointer;
+        display: inline-block;
+        border-radius: 50%;
+    }
+
+    .avatar-overlay {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        border: 5px solid transparent;
+        backdrop-filter: blur(2px);
+    }
+
+    .avatar-upload-container:hover .avatar-overlay {
+        opacity: 1;
+    }
+
+    .profile-avatar:hover {
+        transform: scale(1.05);
+    }
+    .avatar-upload-container:hover .profile-avatar,
+    .avatar-upload-container:hover .profile-avatar-placeholder {
+        transform: scale(1.05);
+    }
+
+    .profile-avatar-placeholder {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        border: 5px solid var(--surface-color);
+        background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
+        color: #9ca3af;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3.5rem;
+        box-shadow: var(--shadow-lg);
+    }
+
+    [data-bs-theme="dark"] .profile-avatar-placeholder {
+        background: linear-gradient(135deg, #374151 0%, #1f2937 100%);
+        color: #6b7280;
+    }
+
+    /* Cards */
+    .glass-card {
+        background: var(--surface-color);
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-soft);
+        box-shadow: var(--shadow-md);
+        transition: all 0.3s ease;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .glass-card:hover {
+        box-shadow: var(--shadow-float);
+        transform: translateY(-2px);
+    }
+
+    .glass-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; width: 4px; height: 100%;
+        background: linear-gradient(to bottom, var(--profile-primary), var(--profile-secondary));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .glass-card:hover::before {
+        opacity: 1;
+    }
+
+    /* Tabs */
+    .custom-tabs {
+        border-bottom: 2px solid var(--border-soft);
+        margin-bottom: 2rem;
+    }
+
+    .custom-tabs .nav-link {
+        border: none;
+        color: var(--text-muted);
+        font-weight: 600;
+        padding: 1rem 1.5rem;
+        position: relative;
+        transition: color 0.3s ease;
+        background: transparent;
+    }
+
+    .custom-tabs .nav-link:hover {
+        color: var(--profile-primary);
+    }
+
+    .custom-tabs .nav-link.active {
+        color: var(--profile-primary);
+        background: transparent;
+    }
+
+    .custom-tabs .nav-link.active::after {
+        content: '';
+        position: absolute;
+        bottom: -2px; left: 0; right: 0;
+        height: 2px;
+        background: var(--profile-primary);
+        border-radius: 2px 2px 0 0;
+        animation: slideIn 0.3s ease;
+    }
+
+    /* Data Grid */
+    .data-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .data-item {
+        padding: 1rem;
+        border-radius: 0.75rem;
+        background: rgba(var(--bs-secondary-bg-rgb), 0.5);
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .data-item:hover {
+        background: var(--surface-color);
+        border-color: var(--border-soft);
+        box-shadow: var(--shadow-sm);
+        transform: scale(1.02);
+    }
+
+    .data-icon {
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        display: flex; align-items: center; justify-content: center;
+        background: rgba(79, 70, 229, 0.1);
+        color: var(--profile-primary);
+        margin-bottom: 1rem;
+        font-size: 1.25rem;
+        transition: all 0.3s ease;
+    }
+
+    .data-item:hover .data-icon {
+        background: var(--profile-primary);
+        color: white;
+        transform: rotate(5deg);
+    }
+
+    .data-label {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-muted);
+        margin-bottom: 0.25rem;
+        font-weight: 600;
+    }
+
+    .data-value {
+        font-weight: 500;
+        color: var(--text-main);
+        font-size: 1.05rem;
+        word-break: break-word;
+    }
+
+    /* Skeleton Loading */
+    .skeleton {
+        background: linear-gradient(90deg, 
+            rgba(var(--bs-secondary-bg-rgb), 0.5) 25%, 
+            rgba(var(--bs-secondary-bg-rgb), 0.8) 50%, 
+            rgba(var(--bs-secondary-bg-rgb), 0.5) 75%);
+        background-size: 200% 100%;
+        animation: loading 1.5s infinite;
+        border-radius: 4px;
+    }
+
+    .skel-text { height: 20px; width: 100%; margin-bottom: 0.5rem; }
+    .skel-text.short { width: 60%; }
+    .skel-avatar { width: 140px; height: 140px; border-radius: 50%; }
+
+    @keyframes loading {
+        0% { background-position: 200% 0; }
+        100% { background-position: -200% 0; }
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideIn {
+        from { transform: scaleX(0); }
+        to { transform: scaleX(1); }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="py-4 profile-page">
+    
+    <!-- Header / Cover -->
+    <div class="profile-cover">
+        <div class="profile-cover-bg"></div>
+        <div class="profile-avatar-wrapper" id="avatarContainer">
+            <!-- Skeleton Avatar -->
+            <div class="skeleton skel-avatar border-5 border-white border" id="skelAvatar"></div>
         </div>
-        <div class="card-body">
-            <p class="text-muted">Profile information will be displayed here once you're logged in.</p>
-            <a href="/" class="btn btn-primary">Back to Dashboard</a>
+    </div>
+
+    <!-- Main Content Grid -->
+    <div class="row gx-xl-5">
+        
+        <!-- Left Sidebar: Identity -->
+        <div class="col-lg-4 mb-4">
+            <div class="glass-card p-4 text-center text-lg-start pt-5 pt-lg-4 mt-3 mt-lg-0">
+                <div id="skelIdentity">
+                    <div class="skeleton skel-text mx-auto mx-lg-0 mt-4" style="height: 32px; width: 80%;"></div>
+                    <div class="skeleton skel-text short mx-auto mx-lg-0 mt-2"></div>
+                </div>
+
+                <div id="realIdentity" style="display: none; margin-top: 1.5rem;">
+                    <h2 class="fw-bold mb-1" id="val_full_name"></h2>
+                    <p class="text-primary fw-medium mb-2" id="val_title_dept"></p>
+                    <div class="mb-4">
+                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 rounded-pill" id="val_status"></span>
+                    </div>
+
+                    <hr class="my-4 text-muted opacity-25">
+
+                    <h6 class="text-uppercase text-muted fw-bold mb-3" style="font-size: 0.75rem;">Quick Actions</h6>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary d-flex align-items-center justify-content-center gap-2" onclick="window.itsm.showToast('Edit profile coming soon', 'info')">
+                            <i class="fas fa-pen fa-sm"></i> Edit Profile
+                        </button>
+                        <button class="btn btn-outline-secondary d-flex align-items-center justify-content-center gap-2" onclick="window.itsm.showToast('Change password coming soon', 'info')">
+                            <i class="fas fa-lock fa-sm"></i> Change Password
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Content: Details Tabs -->
+        <div class="col-lg-8 mb-4">
+            <div class="glass-card p-0">
+                <!-- Navigation Tabs -->
+                <ul class="nav custom-tabs px-4 pt-3" id="profileTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active d-flex align-items-center gap-2" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                            <i class="fas fa-id-card"></i> Overview
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link d-flex align-items-center gap-2" id="security-tab" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">
+                            <i class="fas fa-shield-alt"></i> Security
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- Tab Content -->
+                <div class="tab-content px-4 pb-4" id="profileTabsContent">
+                    
+                    <!-- Overview Tab -->
+                    <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                        <!-- Skeleton Grid -->
+                        <div class="data-grid" id="skelGrid">
+                            {% for i in range(6) %}
+                            <div class="data-item">
+                                <div class="skeleton" style="width:40px;height:40px;border-radius:10px;margin-bottom:1rem;"></div>
+                                <div class="skeleton skel-text short mb-2"></div>
+                                <div class="skeleton skel-text"></div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Real Data Grid -->
+                        <div class="data-grid" id="realGrid" style="display: none;">
+                            <div class="data-item">
+                                <div class="data-icon"><i class="fas fa-envelope"></i></div>
+                                <div class="data-label">Email Address</div>
+                                <div class="data-value" id="val_email"></div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-icon"><i class="fas fa-user-circle"></i></div>
+                                <div class="data-label">Username</div>
+                                <div class="data-value" id="val_username"></div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-icon"><i class="fas fa-phone"></i></div>
+                                <div class="data-label">Phone</div>
+                                <div class="data-value" id="val_phone"></div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-icon"><i class="fas fa-mobile-alt"></i></div>
+                                <div class="data-label">Mobile</div>
+                                <div class="data-value" id="val_mobile"></div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-icon"><i class="fas fa-globe"></i></div>
+                                <div class="data-label">Language</div>
+                                <div class="data-value" id="val_language"></div>
+                            </div>
+                            <div class="data-item">
+                                <div class="data-icon"><i class="fas fa-clock"></i></div>
+                                <div class="data-label">Timezone</div>
+                                <div class="data-value" id="val_timezone"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Security Tab -->
+                    <div class="tab-pane fade" id="security" role="tabpanel">
+                        <div class="row align-items-center p-4 rounded bg-body-tertiary border border-soft mb-4">
+                            <div class="col-md-8">
+                                <h5 class="mb-1"><i class="fas fa-history text-primary me-2"></i> Last Login Activity</h5>
+                                <p class="text-muted mb-0 small">Security check on your last successful authentication.</p>
+                            </div>
+                            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                                <span class="badge bg-primary fs-6 py-2 px-3 shadow-sm" id="val_last_login">Loading...</span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-info d-flex align-items-center mb-0" role="alert">
+                            <i class="fas fa-info-circle fa-lg me-3"></i>
+                            <div>
+                                Password changes are currently managed through your Active Directory domain controller. Please contact IT support if you need to reset your password.
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', async function() {
+    // Artificial slight delay for smooth animation demonstration (can be removed in prod)
+    setTimeout(async () => {
+        try {
+            const user = await window.itsm.apiRequest('GET', '/auth/me');
+            if (user) {
+                // Fade out skeletons
+                document.getElementById('skelAvatar').style.display = 'none';
+                document.getElementById('skelIdentity').style.display = 'none';
+                document.getElementById('skelGrid').style.display = 'none';
+                
+                // Fade in real content
+                const avatarContainer = document.getElementById('avatarContainer');
+                let avatarHtml = '';
+                if (user.profile_image) {
+                    avatarHtml = `<img src="${user.profile_image}" alt="Profile" class="profile-avatar" id="currentAvatarImg">`;
+                } else {
+                    avatarHtml = `<div class="profile-avatar-placeholder" id="currentAvatarImg"><i class="fas fa-user"></i></div>`;
+                }
+                
+                avatarContainer.innerHTML = `
+                    <div class="avatar-upload-container" title="Change Profile Picture">
+                        ${avatarHtml}
+                        <div class="avatar-overlay" onclick="document.getElementById('avatarUpload').click()">
+                            <i class="fas fa-camera fa-2x mb-2"></i>
+                            <span class="small fw-bold">Edit Picture</span>
+                        </div>
+                    </div>
+                    <input type="file" id="avatarUpload" class="d-none" accept="image/png, image/jpeg" onchange="handleAvatarUpload(this)">
+                `;
+                
+                document.getElementById('realIdentity').style.display = 'block';
+                document.getElementById('realGrid').style.display = 'grid';
+                
+                // Populate Identity
+                document.getElementById('val_full_name').textContent = user.full_name || 'No Name';
+                
+                const titleDept = [];
+                if (user.title) titleDept.push(user.title);
+                if (user.department) titleDept.push(user.department);
+                document.getElementById('val_title_dept').textContent = titleDept.length > 0 ? titleDept.join(' • ') : 'No Role Assigned';
+                
+                const statusBadge = document.getElementById('val_status');
+                if (user.is_active) {
+                    statusBadge.innerHTML = '<i class="fas fa-check-circle me-1"></i> Active Account';
+                } else {
+                    statusBadge.className = 'badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-3 py-2 rounded-pill';
+                    statusBadge.innerHTML = '<i class="fas fa-times-circle me-1"></i> Inactive Account';
+                }
+
+                // Populate Grid Data
+                const setVal = (id, val) => { document.getElementById(id).textContent = val || '-'; };
+                setVal('val_email', user.email);
+                setVal('val_username', user.username);
+                setVal('val_phone', user.phone);
+                setVal('val_mobile', user.mobile);
+                setVal('val_language', user.language ? user.language.toUpperCase() : 'EN');
+                setVal('val_timezone', user.timezone);
+
+                // Populate Security Tab
+                if (user.last_login) {
+                    document.getElementById('val_last_login').textContent = 
+                        window.itsm.formatDate(user.last_login) + ' at ' + window.itsm.formatTime(user.last_login);
+                } else {
+                    document.getElementById('val_last_login').textContent = 'Never Logged In';
+                }
+            } else {
+                throw new Error("User data not returned");
+            }
+        } catch (error) {
+            console.error('Error loading profile:', error);
+            window.itsm.showToast('Failed to load profile details.', 'error');
+        }
+    }, 400); // 400ms delay to show off the skeleton loaders
+});
+
+// Handle Profile Avatar Upload
+async function handleAvatarUpload(input) {
+    if (!input.files || !input.files[0]) return;
+    
+    const file = input.files[0];
+    const maxSize = 5 * 1024 * 1024; // 5MB limit
+    if (file.size > maxSize) {
+        window.itsm.showToast('Image must be less than 5MB.', 'error');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const img = new Image();
+        img.onload = async function() {
+            // Compress and Resize
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 400;
+            const MAX_HEIGHT = 400;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Get compressed Base64 string
+            const base64Image = canvas.toDataURL('image/jpeg', 0.8);
+
+            try {
+                window.itsm.showToast('Uploading profile picture...', 'info');
+                
+                const updatedUser = await window.itsm.apiRequest('PATCH', '/auth/me', {
+                    profile_image: base64Image
+                });
+
+                if (updatedUser) {
+                    window.itsm.showToast('Profile picture updated successfully!', 'success');
+                    
+                    // Update current page
+                    const currentAvatarImg = document.getElementById('currentAvatarImg');
+                    if (currentAvatarImg) {
+                        if (currentAvatarImg.tagName.toLowerCase() === 'div') {
+                            // Convert placeholder to img
+                            currentAvatarImg.outerHTML = `<img src="${base64Image}" alt="Profile" class="profile-avatar" id="currentAvatarImg">`;
+                        } else {
+                            currentAvatarImg.src = base64Image;
+                        }
+                    }
+                    
+                    // Update Navbar directly
+                    const navbarIcon = document.getElementById('navbarAccountIcon');
+                    if (navbarIcon) {
+                        navbarIcon.innerHTML = `<img src="${base64Image}" alt="User" class="rounded-circle me-1" style="width: 24px; height: 24px; object-fit: cover; border: 1px solid #dee2e6;">`;
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+                window.itsm.showToast('Failed to update profile picture.', 'error');
+            }
+        };
+        img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+}
+</script>
 {% endblock %}
 
 

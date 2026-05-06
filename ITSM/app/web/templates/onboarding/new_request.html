@@ -1,0 +1,279 @@
+{% extends "base_portal.html" %}
+
+{% block title %}New Onboarding Request | KOSTAL ITSM{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', path='js/notifications.js') }}"></script>
+{% endblock %}
+
+{% block breadcrumb %}
+<nav aria-label="breadcrumb" class="mt-3">
+    <ol class="breadcrumb mb-0">
+        <li class="breadcrumb-item"><a href="#">HR Services</a></li>
+        <li class="breadcrumb-item active" aria-current="page">New Onboarding Request</li>
+    </ol>
+</nav>
+{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <h1 class="h2 mb-4">New Onboarding Request</h1>
+
+    <div class="row">
+        <!-- Main Form Area -->
+        <div class="col-lg-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-body">
+                    <form id="onboardingForm">
+                        
+                        <!-- Employee Details -->
+                        <h5 class="mb-3">Employee Details</h5>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName" class="form-label">First Name *</label>
+                                <input type="text" class="form-control" id="firstName" required placeholder="e.g., John">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName" class="form-label">Last Name *</label>
+                                <input type="text" class="form-control" id="lastName" required placeholder="e.g., Doe">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="empTitle" class="form-label">Job Title *</label>
+                                <input type="text" class="form-control" id="empTitle" required placeholder="e.g., Senior Engineer">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="empDept" class="form-label">Department</label>
+                                <input type="text" class="form-control" id="empDept" placeholder="e.g., Global Sales">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="costCenter" class="form-label">Cost Center</label>
+                                <input type="text" class="form-control" id="costCenter" placeholder="e.g., CC-9080">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="empLoc" class="form-label">Location *</label>
+                                <input type="text" class="form-control" id="empLoc" required placeholder="e.g., London Office">
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="empStart" class="form-label">Start Date *</label>
+                                <input type="date" class="form-control" id="empStart" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="empType" class="form-label">Employment Type *</label>
+                                <select class="form-select" id="empType" required>
+                                    <option value="Permanent" selected>Permanent</option>
+                                    <option value="Contractor">Contractor</option>
+                                    <option value="Intern">Intern</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Manager Assignment -->
+                        <h5 class="mb-3 mt-4">Manager Assignment</h5>
+                        <div class="row">
+                            <div class="col-12 mb-3 position-relative">
+                                <label for="empManager" class="form-label">Direct Manager *</label>
+                                <div class="position-relative">
+                                    <input type="text" class="form-control" id="empManager" required placeholder="Type at least 3 letters to search AD..." autocomplete="off">
+                                    <span id="managerSearchSpinner" class="position-absolute d-none text-primary" style="right: 15px; top: 50%; transform: translateY(-50%);">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                    </span>
+                                </div>
+                                <!-- Custom Dropdown Results -->
+                                <div id="managerDropdown" class="list-group position-absolute w-100 shadow-lg d-none mt-2 rounded-3 border overflow-hidden" style="z-index: 1050; max-height: 320px; overflow-y: auto;">
+                                    <!-- Results will be injected here -->
+                                </div>
+                                <small class="text-muted d-block mt-2"><i class="fas fa-info-circle me-1"></i> The assigned manager will receive a task to select the required hardware and software. Searches Active Directory.</small>
+                            </div>
+                        </div>
+
+                        <!-- Error message -->
+                        <div id="errorMessage" class="alert alert-danger d-none mt-3" role="alert"></div>
+
+                        <!-- Buttons -->
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary" id="submitBtn">
+                                <i class="fas fa-paper-plane me-1"></i> Submit Request
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="document.getElementById('onboardingForm').reset();">
+                                <i class="fas fa-times me-1"></i> Clear Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar with instructions -->
+        <div class="col-lg-4">
+            <div class="card mb-3 shadow-sm border-0">
+                <div class="card-header bg-body-tertiary">
+                    <h5 class="mb-0"><i class="fas fa-info-circle me-1"></i> Workflow Process</h5>
+                </div>
+                <div class="card-body small">
+                    <p><strong>Step 1: HR Request</strong><br>Submit the new hire's basic information.</p>
+                    <p><strong>Step 2: Manager Approval</strong><br>The assigned manager will be notified to select required hardware and software.</p>
+                    <p><strong>Step 3: IT Provisioning</strong><br>IT receives automated tasks to create accounts and provision selected equipment.</p>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-body-tertiary">
+                    <h5 class="mb-0"><i class="fas fa-lightbulb me-1"></i> Important Guidelines</h5>
+                </div>
+                <div class="card-body small">
+                    <ul class="mb-0">
+                        <li>Ensure names match official identification.</li>
+                        <li>Submit requests at least 5 days prior to the start date to ensure IT SLAs are met.</li>
+                        <li>Correctly specifying the Direct Manager is crucial for avoiding approval delays.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Active Directory Search for Manager
+let adSearchTimeout = null;
+let selectedManagerEmail = null;
+const managerInput = document.getElementById('empManager');
+const managerDropdown = document.getElementById('managerDropdown');
+const managerSpinner = document.getElementById('managerSearchSpinner');
+
+managerInput.addEventListener('input', (e) => {
+    selectedManagerEmail = null; // Reset on typing
+    const q = e.target.value;
+    
+    if (q.length < 3) {
+        managerDropdown.classList.add('d-none');
+        managerSpinner.classList.add('d-none');
+        return;
+    }
+    
+    // Show loading state
+    managerSpinner.classList.remove('d-none');
+    managerDropdown.innerHTML = '<div class="list-group-item text-muted text-center py-4 bg-light border-0"><div class="spinner-border spinner-border-sm text-primary mb-2" role="status"></div><br>Searching Active Directory...</div>';
+    managerDropdown.classList.remove('d-none');
+    
+    clearTimeout(adSearchTimeout);
+    adSearchTimeout = setTimeout(async () => {
+        try {
+            const users = await apiRequest('GET', `/admin/ad/search?q=${encodeURIComponent(q)}`);
+            if (users) {
+                managerDropdown.innerHTML = '';
+                
+                if (users.length === 0) {
+                    managerDropdown.innerHTML = '<div class="list-group-item text-muted text-center py-4 bg-light border-0"><i class="fas fa-search-minus fa-2x mb-2 text-secondary opacity-50"></i><br>No matching users found in AD.</div>';
+                } else {
+                    users.forEach(u => {
+                        const initials = u.full_name.split(' ').map(n=>n[0]).join('').substring(0,2).toUpperCase() || 'AD';
+                        
+                        const item = document.createElement('button');
+                        item.type = 'button';
+                        item.className = 'list-group-item list-group-item-action py-3 px-4 border-0 border-bottom';
+                        item.innerHTML = `
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 text-primary fw-bold rounded-circle d-flex align-items-center justify-content-center me-3" style="width: 42px; height: 42px; flex-shrink: 0;">
+                                    ${initials}
+                                </div>
+                                <div class="flex-grow-1 overflow-hidden">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <div class="fw-semibold text-dark text-truncate">${u.full_name}</div>
+                                        ${u.department ? `<span class="badge bg-secondary bg-opacity-10 text-secondary border rounded-pill px-2 py-1 fw-normal">${u.department}</span>` : ''}
+                                    </div>
+                                    <div class="small text-muted text-truncate"><i class="fas fa-envelope-open-text me-1 opacity-50"></i>${u.email || u.username}</div>
+                                </div>
+                            </div>
+                        `;
+                        item.onclick = () => {
+                            managerInput.value = u.full_name;
+                            selectedManagerEmail = u.email || `${u.username}@ma.kostal.int`;
+                            managerDropdown.classList.add('d-none');
+                        };
+                        managerDropdown.appendChild(item);
+                    });
+                }
+            } else {
+                managerDropdown.innerHTML = '<div class="list-group-item text-danger py-4 text-center border-0 bg-light"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><br>Error connecting to AD server.</div>';
+            }
+        } catch (err) {
+            console.error("Failed to fetch AD users:", err);
+            managerDropdown.innerHTML = '<div class="list-group-item text-danger py-4 text-center border-0 bg-light"><i class="fas fa-wifi fa-2x mb-2"></i><br>Network error during AD search.</div>';
+        } finally {
+            managerSpinner.classList.add('d-none');
+        }
+    }, 500); // 500ms debounce
+});
+
+// Hide dropdown when clicking outside
+document.addEventListener('click', (e) => {
+    if (!managerInput.contains(e.target) && !managerDropdown.contains(e.target)) {
+        managerDropdown.classList.add('d-none');
+    }
+});
+
+document.getElementById('onboardingForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Submitting...';
+    document.getElementById('errorMessage').classList.add('d-none');
+    
+    const payload = {
+        first_name: document.getElementById('firstName').value,
+        last_name: document.getElementById('lastName').value,
+        job_title: document.getElementById('empTitle').value,
+        department: document.getElementById('empDept').value || null,
+        cost_center: document.getElementById('costCenter').value || null,
+        location: document.getElementById('empLoc').value,
+        start_date: document.getElementById('empStart').value + "T00:00:00Z",
+        employment_type: document.getElementById('empType').value,
+        manager_name: document.getElementById('empManager').value,
+        manager_email: selectedManagerEmail
+    };
+    
+    try {
+        const data = await apiRequest('POST', '/onboarding/request', payload);
+        
+        if (data && data.request_id) {
+            
+            // If ITSMNotification exists in the app.js bundle or notifications.js
+            if (typeof ITSMNotification !== 'undefined') {
+                ITSMNotification.success(
+                    'Request Submitted Successfully!',
+                    `Onboarding request ONB-${data.request_id} has been routed to ${payload.manager_name}.`,
+                    () => {
+                        window.location.reload();
+                    }
+                );
+            } else {
+                alert(`Success! Request ONB-${data.request_id} has been submitted.`);
+                window.location.reload();
+            }
+        } else {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = "An error occurred while submitting the request.";
+            errorDiv.classList.remove('d-none');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Submit Request';
+        }
+    } catch (err) {
+        console.error(err);
+        const errorDiv = document.getElementById('errorMessage');
+        errorDiv.textContent = err.message || "Network error. Could not connect to the server.";
+        errorDiv.classList.remove('d-none');
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-paper-plane me-1"></i> Submit Request';
+    }
+});
+</script>
+{% endblock %}

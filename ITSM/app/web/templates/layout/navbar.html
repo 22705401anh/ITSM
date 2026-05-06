@@ -1,29 +1,25 @@
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+<nav class="navbar navbar-expand-lg navbar-dark sticky-top" data-bs-theme="dark">
 <div class="container-fluid">
     <div class="d-flex align-items-center">
-        <button id="sidebarToggle" class="sidebar-toggle-btn" title="Toggle Sidebar">
-                <i class="fas fa-bars"></i>
-            </button>
-
-            <a class="navbar-brand" href="/">
-                <i class="fas fa-cogs"></i> KOSTAL ITSM
-            </a>
-        </div>
-
+        <a class="navbar-brand ms-3" href="/">
+            <i class="fas fa-cogs"></i> KOSTAL ITSM
+        </a>
+    </div>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-center">
-                <li class="nav-item me-2">
-                    <button class="btn btn-link nav-link px-2" onclick="window.themeUtils.toggleTheme()" title="Toggle Dark Mode">
+        <ul class="navbar-nav ms-auto align-items-center">
+                <li class="nav-item">
+                    <button id="themeToggleBtn" class="btn nav-link border-0" title="Toggle Theme" style="background:transparent;">
                         <i id="themeToggleIcon" class="fas fa-moon"></i>
                     </button>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
-                        <i class="fas fa-user"></i> Account
+                        <span id="navbarAccountIcon"><i class="fas fa-user"></i></span>
+                        <span id="navbarAccountName">Account</span>
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="/profile">Profile</a></li>

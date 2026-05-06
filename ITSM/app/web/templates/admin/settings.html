@@ -3,174 +3,715 @@
 {% block title %}Settings - KOSTAL ITSM{% endblock %}
 
 {% block content %}
-<div class="py-4">
-    <h1 class="h2">Settings</h1>
+<style>
+    /* Ultra-Clean / Minimalist Enterprise UI */
+    .settings-container {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: #1d1d1f;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding-top: 2rem;
+    }
+    .settings-header {
+        font-weight: 700;
+        font-size: 2rem;
+        color: #1d1d1f;
+        margin-bottom: 2.5rem;
+        letter-spacing: -0.02em;
+    }
+    
+    /* Navigation Sidebar */
+    .settings-nav {
+        background: transparent;
+        padding-right: 1rem;
+    }
+    .settings-nav .list-group-item {
+        background: transparent;
+        border: none;
+        color: #86868b;
+        font-weight: 500;
+        font-size: 0.95rem;
+        padding: 0.65rem 1rem;
+        border-radius: 8px;
+        margin-bottom: 0.25rem;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .settings-nav .list-group-item:hover {
+        background: #f5f5f7;
+        color: #1d1d1f;
+    }
+    .settings-nav .list-group-item.active {
+        background: #e8e8ed;
+        color: #1d1d1f;
+        font-weight: 600;
+    }
+    .settings-nav .list-group-item i {
+        font-size: 1.05rem;
+        width: 20px;
+        text-align: center;
+        color: #86868b;
+    }
+    .settings-nav .list-group-item.active i {
+        color: #0066cc;
+    }
+
+    /* Content Cards */
+    .settings-card {
+        background: #ffffff;
+        border: 1px solid #e5e5ea;
+        border-radius: 12px;
+        box-shadow: 0 4px 14px 0 rgba(0,0,0,0.03);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    .settings-card-header {
+        background: #ffffff;
+        border-bottom: 1px solid #f2f2f7;
+        padding: 1.5rem 2rem 1rem;
+    }
+    .settings-card-header h5 {
+        margin: 0;
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: #1d1d1f;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        letter-spacing: -0.01em;
+    }
+    .settings-card-body {
+        padding: 1.5rem 2rem 2rem;
+    }
+
+    /* Form Controls */
+    .form-label {
+        color: #48484a;
+        font-size: 0.85rem;
+        font-weight: 600;
+        margin-bottom: 0.4rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+    .form-control, .form-select {
+        background-color: #f5f5f7 !important;
+        border: 1px solid transparent !important;
+        color: #1d1d1f !important;
+        border-radius: 8px;
+        padding: 0.65rem 1rem;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+        box-shadow: none !important;
+    }
+    .form-control:focus, .form-select:focus {
+        background-color: #ffffff !important;
+        border-color: #0066cc !important;
+        box-shadow: 0 0 0 3px rgba(0, 102, 204, 0.15) !important;
+    }
+    .form-control::placeholder {
+        color: #8e8e93 !important;
+    }
+    .form-control:disabled {
+        background-color: #e5e5ea !important;
+        color: #8e8e93 !important;
+    }
+
+    /* Toggle Switches */
+    .form-switch .form-check-input {
+        height: 1.4rem;
+        width: 2.5rem;
+        background-color: #d1d1d6;
+        border: none;
+        cursor: pointer;
+    }
+    .form-switch .form-check-input:checked {
+        background-color: #34c759;
+    }
+    .form-switch .form-check-label {
+        padding-left: 0.5rem;
+        padding-top: 0.15rem;
+        color: #1d1d1f;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    /* Buttons */
+    .btn-primary {
+        background: #0066cc;
+        color: #ffffff;
+        border: none;
+        padding: 0.65rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+    .btn-primary:hover {
+        background: #0051a8;
+        transform: translateY(-1px);
+    }
+    .btn-secondary {
+        background: #f2f2f7;
+        color: #0066cc;
+        border: none;
+        padding: 0.65rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+    .btn-secondary:hover {
+        background: #e5e5ea;
+        color: #0051a8;
+    }
+    .btn-warning {
+        background: #fff8e6;
+        color: #ff9500;
+        border: none;
+        padding: 0.65rem 1.25rem;
+        border-radius: 8px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: all 0.2s ease;
+    }
+    .btn-warning:hover {
+        background: #ffebcc;
+    }
+
+    /* Section Separator */
+    .section-divider {
+        height: 1px;
+        background: #f2f2f7;
+        margin: 1.5rem 0;
+    }
+    .text-muted {
+        color: #8e8e93 !important;
+        font-size: 0.85rem;
+    }
+    .description-text {
+        color: #86868b;
+        font-size: 0.95rem;
+        margin-bottom: 1.5rem;
+    }
+</style>
+
+<div class="settings-container">
+    <h1 class="settings-header">Settings</h1>
 
     <div class="row">
         <!-- Settings Menu -->
-        <div class="col-md-3">
-            <div class="list-group sticky-top" style="top: 100px;">
-                <a href="#general" class="list-group-item list-group-item-action active" data-bs-toggle="list">
-                    <i class="fas fa-cog"></i> General
+        <div class="col-lg-3 col-md-4 mb-4">
+            <div class="list-group settings-nav sticky-top" style="top: 20px;" role="tablist">
+                <a href="#general" class="list-group-item list-group-item-action active" data-bs-toggle="list" role="tab">
+                    <i class="fas fa-sliders-h"></i> General
                 </a>
-                <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <a href="#notifications" class="list-group-item list-group-item-action" data-bs-toggle="list" role="tab">
                     <i class="fas fa-bell"></i> Notifications
                 </a>
-                <a href="#email" class="list-group-item list-group-item-action" data-bs-toggle="list">
-                    <i class="fas fa-envelope"></i> Email
+                <a href="#email" class="list-group-item list-group-item-action" data-bs-toggle="list" role="tab">
+                    <i class="fas fa-paper-plane"></i> Email Server
                 </a>
-                <a href="#appearance" class="list-group-item list-group-item-action" data-bs-toggle="list">
-                    <i class="fas fa-palette"></i> Appearance
+                <a href="#snmp" class="list-group-item list-group-item-action" data-bs-toggle="list" role="tab">
+                    <i class="fas fa-network-wired"></i> SNMP Configuration
                 </a>
-                <a href="#security" class="list-group-item list-group-item-action" data-bs-toggle="list">
+                <a href="#appearance" class="list-group-item list-group-item-action" data-bs-toggle="list" role="tab">
+                    <i class="fas fa-desktop"></i> Appearance
+                </a>
+                <a href="#security" class="list-group-item list-group-item-action" data-bs-toggle="list" role="tab">
                     <i class="fas fa-lock"></i> Security
+                </a>
+                <a href="#ldap" class="list-group-item list-group-item-action" data-bs-toggle="list" role="tab">
+                    <i class="fas fa-users-cog"></i> Identity & AD
+                </a>
+                <a href="#database" class="list-group-item list-group-item-action" data-bs-toggle="list" role="tab">
+                    <i class="fas fa-database"></i> Database
                 </a>
             </div>
         </div>
 
         <!-- Settings Content -->
-        <div class="col-md-9">
+        <div class="col-lg-9 col-md-8 tab-content">
             <!-- General Settings -->
-            <div class="card mb-4" id="general">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-cog"></i> General Settings</h5>
+            <div class="settings-card tab-pane fade show active" id="general">
+                <div class="settings-card-header">
+                    <h5>General</h5>
                 </div>
-                <div class="card-body">
+                <div class="settings-card-body">
+                    <p class="description-text">Manage your basic application configuration and localized settings.</p>
                     <form id="generalForm">
-                        <div class="mb-3">
-                            <label for="appName" class="form-label">Application Name</label>
-                            <input type="text" class="form-control" id="appName" value="KOSTAL ITSM">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="appName" class="form-label">Application Name</label>
+                                <input type="text" class="form-control" id="appName" value="KOSTAL ITSM">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="appVersion" class="form-label">Version</label>
+                                <input type="text" class="form-control" id="appVersion" value="1.0.0 Stable" disabled>
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="appVersion" class="form-label">Version</label>
-                            <input type="text" class="form-control" id="appVersion" value="0.1.0" disabled>
-                        </div>
-                        <div class="mb-3">
-                            <label for="timezone" class="form-label">Timezone</label>
-                            <select class="form-control" id="timezone">
+                        <div class="mb-4">
+                            <label for="timezone" class="form-label">System Timezone</label>
+                            <select class="form-select" id="timezone">
                                 <option selected>UTC</option>
                                 <option>America/New_York</option>
                                 <option>Europe/London</option>
+                                <option>Europe/Berlin</option>
                                 <option>Asia/Tokyo</option>
                             </select>
                         </div>
-                        <button type="submit" class="btn btn-primary">Save Settings</button>
+                        <button type="submit" class="btn btn-primary">Save Changes</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Identity & AD Settings -->
+            <div class="settings-card tab-pane fade" id="ldap">
+                <div class="settings-card-header">
+                    <h5>Identity & Active Directory</h5>
+                </div>
+                <div class="settings-card-body">
+                    <p class="description-text">Manage LDAP configuration for user authentication and Active Directory synchronization.</p>
+                    <div class="alert alert-info mb-4" role="alert">
+                        <i class="fas fa-info-circle me-2"></i> These credentials will be used to authenticate users and sync the AD tree. If the connection fails, the system will temporarily fall back to environment variables.
+                    </div>
+                    
+                    <form id="ldapForm">
+                        <h6 class="fw-bold mb-3">Connection Details</h6>
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="ldapServer" class="form-label">LDAP Server URL</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-light border-end-0"><i class="fas fa-server text-muted"></i></span>
+                                    <input type="text" class="form-control border-start-0 ps-0" id="ldapServer" placeholder="ldap://MAGEAD101.ma.kostal.int" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="ldapPort" class="form-label">Port</label>
+                                <input type="number" class="form-control" id="ldapPort" placeholder="389" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="ldapBaseDn" class="form-label">Base DN (Directory Root)</label>
+                            <input type="text" class="form-control" id="ldapBaseDn" placeholder="DC=ma,DC=kostal,DC=int" required>
+                            <div class="form-text">The top level of the directory tree where users reside.</div>
+                        </div>
+
+                        <hr class="my-4 text-muted opacity-25">
+
+                        <h6 class="fw-bold mb-3">Service Account Credentials</h6>
+                        <div class="mb-3">
+                            <label for="ldapBindDn" class="form-label">Bind DN (Service Account)</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-user-shield text-muted"></i></span>
+                                <input type="text" class="form-control border-start-0 ps-0" id="ldapBindDn" placeholder="CN=admin,OU=Users,DC=ma,DC=kostal,DC=int" required>
+                            </div>
+                            <div class="form-text">The distinguished name or UPN of the account used to query AD.</div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="ldapPassword" class="form-label">Service Account Password</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="fas fa-key text-muted"></i></span>
+                                <input type="password" class="form-control border-start-0 ps-0" id="ldapPassword" placeholder="••••••••">
+                            </div>
+                            <div class="form-text">Leave blank to keep current password unchanged.</div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center mt-4">
+                            <button type="button" class="btn btn-outline-info" id="testLdapBtn">
+                                <i class="fas fa-plug me-1"></i> Test Connection
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="saveLdapBtn">
+                                <i class="fas fa-save me-1"></i> Save LDAP Settings
+                            </button>
+                        </div>
                     </form>
                 </div>
             </div>
 
             <!-- Notification Settings -->
-            <div class="card mb-4" id="notifications">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-bell"></i> Notification Settings</h5>
+            <div class="settings-card tab-pane fade" id="notifications">
+                <div class="settings-card-header">
+                    <h5>Notifications</h5>
                 </div>
-                <div class="card-body">
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="emailNotif" checked>
-                        <label class="form-check-label" for="emailNotif">
-                            Email Notifications
-                        </label>
+                <div class="settings-card-body">
+                    <p class="description-text">Choose how you want to be notified about system events and updates.</p>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <div style="font-weight: 500;">Email Notifications</div>
+                            <div class="text-muted">Receive critical alerts via email.</div>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="emailNotif" checked>
+                        </div>
                     </div>
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="inAppNotif" checked>
-                        <label class="form-check-label" for="inAppNotif">
-                            In-App Notifications
-                        </label>
+                    <div class="section-divider"></div>
+                    <div class="d-flex align-items-center justify-content-between mb-3">
+                        <div>
+                            <div style="font-weight: 500;">In-App Notifications</div>
+                            <div class="text-muted">Show brief popups while actively using the portal.</div>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="inAppNotif" checked>
+                        </div>
                     </div>
-                    <div class="form-check form-switch mb-3">
-                        <input class="form-check-input" type="checkbox" id="ticketNotif" checked>
-                        <label class="form-check-label" for="ticketNotif">
-                            Ticket Updates
-                        </label>
+                    <div class="section-divider"></div>
+                    <div class="d-flex align-items-center justify-content-between mb-4">
+                        <div>
+                            <div style="font-weight: 500;">Ticket Updates</div>
+                            <div class="text-muted">Notify users when their request status changes.</div>
+                        </div>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="ticketNotif" checked>
+                        </div>
+                    </div>
+                    <div class="section-divider"></div>
+                    <div class="mb-2">
+                        <label class="form-label" style="text-transform: none; font-size: 1rem; color: #1d1d1f;">IT Team Alert Emails</label>
+                        <div class="input-group" style="border-radius: 8px; overflow: hidden; border: 1px solid transparent; box-shadow: 0 0 0 1px #e5e5ea; position: relative; background: #ffffff;">
+                            <input type="text" class="form-control" id="itAlertEmailInput" placeholder="Search AD or type email (e.g. admin@kostal.com)" style="border: none !important; box-shadow: none !important; border-radius: 0; padding-right: 40px; background: transparent;" autocomplete="off">
+                            <div id="adSearchSpinner" class="position-absolute d-none" style="right: 80px; top: 50%; transform: translateY(-50%); z-index: 10;">
+                                <div class="spinner-border text-primary" role="status" style="width: 1rem; height: 1rem; border-width: 0.15em;">
+                                    <span class="visually-hidden">Loading...</span>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="addAlertEmailBtn" style="border-radius: 0; padding-left: 1.25rem; padding-right: 1.25rem; z-index: 11;">Add</button>
+                        </div>
+                        <ul id="adEmailSearchResults" class="list-group position-absolute w-100 d-none" style="z-index: 1000; max-height: 250px; overflow-y: auto; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); border-radius: 10px; margin-top: 8px; border: 1px solid #e5e5ea;"></ul>
+                        <div id="itAlertEmailList" class="d-flex flex-wrap gap-2 mt-3">
+                            <!-- Dynamic email chips will appear here -->
+                        </div>
+                        <small class="text-muted mt-3 d-block">Add specific team members or distribution lists to receive copies of system errors and unassigned tickets.</small>
                     </div>
                 </div>
             </div>
 
             <!-- Email Settings -->
-            <div class="card mb-4" id="email">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-envelope"></i> Email Configuration</h5>
+            <div class="settings-card tab-pane fade" id="email">
+                <div class="settings-card-header">
+                    <h5>Email Server</h5>
                 </div>
-                <div class="card-body">
+                <div class="settings-card-body">
+                    <p class="description-text">Configure the outbound SMTP server credentials used by the ITSM platform.</p>
                     <form id="emailForm">
+                        <div class="row">
+                            <div class="col-md-9 mb-3">
+                                <label for="smtpHost" class="form-label">Host Server</label>
+                                <input type="text" class="form-control" id="smtpHost" placeholder="smtp.office365.com">
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <label for="smtpPort" class="form-label">Port</label>
+                                <input type="number" class="form-control" id="smtpPort" placeholder="587">
+                            </div>
+                        </div>
+
                         <div class="mb-3">
-                            <label for="smtpHost" class="form-label">SMTP Host</label>
-                            <input type="text" class="form-control" id="smtpHost" placeholder="smtp.gmail.com">
+                            <label for="smtpFrom" class="form-label">Sender Email Address</label>
+                            <input type="email" class="form-control" id="smtpFrom" placeholder="KOSTALITSM@kostal.com">
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="smtpUser" class="form-label">Username</label>
+                                <input type="text" class="form-control" id="smtpUser" autocomplete="off">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="smtpPass" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="smtpPass" autocomplete="new-password">
+                            </div>
+                        </div>
+
+                        <div class="section-divider"></div>
+                        
+                        <div class="mb-4">
+                            <label for="smtpTestEmail" class="form-label">Diagnostic Test Address</label>
+                            <input type="email" class="form-control" id="smtpTestEmail" placeholder="your.name@kostal.com">
+                            <small class="text-muted mt-1 d-block">If provided, a real test email will be dispatched to verify connectivity.</small>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary" id="saveSmtpBtn">Save Configuration</button>
+                            <button type="button" class="btn btn-secondary" id="testSmtpBtn">Verify Connection</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SNMP Configuration Settings -->
+            <div class="settings-card tab-pane fade" id="snmp">
+                <div class="settings-card-header">
+                    <h5>SNMP Configuration</h5>
+                </div>
+                <div class="settings-card-body">
+                    <p class="description-text">Configure default SNMP credentials used for network discovery and device polling.</p>
+                    <form id="snmpForm">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="snmpVersion" class="form-label">SNMP Version</label>
+                                <select class="form-select" id="snmpVersion">
+                                    <option value="v1">v1</option>
+                                    <option value="v2c" selected>v2c</option>
+                                    <option value="v3">v3</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="snmpCommunity" class="form-label">Community String (Read-Only)</label>
+                                <input type="text" class="form-control" id="snmpCommunity" placeholder="public">
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="snmpPort" class="form-label">SNMP Port</label>
+                                <input type="number" class="form-control" id="snmpPort" value="161">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="snmpTimeout" class="form-label">Timeout (Seconds)</label>
+                                <input type="number" class="form-control" id="snmpTimeout" value="5">
+                            </div>
+                        </div>
+                        <div class="section-divider"></div>
+                        <h6 class="fw-bold mb-3 mt-2">Background Auto-Discovery</h6>
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <div>
+                                <div style="font-weight: 500;">Enable Automatic Discovery</div>
+                                <div class="text-muted">Automatically ping and SNMP sweep target subnets in the background.</div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="autoDiscoveryEnabled" checked>
+                            </div>
                         </div>
                         <div class="mb-3">
-                            <label for="smtpPort" class="form-label">SMTP Port</label>
-                            <input type="number" class="form-control" id="smtpPort" placeholder="587">
+                            <label for="autoDiscoverySubnets" class="form-label">Target Subnets / IP Ranges</label>
+                            <input type="text" class="form-control" id="autoDiscoverySubnets" placeholder="e.g. 10.141.10.0/24, 192.168.1.0/24">
+                            <small class="text-muted mt-1 d-block">Comma-separated list of CIDR subnets or IP ranges to automatically scan every 30 minutes.</small>
                         </div>
-                        <div class="mb-3">
-                            <label for="smtpUser" class="form-label">SMTP Username</label>
-                            <input type="text" class="form-control" id="smtpUser">
+                        
+                        <div class="d-flex gap-2 mt-4">
+                            <button type="submit" class="btn btn-primary" id="saveSnmpBtn">Save SNMP Configuration</button>
                         </div>
-                        <div class="mb-3">
-                            <label for="smtpPass" class="form-label">SMTP Password</label>
-                            <input type="password" class="form-control" id="smtpPass">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Test Connection & Save</button>
                     </form>
                 </div>
             </div>
 
             <!-- Appearance Settings -->
-            <div class="card mb-4" id="appearance">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-palette"></i> Appearance</h5>
+            <div class="settings-card tab-pane fade" id="appearance">
+                <div class="settings-card-header">
+                    <h5>Appearance</h5>
                 </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="theme" class="form-label">Theme</label>
-                        <select class="form-control" id="theme">
-                            <option selected>Light</option>
-                            <option>Dark</option>
-                            <option>Auto</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="language" class="form-label">Language</label>
-                        <select class="form-control" id="language">
-                            <option selected>English</option>
-                            <option>French</option>
-                            <option>Spanish</option>
-                            <option>German</option>
-                        </select>
+                <div class="settings-card-body">
+                    <p class="description-text">Customize how the application looks and feels.</p>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="theme" class="form-label">Color Theme</label>
+                            <select class="form-select" id="theme">
+                                <option selected>Light</option>
+                                <option>Dark</option>
+                                <option>Auto</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="language" class="form-label">Language</label>
+                            <select class="form-select" id="language">
+                                <option selected>English</option>
+                                <option>French</option>
+                                <option>Spanish</option>
+                                <option>German</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Security Settings -->
-            <div class="card mb-4" id="security">
-                <div class="card-header">
-                    <h5 class="mb-0"><i class="fas fa-lock"></i> Security</h5>
+            <div class="settings-card tab-pane fade" id="security">
+                <div class="settings-card-header">
+                    <h5>Security</h5>
                 </div>
-                <div class="card-body">
+                <div class="settings-card-body">
+                    <p class="description-text">Configure session limits and authentication requirements.</p>
                     <form id="securityForm">
-                        <div class="mb-3">
-                            <label for="sessionTimeout" class="form-label">Session Timeout (minutes)</label>
-                            <input type="number" class="form-control" id="sessionTimeout" value="30">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="sessionTimeout" class="form-label">Session Idle Timeout (min)</label>
+                                <input type="number" class="form-control" id="sessionTimeout" value="30">
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="maxLoginAttempts" class="form-label">Max Login Attempts</label>
+                                <input type="number" class="form-control" id="maxLoginAttempts" value="5">
+                            </div>
                         </div>
-                        <div class="mb-3">
-                            <label for="maxLoginAttempts" class="form-label">Max Login Attempts</label>
-                            <input type="number" class="form-control" id="maxLoginAttempts" value="5">
+                        
+                        <div class="section-divider"></div>
+
+                        <div class="d-flex align-items-center justify-content-between mb-4">
+                            <div>
+                                <div style="font-weight: 500;">Require Multi-Factor Authentication</div>
+                                <div class="text-muted">Force all administrative users to use MFA.</div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="mfaRequired">
+                            </div>
                         </div>
-                        <div class="form-check form-switch mb-3">
-                            <input class="form-check-input" type="checkbox" id="mfaRequired">
-                            <label class="form-check-label" for="mfaRequired">
-                                Require MFA
-                            </label>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Save Security</button>
+                            <button type="button" class="btn btn-warning" id="resetSecurityBtn">Reset</button>
                         </div>
-                        <button type="submit" class="btn btn-primary me-2">Save Security Settings</button>
-                        <button type="button" class="btn btn-warning" id="resetSecurityBtn">Reset</button>
                     </form>
+                </div>
+            </div>
+
+            <!-- Database Settings -->
+            <div class="settings-card tab-pane fade" id="database">
+                <div class="settings-card-header d-flex align-items-center gap-2">
+                    <i class="fas fa-server text-primary"></i>
+                    <h5 class="mb-0">Database Architecture</h5>
+                </div>
+                <div class="settings-card-body">
+                    <p class="description-text mb-4">Manage your underlying data layer. High Availability configurations will automatically fall back to secondary nodes if the primary goes offline.</p>
+                    
+                    <form id="databaseForm">
+                        <div class="p-4 mb-4" style="background: #f8f9fa; border: 1px solid #e9ecef; border-radius: 12px;">
+                            <div class="mb-4">
+                                <label for="dbType" class="form-label fw-bold text-dark" style="font-size: 0.9rem;">Engine Type</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-database"></i></span>
+                                    <select class="form-select border-start-0 ps-0" id="dbType" style="box-shadow: none; font-weight: 500;">
+                                        <option value="SQLITE">SQLite (Local Embedded)</option>
+                                        <option value="POSTGRES">PostgreSQL (Enterprise)</option>
+                                        <option value="MYSQL">MySQL (Enterprise)</option>
+                                        <option value="SQLSERVER">Microsoft SQL Server</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="dbPrimary" class="form-label fw-bold text-dark" style="font-size: 0.9rem;">Primary Connection Node</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-link"></i></span>
+                                    <input type="password" class="form-control border-start-0 ps-0" id="dbPrimary" placeholder="postgresql://user:pass@primary-host:5432/itsm" style="box-shadow: none;">
+                                </div>
+                                <small class="text-muted d-block mt-2"><i class="fas fa-info-circle me-1"></i>Leave blank to force the local SQLite fallback.</small>
+                            </div>
+
+                            <div class="mb-2">
+                                <label for="dbSecondary" class="form-label fw-bold text-dark" style="font-size: 0.9rem;">Secondary Connection Node (Failover)</label>
+                                <div class="input-group">
+                                    <span class="input-group-text bg-white border-end-0 text-muted"><i class="fas fa-project-diagram"></i></span>
+                                    <input type="password" class="form-control border-start-0 ps-0" id="dbSecondary" placeholder="postgresql://user:pass@backup-host:5432/itsm" style="box-shadow: none;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="alert mb-4 d-flex align-items-center" role="alert" style="background-color: #fff3cd; border: 1px solid #ffe69c; color: #664d03; border-radius: 12px; padding: 1rem 1.25rem;">
+                            <i class="fas fa-exclamation-triangle fs-4 me-3"></i>
+                            <div>
+                                <strong class="d-block mb-1">Service Restart Required</strong>
+                                <span style="font-size: 0.9rem; opacity: 0.9;">Modifying the connection strings shifts the entire data foundation. The system must be rebooted after saving for changes to take effect.</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex gap-3 align-items-center border-bottom pb-4 mb-4">
+                            <button type="submit" class="btn btn-primary px-4 py-2" id="saveDbBtn" style="border-radius: 8px; font-weight: 500;">
+                                <i class="fas fa-save me-2"></i>Apply Configuration
+                            </button>
+                            <button type="button" class="btn btn-light border px-4 py-2" id="testDbBtn" style="border-radius: 8px; font-weight: 500;">
+                                <i class="fas fa-plug text-muted me-2"></i>Test Primary Node
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Data Management Zone -->
+                    <div class="mt-2">
+                        <div class="d-flex align-items-center gap-2 mb-3">
+                            <i class="fas fa-archive text-danger"></i>
+                            <h6 class="mb-0 fw-bold text-dark">Data Management</h6>
+                        </div>
+                        <p class="text-muted mb-4" style="font-size: 0.9rem;">
+                            Create offline snapshots of your environment or restore from an existing `.db` file. 
+                            <br><span class="badge bg-light text-dark border mt-2"><i class="fas fa-info-circle text-muted me-1"></i>Only available when Engine Type is SQLite.</span>
+                        </p>
+
+                        <div class="row g-4">
+                            <div class="col-md-6">
+                                <div class="p-4 text-center h-100" style="border: 1px dashed #ced4da; border-radius: 12px; background: #fafafa;">
+                                    <div class="mb-3">
+                                        <div class="d-inline-flex align-items-center justify-content-center bg-white shadow-sm" style="width: 48px; height: 48px; border-radius: 50%;">
+                                            <i class="fas fa-download text-success fs-5"></i>
+                                        </div>
+                                    </div>
+                                    <h6 class="fw-bold mb-2">Export Snapshot</h6>
+                                    <p class="text-muted small mb-3">Download a binary copy of the current embedded database.</p>
+                                    <button type="button" class="btn btn-outline-success btn-sm w-100 py-2 rounded-pill fw-bold" id="exportDbBtn">
+                                        Generate Export
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="p-4 text-center h-100" style="border: 1px dashed #e4a1a1; border-radius: 12px; background: #fffcfc;">
+                                    <div class="mb-3">
+                                        <div class="d-inline-flex align-items-center justify-content-center bg-white shadow-sm" style="width: 48px; height: 48px; border-radius: 50%; border: 1px solid #f5c2c7;">
+                                            <i class="fas fa-upload text-danger fs-5"></i>
+                                        </div>
+                                    </div>
+                                    <h6 class="fw-bold text-danger mb-2">Restore Backup</h6>
+                                    <p class="text-muted small mb-3">Overwrites current environment with an uploaded file.</p>
+                                    <form id="importDbForm" class="d-flex flex-column gap-2">
+                                        <input class="form-control form-control-sm bg-white" type="file" id="importDbFile" accept=".db,.sqlite3" required style="border-radius: 6px;">
+                                        <button type="submit" class="btn btn-danger btn-sm w-100 py-2 rounded-pill fw-bold shadow-sm" id="importDbBtn">
+                                            Execute Restore
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+<!-- Professional Error Modal -->
+<div class="modal fade" id="errorModal" tabindex="-1" aria-labelledby="errorModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg">
+      <div class="modal-header border-bottom-0 pb-0">
+        <h5 class="modal-title d-flex align-items-center text-danger" id="errorModalLabel">
+            <i class="fas fa-exclamation-triangle me-2"></i> <span id="errorModalTitle">Connection Error</span>
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body pt-3">
+        <p id="errorModalMessage" class="fw-medium text-dark mb-3">An error occurred while connecting.</p>
+        <div class="bg-light p-3 rounded border" style="font-family: monospace; font-size: 0.85rem; color: #dc3545; word-wrap: break-word;">
+            <strong class="text-dark">Technical Details:</strong><br>
+            <span id="errorModalDetails"></span>
+        </div>
+        <div class="mt-3 small text-muted">
+            <i class="fas fa-info-circle me-1"></i> <strong>Tip:</strong> If you see "invalidCredentials", the Active Directory server actively rejected your login. Ensure your Service Account Password is correct, and try using the UPN format (e.g., username@domain) in the Bind DN field.
+        </div>
+      </div>
+      <div class="modal-footer border-top-0 pt-0">
+        <button type="button" class="btn btn-secondary px-4 rounded-pill" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
+function showErrorModal(title, message, details) {
+    document.getElementById('errorModalTitle').innerText = title;
+    document.getElementById('errorModalMessage').innerText = message;
+    document.getElementById('errorModalDetails').innerText = details;
+    const errorModal = new bootstrap.Modal(document.getElementById('errorModal'));
+    errorModal.show();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     // Load saved settings from localStorage
     loadSettings();
@@ -189,6 +730,101 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Load SMTP Settings from API
+    async function loadSMTPSettings() {
+        try {
+            const res = await fetch('/api/admin/settings/smtp');
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('smtpHost').value = data.smtp_host || '';
+                document.getElementById('smtpPort').value = data.smtp_port || 587;
+                document.getElementById('smtpFrom').value = data.smtp_from || 'KOSTALITSM@kostal.com';
+                document.getElementById('smtpUser').value = data.smtp_user || '';
+                document.getElementById('smtpPass').value = data.smtp_password || '';
+            }
+        } catch(e) {
+            console.error("Failed to load SMTP settings", e);
+        }
+    }
+    loadSMTPSettings();
+
+    // Load SNMP Settings from API
+    async function loadSNMPSettings() {
+        try {
+            const res = await fetch('/api/admin/settings/snmp');
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('snmpVersion').value = data.snmp_version || 'v2c';
+                document.getElementById('snmpCommunity').value = data.snmp_community || 'public';
+                document.getElementById('snmpPort').value = data.snmp_port || 161;
+                document.getElementById('snmpTimeout').value = data.snmp_timeout || 5;
+                if (document.getElementById('autoDiscoveryEnabled')) {
+                    document.getElementById('autoDiscoveryEnabled').checked = data.auto_discovery_enabled !== false;
+                }
+                if (document.getElementById('autoDiscoverySubnets')) {
+                    document.getElementById('autoDiscoverySubnets').value = data.auto_discovery_subnets || '10.141.10.0/24';
+                }
+            }
+        } catch(e) {
+            console.error("Failed to load SNMP settings", e);
+        }
+    }
+    loadSNMPSettings();
+
+    // Load Database Settings from API
+    async function loadDatabaseSettings() {
+        try {
+            const res = await fetch('/api/admin/settings/database');
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('dbType').value = data.db_type || 'SQLITE';
+                document.getElementById('dbPrimary').value = data.database_url_primary || '';
+                document.getElementById('dbSecondary').value = data.database_url_secondary || '';
+            }
+        } catch(e) {
+            console.error("Failed to load Database settings", e);
+        }
+    }
+    loadDatabaseSettings();
+
+    // Load Notification Settings from API
+    async function loadNotificationSettings() {
+        try {
+            const res = await fetch('/api/admin/settings/notifications');
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('emailNotif').checked = data.email_notif;
+                document.getElementById('inAppNotif').checked = data.in_app_notif;
+                document.getElementById('ticketNotif').checked = data.ticket_notif;
+                
+                // Load array of emails
+                window.alertEmails = data.it_alert_email ? data.it_alert_email.split(',').map(e => e.trim()).filter(e => e) : [];
+                renderAlertEmails();
+            }
+        } catch(e) {
+            console.error("Failed to load Notification settings", e);
+        }
+    }
+    loadNotificationSettings();
+
+    // Load LDAP Settings from API
+    async function loadLDAPSettings() {
+        try {
+            const res = await fetch('/api/admin/settings/ldap');
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('ldapServer').value = data.ldap_server || '';
+                document.getElementById('ldapPort').value = data.ldap_port || 389;
+                document.getElementById('ldapBaseDn').value = data.ldap_base_dn || '';
+                document.getElementById('ldapBindDn').value = data.ldap_bind_dn || '';
+                // password is not loaded for security reasons, placeholder remains
+            }
+        } catch(e) {
+            console.error("Failed to load LDAP settings", e);
+        }
+    }
+    loadLDAPSettings();
+
     // Wiring up forms to prevent refresh and save data
     document.getElementById('generalForm').addEventListener('submit', (e) => {
         e.preventDefault();
@@ -197,24 +833,196 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Success', 'General settings saved successfully!', 'success');
     });
 
-    document.getElementById('emailForm').addEventListener('submit', (e) => {
+    document.getElementById('emailForm').addEventListener('submit', async (e) => {
         e.preventDefault();
-        saveSetting('smtpHost', document.getElementById('smtpHost').value);
-        saveSetting('smtpPort', document.getElementById('smtpPort').value);
-        saveSetting('smtpUser', document.getElementById('smtpUser').value);
-        // Do not save plain text passwords in real life, but for the mock:
-        saveSetting('smtpPass', document.getElementById('smtpPass').value);
         
-        const btn = e.submitter;
+        const btn = document.getElementById('saveSmtpBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        btn.disabled = true;
+
+        const payload = {
+            smtp_host: document.getElementById('smtpHost').value,
+            smtp_port: parseInt(document.getElementById('smtpPort').value) || 587,
+            smtp_from: document.getElementById('smtpFrom').value,
+            smtp_user: document.getElementById('smtpUser').value,
+            smtp_password: document.getElementById('smtpPass').value
+        };
+
+        try {
+            const res = await fetch('/api/admin/settings/smtp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Success', 'SMTP settings saved to database.', 'success');
+            } else {
+                showToast('Error', data.detail || 'Failed to save SMTP settings.', 'danger');
+            }
+        } catch (e) {
+            showToast('Error', 'Network error while saving.', 'danger');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    document.getElementById('snmpForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btn = document.getElementById('saveSnmpBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        btn.disabled = true;
+
+        const payload = {
+            snmp_version: document.getElementById('snmpVersion').value,
+            snmp_community: document.getElementById('snmpCommunity').value,
+            snmp_port: parseInt(document.getElementById('snmpPort').value) || 161,
+            snmp_timeout: parseInt(document.getElementById('snmpTimeout').value) || 5,
+            auto_discovery_enabled: document.getElementById('autoDiscoveryEnabled').checked,
+            auto_discovery_subnets: document.getElementById('autoDiscoverySubnets').value
+        };
+
+        try {
+            const res = await fetch('/api/admin/settings/snmp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Success', 'SNMP settings saved successfully.', 'success');
+            } else {
+                showToast('Error', data.detail || 'Failed to save SNMP settings.', 'danger');
+            }
+        } catch (e) {
+            showToast('Error', 'Network error while saving.', 'danger');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    // LDAP Form Submit
+    document.getElementById('ldapForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const btn = document.getElementById('saveLdapBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        btn.disabled = true;
+
+        const payload = {
+            ldap_server: document.getElementById('ldapServer').value,
+            ldap_port: parseInt(document.getElementById('ldapPort').value) || 389,
+            ldap_base_dn: document.getElementById('ldapBaseDn').value,
+            ldap_bind_dn: document.getElementById('ldapBindDn').value,
+            ldap_password: document.getElementById('ldapPassword').value || null
+        };
+
+        try {
+            const res = await fetch('/api/admin/settings/ldap', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Success', 'LDAP settings saved dynamically. Changes take effect immediately.', 'success');
+                document.getElementById('ldapPassword').value = ''; // clear password field
+            } else {
+                showToast('Error', data.detail || 'Failed to save LDAP settings.', 'danger');
+                showErrorModal(
+                    "LDAP Configuration Blocked",
+                    "The system prevented you from saving a broken Active Directory configuration.",
+                    data.detail || 'Failed to save LDAP settings.'
+                );
+            }
+        } catch (e) {
+            showToast('Error', 'Network error while saving.', 'danger');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    // Test LDAP Connection
+    document.getElementById('testLdapBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('testLdapBtn');
         const originalText = btn.innerHTML;
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
         btn.disabled = true;
-        
-        setTimeout(() => {
+
+        const payload = {
+            ldap_server: document.getElementById('ldapServer').value,
+            ldap_port: parseInt(document.getElementById('ldapPort').value) || 389,
+            ldap_base_dn: document.getElementById('ldapBaseDn').value,
+            ldap_bind_dn: document.getElementById('ldapBindDn').value,
+            ldap_password: document.getElementById('ldapPassword').value || null
+        };
+
+        try {
+            const res = await fetch('/api/admin/settings/ldap/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Success', 'LDAP Connection successful! Binding verified.', 'success');
+            } else {
+                showToast('Error', data.detail || 'Connection failed.', 'danger');
+                showErrorModal(
+                    "LDAP Test Failed",
+                    "The Active Directory server refused the connection attempt using the provided settings.",
+                    data.detail || 'Connection failed.'
+                );
+            }
+        } catch (e) {
+            showToast('Error', 'Network error during test.', 'danger');
+        } finally {
             btn.innerHTML = originalText;
             btn.disabled = false;
-            showToast('Success', 'SMTP Connection Test Successful!', 'success');
-        }, 1500);
+        }
+    });
+
+    document.getElementById('testSmtpBtn').addEventListener('click', async () => {
+        const btn = document.getElementById('testSmtpBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing Connection...';
+        btn.disabled = true;
+        
+        const payload = {
+            smtp_host: document.getElementById('smtpHost').value,
+            smtp_port: parseInt(document.getElementById('smtpPort').value) || 587,
+            smtp_from: document.getElementById('smtpFrom').value,
+            smtp_user: document.getElementById('smtpUser').value,
+            smtp_password: document.getElementById('smtpPass').value,
+            test_email: document.getElementById('smtpTestEmail').value
+        };
+        
+        try {
+            const res = await fetch('/api/admin/settings/test-smtp', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            
+            if(res.ok) {
+                showToast('Success', data.message || 'SMTP Connection Test Successful!', 'success');
+            } else {
+                showToast('Error', data.detail || 'Connection failed.', 'danger');
+            }
+        } catch(err) {
+            showToast('Error', 'Network error. Could not reach server.', 'danger');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
     });
 
     document.getElementById('securityForm').addEventListener('submit', (e) => {
@@ -225,16 +1033,334 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('Success', 'Security settings saved!', 'success');
     });
 
-    // Notification Toggles (Save on change)
+    // Database Settings form
+    document.getElementById('databaseForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('saveDbBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+        btn.disabled = true;
+        
+        const payload = {
+            db_type: document.getElementById('dbType').value,
+            database_url_primary: document.getElementById('dbPrimary').value || null,
+            database_url_secondary: document.getElementById('dbSecondary').value || null
+        };
+        
+        try {
+            const res = await fetch('/api/admin/settings/database', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if(res.ok) {
+                showToast('Success', data.message || 'Database settings saved successfully.', 'success');
+            } else {
+                showToast('Error', data.detail || 'Failed to save database settings.', 'danger');
+            }
+        } catch(err) {
+            showToast('Error', 'Network error while saving.', 'danger');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    document.getElementById('testDbBtn').addEventListener('click', async () => {
+        const primaryUrl = document.getElementById('dbPrimary').value;
+        if (!primaryUrl) {
+            showToast('Warning', 'Please enter a Primary Connection String to test.', 'warning');
+            return;
+        }
+        
+        const btn = document.getElementById('testDbBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Testing...';
+        btn.disabled = true;
+        
+        const payload = {
+            db_type: document.getElementById('dbType').value,
+            database_url_primary: primaryUrl,
+            database_url_secondary: document.getElementById('dbSecondary').value || null
+        };
+        
+        try {
+            const res = await fetch('/api/admin/settings/database/test', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            
+            if(res.ok) {
+                showToast('Success', data.message || 'Database Connection Successful!', 'success');
+            } else {
+                showToast('Error', data.detail || 'Connection failed.', 'danger');
+            }
+        } catch(err) {
+            showToast('Error', 'Network error. Could not reach server.', 'danger');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }
+    });
+
+    // Database Export
+    document.getElementById('exportDbBtn').addEventListener('click', async () => {
+        try {
+            const btn = document.getElementById('exportDbBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Preparing...';
+            btn.disabled = true;
+
+            const res = await fetch('/api/admin/settings/database/export');
+            if (res.ok) {
+                const blob = await res.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                // Try to extract filename from content-disposition if possible
+                const disposition = res.headers.get('content-disposition');
+                let filename = 'kostal-itsm-backup.db';
+                if (disposition && disposition.indexOf('filename=') !== -1) {
+                    filename = disposition.split('filename=')[1].replace(/["']/g, '');
+                }
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                window.URL.revokeObjectURL(url);
+                showToast('Success', 'Database export downloaded successfully.', 'success');
+            } else {
+                const data = await res.json();
+                showToast('Error', data.detail || 'Export failed.', 'danger');
+            }
+            
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        } catch(e) {
+            showToast('Error', 'Network error during export.', 'danger');
+            document.getElementById('exportDbBtn').disabled = false;
+            document.getElementById('exportDbBtn').innerHTML = '<i class="fas fa-download"></i> Export Database Backup';
+        }
+    });
+
+    // Database Import
+    document.getElementById('importDbForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!confirm("WARNING: Restoring a database backup will permanently OVERWRITE all current data. This action cannot be undone. Do you want to proceed?")) {
+            return;
+        }
+
+        const fileInput = document.getElementById('importDbFile');
+        if (!fileInput.files.length) return;
+
+        const btn = document.getElementById('importDbBtn');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Restoring...';
+        btn.disabled = true;
+
+        const formData = new FormData();
+        formData.append('file', fileInput.files[0]);
+
+        try {
+            const res = await fetch('/api/admin/settings/database/import', {
+                method: 'POST',
+                body: formData
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+                showToast('Success', data.message || 'Database restored!', 'success');
+                setTimeout(() => window.location.reload(), 2000); // reload to show changes/logout
+            } else {
+                showToast('Error', data.detail || 'Restore failed.', 'danger');
+            }
+        } catch (err) {
+            showToast('Error', 'Network error during restore.', 'danger');
+        } finally {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            fileInput.value = '';
+        }
+    });
+
     ['emailNotif', 'inAppNotif', 'ticketNotif'].forEach(id => {
         const el = document.getElementById(id);
         if(el) {
-            el.addEventListener('change', (e) => {
-                saveSetting(id, e.target.checked);
-                showToast('Success', 'Notification preference updated.', 'success');
+            el.addEventListener('change', () => {
+                saveNotifications();
             });
         }
     });
+
+    // Email List Logic
+    window.alertEmails = [];
+    
+    function renderAlertEmails() {
+        const listEl = document.getElementById('itAlertEmailList');
+        if (!listEl) return;
+        
+        listEl.innerHTML = '';
+        window.alertEmails.forEach((email, index) => {
+            const pill = document.createElement('div');
+            pill.style.cssText = 'background: #f2f2f7; color: #1d1d1f; border-radius: 16px; padding: 0.35rem 0.75rem; font-size: 0.85rem; font-weight: 500; display: inline-flex; align-items: center; gap: 8px; border: 1px solid #e5e5ea; transition: all 0.2s ease;';
+            pill.innerHTML = `
+                <span>${email}</span>
+                <i class="fas fa-times" style="color: #8e8e93; cursor: pointer; font-size: 0.8rem; transition: color 0.2s ease;" onmouseover="this.style.color='#ff3b30'" onmouseout="this.style.color='#8e8e93'" onclick="removeAlertEmail(${index})" title="Remove"></i>
+            `;
+            listEl.appendChild(pill);
+        });
+    }
+
+    window.removeAlertEmail = function(index) {
+        window.alertEmails.splice(index, 1);
+        renderAlertEmails();
+        saveNotifications();
+    };
+
+    const addAlertEmailBtn = document.getElementById('addAlertEmailBtn');
+    const itAlertEmailInput = document.getElementById('itAlertEmailInput');
+    
+    function addEmailFromInput() {
+        const email = itAlertEmailInput.value.trim();
+        if (email) {
+            // Basic email validation regex
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(email)) {
+                showToast('Error', 'Please enter a valid email address.', 'warning');
+                return;
+            }
+            if (!window.alertEmails.includes(email)) {
+                window.alertEmails.push(email);
+                renderAlertEmails();
+                saveNotifications();
+            } else {
+                showToast('Info', 'Email already exists in the list.', 'info');
+            }
+            itAlertEmailInput.value = '';
+            document.getElementById('adEmailSearchResults').classList.add('d-none');
+        }
+    }
+
+    if (addAlertEmailBtn && itAlertEmailInput) {
+        addAlertEmailBtn.addEventListener('click', addEmailFromInput);
+        itAlertEmailInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addEmailFromInput();
+            }
+        });
+        
+        // AD Search Logic
+        let searchTimeout;
+        const resultsEl = document.getElementById('adEmailSearchResults');
+        const spinnerEl = document.getElementById('adSearchSpinner');
+        
+        itAlertEmailInput.addEventListener('input', (e) => {
+            clearTimeout(searchTimeout);
+            const query = e.target.value.trim();
+            
+            if(query.length < 3) {
+                resultsEl.classList.add('d-none');
+                spinnerEl.classList.add('d-none');
+                return;
+            }
+            
+            // If it looks like they are typing an email, don't search AD
+            if(query.includes('@')) {
+                resultsEl.classList.add('d-none');
+                spinnerEl.classList.add('d-none');
+                return;
+            }
+            
+            searchTimeout = setTimeout(async () => {
+                try {
+                    // Show sleek inline spinner, hide dropdown
+                    spinnerEl.classList.remove('d-none');
+                    resultsEl.classList.add('d-none');
+                    
+                    const res = await fetch(`/api/admin/ad/search?q=${encodeURIComponent(query)}`);
+                    
+                    // Hide spinner
+                    spinnerEl.classList.add('d-none');
+                    
+                    if(res.ok) {
+                        const users = await res.json();
+                        resultsEl.innerHTML = '';
+                        
+                        if(users.length === 0) {
+                            resultsEl.classList.add('d-none');
+                            return;
+                        }
+                        
+                        users.forEach(user => {
+                            // Only show users who actually have an email
+                            if (!user.email) return;
+                            
+                            const li = document.createElement('li');
+                            li.className = 'list-group-item list-group-item-action cursor-pointer';
+                            li.style.cursor = 'pointer';
+                            li.innerHTML = `
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div class="fw-bold" style="font-size: 0.95rem;">${user.full_name || user.username}</div>
+                                    <span class="badge bg-light text-dark border">${user.email}</span>
+                                </div>
+                                <div class="small text-muted">${user.department || 'ITSM User'}</div>
+                            `;
+                            li.addEventListener('click', () => {
+                                itAlertEmailInput.value = user.email;
+                                resultsEl.classList.add('d-none');
+                                addEmailFromInput();
+                            });
+                            resultsEl.appendChild(li);
+                        });
+                        
+                        if(resultsEl.children.length > 0) {
+                            resultsEl.classList.remove('d-none');
+                        } else {
+                            resultsEl.classList.add('d-none');
+                        }
+                    }
+                } catch(err) {
+                    console.error('AD Search failed', err);
+                }
+            }, 300);
+        });
+        
+        // Hide dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!itAlertEmailInput.contains(e.target) && !resultsEl.contains(e.target)) {
+                resultsEl.classList.add('d-none');
+            }
+        });
+    }
+
+    // Overwrite saveNotifications payload
+    async function saveNotifications() {
+        const payload = {
+            email_notif: document.getElementById('emailNotif').checked,
+            in_app_notif: document.getElementById('inAppNotif').checked,
+            ticket_notif: document.getElementById('ticketNotif').checked,
+            it_alert_email: window.alertEmails.join(',')
+        };
+        try {
+            const res = await fetch('/api/admin/settings/notifications', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            if(res.ok) {
+                showToast('Success', 'Notification preferences updated.', 'success');
+            } else {
+                showToast('Error', 'Failed to update preferences.', 'danger');
+            }
+        } catch(err) {
+            showToast('Error', 'Network error while saving.', 'danger');
+        }
+    }
     
     // Language Dropdown
     document.getElementById('language').addEventListener('change', (e) => {
@@ -263,7 +1389,7 @@ function loadSettings() {
         }
     });
 
-    const checks = ['emailNotif', 'inAppNotif', 'ticketNotif', 'mfaRequired'];
+    const checks = ['mfaRequired'];
     checks.forEach(c => {
         const val = localStorage.getItem('setting_' + c);
         if (val !== null && document.getElementById(c)) {

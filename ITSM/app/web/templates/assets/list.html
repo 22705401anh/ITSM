@@ -2,158 +2,266 @@
 
 {% block title %}Asset Inventory - KOSTAL ITSM{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Modern Dashboard Styling */
+    .page-header {
+        background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        border-radius: 12px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .stat-card {
+        background: white;
+        border-radius: 10px;
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        border: 1px solid #edf2f7;
+        transition: transform 0.2s;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-2px);
+    }
+
+    .stat-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        margin-right: 16px;
+    }
+
+    .stat-icon.total {
+        background: #eebfbf;
+        color: #c53030;
+    }
+
+    .stat-icon.available {
+        background: #c6f6d5;
+        color: #276749;
+    }
+
+    .stat-icon.maintenance {
+        background: #fef08a;
+        color: #854d0e;
+    }
+
+    /* Table Improvements */
+    .table-responsive {
+        max-height: calc(100vh - 280px);
+        overflow-y: auto;
+        overflow-x: auto;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
+    .custom-table {
+        border-collapse: separate;
+        border-spacing: 0;
+        font-size: 0.85rem;
+        margin-bottom: 0;
+        width: 100%;
+    }
+
+    .custom-table thead th {
+        position: sticky;
+        top: 0; /* Stick to top of table-responsive container */
+        z-index: 10;
+        border: none;
+        border-bottom: 2px solid #e2e8f0;
+        background: var(--bs-body-bg, #f4f6f9); /* Solid background to prevent overlap transparency */
+        color: #718096;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 0.75rem;
+        letter-spacing: 0.05em;
+        padding-top: 12px;
+        padding-bottom: 12px;
+        white-space: nowrap;
+    }
+
+    .custom-table tbody tr {
+        background: white;
+        transition: all 0.2s;
+    }
+
+    .custom-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
+
+    .custom-table tbody td {
+        border-bottom: 1px solid #edf2f7;
+        padding: 16px;
+        vertical-align: middle;
+    }
+
+    /* Search Input */
+    .search-wrapper {
+        position: relative;
+    }
+
+    .search-wrapper i {
+        position: absolute;
+        left: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+    }
+
+    .search-wrapper input {
+        padding-left: 40px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        background: #f8fafc;
+    }
+
+    .search-wrapper input:focus {
+        background: white;
+        border-color: var(--primary, #4f46e5);
+        box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h2 mb-1"><i class="fas fa-boxes"></i> Asset Inventory</h1>
-            <p class="text-muted">Manage your IT equipment and resources</p>
-        </div>
-        <div>
-            <a href="/assets/import" class="btn btn-success me-2">
-                <i class="fas fa-file-excel"></i> Bulk Import
-            </a>
-            <a href="/assets/create" class="btn btn-primary">
-                <i class="fas fa-plus-circle"></i> Add Asset
-            </a>
+    <div class="page-header d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+        <div class="mb-3 mb-md-0">
+            <h1 class="h3 mb-2 fw-bold text-body"><i class="fas fa-users text-primary me-2"></i> Users</h1>
+            <p class="text-muted mb-0">Manage your users and their assigned IT equipment.</p>
         </div>
     </div>
 
-    <!-- Statistics -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2">Total Assets</p>
-                            <h3 class="mb-0" id="totalAssets">0</h3>
-                        </div>
-                        <i class="fas fa-server fa-2x text-primary opacity-25"></i>
-                    </div>
-                </div>
+    <!-- Filters & Actions -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
+        <div class="d-flex gap-2 w-100" style="max-width: 600px;">
+            <div class="search-wrapper w-100">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-control" id="searchAsset"
+                    placeholder="Search full name, hostname, SN, phone, department..." onkeyup="if(event.key === 'Enter'){loadAssets();}">
             </div>
+            <select id="filterType" class="form-select" style="max-width: 150px;" onchange="loadAssets()">
+                <option value="">All Types</option>
+                <option value="computer">Computer</option>
+                <option value="laptop">Laptop</option>
+                <option value="monitor">Monitor</option>
+                <option value="phone">Phone</option>
+                <option value="docking">Docking Station</option>
+                <option value="accessories">Accessories</option>
+            </select>
+            <select id="filterStatus" class="form-select" style="max-width: 150px;" onchange="loadAssets()">
+                <option value="">All Status</option>
+                <option value="available">Available</option>
+                <option value="in_use">In Use</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="retired">Retired</option>
+                <option value="damaged">Damaged</option>
+            </select>
         </div>
-
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2">Available</p>
-                            <h3 class="mb-0 text-success" id="availableAssets">0</h3>
-                        </div>
-                        <i class="fas fa-check-circle fa-2x text-success opacity-25"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-2">In Maintenance</p>
-                            <h3 class="mb-0 text-warning" id="maintenanceAssets">0</h3>
-                        </div>
-                        <i class="fas fa-tools fa-2x text-warning opacity-25"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filters -->
-    <div class="card mb-4">
-        <div class="card-header bg-body-tertiary">
-            <h5 class="mb-0"><i class="fas fa-filter"></i> Filters & Search</h5>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-3">
-                    <label class="form-label">Type</label>
-                    <select id="filterType" class="form-select form-select-sm">
-                        <option value="">All Types</option>
-                        <option value="computer">Computer</option>
-                        <option value="laptop">Laptop</option>
-                        <option value="monitor">Monitor</option>
-                        <option value="phone">Phone</option>
-                        <option value="docking">Docking Station</option>
-                        <option value="accessories">Accessories</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Status</label>
-                    <select id="filterStatus" class="form-select form-select-sm">
-                        <option value="">All Status</option>
-                        <option value="available">Available</option>
-                        <option value="in_use">In Use</option>
-                        <option value="maintenance">Maintenance</option>
-                        <option value="retired">Retired</option>
-                        <option value="damaged">Damaged</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label">Search</label>
-                    <input type="text" id="searchAsset" class="form-control form-control-sm" 
-                           placeholder="Full name, hostname, SN, phone, department...">
-                </div>
-                <div class="col-md-2 d-flex align-items-end">
-                    <button onclick="loadAssets()" class="btn btn-sm btn-primary w-100">
-                        <i class="fas fa-search"></i> Search
-                    </button>
-                </div>
-            </div>
+        <div class="d-flex gap-2">
+            <button type="button" class="btn btn-info text-white rounded-pill px-3" onclick="exportAssets(event)">
+                <i class="fas fa-file-export me-1"></i> Export
+            </button>
+            <a href="/assets/import" class="btn btn-success rounded-pill px-3">
+                <i class="fas fa-file-excel me-1"></i> Import
+            </a>
+            <a href="/admin/users" class="btn btn-primary rounded-pill px-4">
+                <i class="fas fa-user-plus me-1"></i> Add User
+            </a>
+            <button class="btn btn-light border rounded-circle" style="width: 40px; height: 40px;"
+                onclick="loadAssets()" title="Refresh">
+                <i class="fas fa-sync-alt text-secondary"></i>
+            </button>
         </div>
     </div>
 
     <!-- Assets Table -->
-    <div class="card">
-        <div class="table-responsive">
-            <table class="table table-hover table-sm mb-0">
-                <thead class="table-light sticky-top">
-                    <tr>
-                        <th style="width: 8%;"><i class="fas fa-user me-1"></i>Full Name</th>
-                        <th style="width: 7%;"><i class="fas fa-id-badge me-1"></i>User ID</th>
-                        <th style="width: 8%;"><i class="fas fa-building me-1"></i>Department</th>
-                        <th style="width: 8%;"><i class="fas fa-desktop me-1"></i>Host Name</th>
-                        <th style="width: 7%;"><i class="fas fa-link me-1"></i>Assigned</th>
-                        <th style="width: 10%;"><i class="fas fa-laptop me-1"></i>Laptop Model</th>
-                        <th style="width: 8%;"><i class="fas fa-hashtag me-1"></i>Laptop SN</th>
-                        <th style="width: 10%;"><i class="fas fa-monitor me-1"></i>Monitor Model</th>
-                        <th style="width: 8%;"><i class="fas fa-hashtag me-1"></i>Monitor SN</th>
-                        <th style="width: 10%;"><i class="fas fa-dock me-1"></i>Docking SN</th>
-                        <th style="width: 8%;"><i class="fas fa-box me-1"></i>Accessories</th>
-                        <th style="width: 8%;"><i class="fas fa-mobile me-1"></i>Phone Model</th>
-                        <th style="width: 8%;"><i class="fas fa-phone me-1"></i>Phone #</th>
-                        <th style="width: 6%;"><i class="fas fa-cog me-1"></i>Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="assetsList">
-                    <tr>
-                        <td colspan="14" class="text-center py-5">
-                            <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
-                            <span class="text-muted">Loading assets...</span>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+    <div class="table-responsive">
+        <table class="table custom-table w-100">
+            <thead>
+                <tr>
+                    <th><i class="fas fa-user me-1"></i>Full Name</th>
+                    <th><i class="fas fa-desktop me-1"></i>Host Name</th>
+                    <th><i class="fas fa-link me-1"></i>Status</th>
+                    <th><i class="fas fa-laptop me-1"></i>Laptop Model</th>
+                    <th><i class="fas fa-hashtag me-1"></i>Laptop SN</th>
+                    <th><i class="fas fa-monitor me-1"></i>Monitor Model</th>
+                    <th><i class="fas fa-hashtag me-1"></i>Monitor SN</th>
+                    <th><i class="fas fa-dock me-1"></i>Docking SN</th>
+                    <th><i class="fas fa-box me-1"></i>Accessories</th>
+                    <th><i class="fas fa-mobile me-1"></i>Phone Model</th>
+                    <th><i class="fas fa-phone me-1"></i>Phone #</th>
+                    <th class="w-100 border-0"></th> <!-- Filler column to absorb extra space -->
+                </tr>
+            </thead>
+            <tbody id="assetsList">
+                <tr>
+                    <td colspan="12" class="text-center py-5 bg-body rounded-3 shadow-sm">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <div class="mt-2 text-muted">Loading assets...</div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
 <script>
 async function loadStats() {
+    // Stats cards were removed, skipping UI update to prevent errors.
+}
+
+async function exportAssets(event) {
+    if (event) event.preventDefault();
+    console.log('Exporting assets...');
+    const type = document.getElementById('filterType').value;
+    const status = document.getElementById('filterStatus').value;
+    const search = document.getElementById('searchAsset').value;
+
+    const params = new URLSearchParams();
+    if (type && type.trim()) params.append('asset_type', type.trim());
+    if (status && status.trim()) params.append('status', status.trim());
+    if (search && search.trim()) params.append('search', search.trim());
+
+    let path = '/api/assets/export';
+    if (params.toString()) {
+        path += '?' + params.toString();
+    }
+    
+    const token = localStorage.getItem('access_token');
+    
     try {
-        const res = await fetch('/api/assets/stats/summary');
-        const data = await res.json();
-        document.getElementById('totalAssets').textContent = data.total_assets;
-        document.getElementById('availableAssets').textContent = data.by_status.available || 0;
-        document.getElementById('maintenanceAssets').textContent = data.by_status.maintenance || 0;
-    } catch (e) {
-        console.error('Error:', e);
+        const response = await fetch(path, {
+            headers: {
+                'Authorization': `Bearer ${token}`
+            }
+        });
+        
+        if (!response.ok) throw new Error('Failed to export');
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.style.display = 'none';
+        a.href = url;
+        a.download = 'hardware_inventory.xlsx';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        if (window.itsm && window.itsm.showToast) {
+            window.itsm.showToast('Export successful!', 'success');
+        }
+    } catch(e) {
+        alert('Error exporting assets: ' + e.message);
     }
 }
 
@@ -164,7 +272,7 @@ async function loadAssets() {
         const search = document.getElementById('searchAsset').value;
 
         // Build URL with only non-empty parameters
-        let url = '/api/assets/';
+        let path = '/assets/';
         const params = new URLSearchParams();
 
         // Only add parameters if they have values (not empty strings)
@@ -173,34 +281,13 @@ async function loadAssets() {
         if (search && search.trim()) params.append('search', search.trim());
 
         if (params.toString()) {
-            url += '?' + params.toString();
+            path += '?' + params.toString();
         }
 
-        console.log('Fetching from:', url);
-        const res = await fetch(url);
+        console.log('Fetching from:', path);
+        const data = await apiRequest('GET', path);
 
-        if (!res.ok) {
-            // Try to parse the real error from the backend instead of just throwing
-            try {
-                const errData = await res.json();
-                if (errData.detail) {
-                    throw new Error(typeof errData.detail === 'string' ? errData.detail : JSON.stringify(errData.detail, null, 2));
-                }
-            } catch (parseErr) {
-                // If it's already an Error from our throw, rethrow it
-                if (parseErr.message && parseErr.message !== 'Unexpected token') {
-                    throw parseErr;
-                }
-            }
-            throw new Error(`HTTP error! status: ${res.status}`);
-        }
-
-        const data = await res.json();
-
-        // Handle API errors
-        if (data.detail) {
-            throw new Error(data.detail);
-        }
+        if (!data) throw new Error("Failed to fetch assets");
 
         // Ensure assets is an array
         const assets = Array.isArray(data) ? data : (data.assets || []);
@@ -209,17 +296,41 @@ async function loadAssets() {
         if (!assets || assets.length === 0) {
             tbody.innerHTML = `
                 <tr>
-                    <td colspan="14" class="text-center py-5">
-                        <div class="text-muted">
-                            <i class="fas fa-inbox fa-3x mb-3 opacity-50" style="display: block;"></i>
-                            <p class="mb-0"><strong>No assets found</strong></p>
-                            <small>Try adjusting your filters or <a href="/assets/create">create a new asset</a></small>
-                        </div>
+                    <td colspan="12" class="text-center text-muted py-5 bg-body rounded-3">
+                        <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+                        <h5>No assets found</h5>
+                        <p class="mb-0">Try adjusting your search or add a new asset.</p>
                     </td>
                 </tr>
             `;
             return;
         }
+
+        // Helper to professionally render lists of devices with perfect alignment and truncation
+        const renderDeviceList = (items, renderer) => {
+            if (!items || items.length === 0) return '<span class="text-muted">-</span>';
+            const maxItems = 3;
+            const visibleItems = items.slice(0, maxItems);
+            const hiddenCount = items.length - maxItems;
+            
+            let html = visibleItems.map(item => `
+                <div style="height: 28px; display: flex; align-items: center; overflow: hidden; white-space: nowrap;">
+                    ${renderer(item) || '<span class="text-muted">-</span>'}
+                </div>
+            `).join('');
+            
+            if (hiddenCount > 0) {
+                html += `<div style="height: 24px; display: flex; align-items: center;">
+                            <span class="badge bg-light text-secondary border" style="font-size: 0.7rem;">+${hiddenCount} more</span>
+                         </div>`;
+            }
+            return html;
+        };
+
+        const truncateText = (text, max) => {
+            if (!text) return text;
+            return text.length > max ? text.substring(0, max) + '...' : text;
+        };
 
         tbody.innerHTML = assets.map(a => {
             // Parse specifications JSON if available
@@ -264,73 +375,64 @@ async function loadAssets() {
                         </div>
                     </td>
                     <td>
-                        <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 0.85rem;">
-                            ${a.asset_tag ? escapeHtml(a.asset_tag) : '<span class="text-muted">-</span>'}
-                        </code>
-                    </td>
-                    <td>
-                        ${specs.department ? escapeHtml(specs.department) : '<span class="text-muted">-</span>'}
-                    </td>
-                    <td>
-                        <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 0.85rem;">
-                            ${specs.hostname ? escapeHtml(specs.hostname) : '<span class="text-muted">-</span>'}
-                        </code>
+                        ${renderDeviceList(specs.pcs, p => p.name ? 
+                            `<code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 0.85rem;">
+                                <a href="/hardware/pc/${p.id || a.id}" class="text-decoration-none text-body" title="View Timeline">${escapeHtml(p.name)}</a>
+                            </code>` : null
+                        )}
                     </td>
                     <td>
                         ${assignedHtml}
                     </td>
                     <td>
-                        ${specs.laptop_model ? escapeHtml(specs.laptop_model) : '<span class="text-muted">-</span>'}
+                        ${renderDeviceList(specs.pcs, p => p.model ? 
+                            `<div class="text-truncate" style="max-width: 10vw;" title="${escapeHtml(p.model)}">
+                                <a href="/hardware/pc/${p.id || a.id}" class="text-decoration-none text-body">${escapeHtml(p.model)}</a>
+                            </div>` : null
+                        )}
                     </td>
                     <td>
-                        <!-- Added linkage to history route -->
-                        <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 0.85rem;">
-                            ${specs.laptop_sn ? `<a href="/hardware/pc/${a.id}" class="text-decoration-none">${escapeHtml(specs.laptop_sn)}</a>` : '<span class="text-muted">-</span>'}
+                        ${renderDeviceList(specs.pcs, p => p.sn ? 
+                            `<code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem;">
+                                <a href="/hardware/pc/${p.id || a.id}" class="text-decoration-none" title="Full SN: ${escapeHtml(p.sn)}\nClick to View Timeline">${escapeHtml(truncateText(p.sn, 11))}</a>
+                            </code>` : null
+                        )}
+                    </td>
+                    <td>
+                        ${renderDeviceList(specs.monitors, m => m.model ? 
+                            `<div class="text-truncate" style="max-width: 10vw;" title="${escapeHtml(m.model)}">
+                                <a href="/hardware/monitor/${m.id || a.id}" class="text-decoration-none text-body">${escapeHtml(m.model)}</a>
+                            </div>` : null
+                        )}
+                    </td>
+                    <td>
+                        ${renderDeviceList(specs.monitors, m => m.sn ? 
+                            `<code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem;">
+                                <a href="/hardware/monitor/${m.id || a.id}" class="text-decoration-none" title="Full SN: ${escapeHtml(m.sn)}\nClick to View Timeline">${escapeHtml(truncateText(m.sn, 11))}</a>
+                            </code>` : null
+                        )}
+                    </td>
+                    <td>
+                        <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem;">
+                            ${specs.docking_sn ? `<a href="/hardware/docking_station/${specs.docking_id || a.id}" class="text-decoration-none" title="Full SN: ${escapeHtml(specs.docking_sn)}\nClick to View Timeline">${escapeHtml(truncateText(specs.docking_sn, 11))}</a>` : '<span class="text-muted">-</span>'}
                         </code>
                     </td>
                     <td>
-                        ${specs.monitor_model ? escapeHtml(specs.monitor_model) : '<span class="text-muted">-</span>'}
-                    </td>
-                    <td>
-                        <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 0.85rem;">
-                            ${specs.monitor_sn ? `<a href="/hardware/monitor/${a.id}" class="text-decoration-none">${escapeHtml(specs.monitor_sn)}</a>` : '<span class="text-muted">-</span>'}
-                        </code>
-                    </td>
-                    <td>
-                        <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 0.85rem;">
-                            ${specs.docking_sn ? `<a href="/hardware/docking_station/${a.id}" class="text-decoration-none">${escapeHtml(specs.docking_sn)}</a>` : '<span class="text-muted">-</span>'}
-                        </code>
-                    </td>
-                    <td>
-                        ${specs.accessories ? escapeHtml(specs.accessories) : '<span class="text-muted">-</span>'}
-                    </td>
-                    <td>
-                        ${specs.phone_model ? escapeHtml(specs.phone_model) : '<span class="text-muted">-</span>'}
-                    </td>
-                    <td>
-                        <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 0.85rem;">
-                            ${specs.phone_number ? `<a href="/hardware/phone/${a.id}" class="text-decoration-none">${escapeHtml(specs.phone_number)}</a>` : '<span class="text-muted">-</span>'}
-                        </code>
-                    </td>
-                    <td>
-                        <div class="btn-group btn-group-sm" role="group">
-                            ${a.id >= 1000000 ? `
-                                <a href="/assets/stock" class="btn btn-outline-info" title="Manage in Stock">
-                                    <i class="fas fa-boxes me-1"></i> Manage
-                                </a>
-                            ` : `
-                                <button onclick="viewAsset(${a.id})" class="btn btn-outline-primary" title="View Details">
-                                    <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="editAsset(${a.id})" class="btn btn-outline-warning" title="Edit">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button onclick="deleteAsset(${a.id})" class="btn btn-outline-danger" title="Delete">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            `}
+                        <div class="text-truncate" style="max-width: 8vw;" title="${specs.accessories ? escapeHtml(specs.accessories) : ''}">
+                            ${specs.accessories ? escapeHtml(specs.accessories) : '<span class="text-muted">-</span>'}
                         </div>
                     </td>
+                    <td>
+                        <div class="text-truncate mb-1" style="max-width: 8vw;" title="${specs.phone_model ? escapeHtml(specs.phone_model) : ''}">
+                            ${specs.phone_model ? `<a href="/hardware/phone/${specs.phone_id || a.id}" class="text-decoration-none text-body">${escapeHtml(specs.phone_model)}</a>` : '<span class="text-muted">-</span>'}
+                        </div>
+                    </td>
+                    <td>
+                        <code style="background: #f5f5f5; padding: 2px 6px; border-radius: 3px; font-size: 0.8rem;">
+                            ${specs.phone_number ? `<a href="/hardware/phone_number/${specs.phone_number_id || a.id}" class="text-decoration-none" title="View Timeline">${escapeHtml(specs.phone_number)}</a>` : '<span class="text-muted">-</span>'}
+                        </code>
+                    </td>
+                    <td class="border-0"></td>
                 </tr>
             `;
         }).join('');
@@ -344,7 +446,7 @@ async function loadAssets() {
         });
         tbody.innerHTML = `
             <tr>
-                <td colspan="14" class="text-center py-5">
+                <td colspan="12" class="text-center py-5">
                     <div class="text-danger">
                         <i class="fas fa-exclamation-circle fa-3x mb-3" style="display: block;"></i>
                         <p class="mb-0"><strong>Error loading assets</strong></p>
@@ -374,20 +476,15 @@ function editAsset(id) {
     window.location.href = `/assets/${id}/edit`;
 }
 
-function deleteAsset(id) {
+async function deleteAsset(id) {
     if (confirm('Are you sure you want to delete this asset?')) {
-        fetch(`/api/assets/${id}`, {
-            method: 'DELETE'
-        }).then(res => {
-            if (res.ok) {
-                alert('Asset deleted successfully');
-                loadAssets();
-            } else {
-                alert('Error deleting asset');
-            }
-        }).catch(e => {
+        try {
+            await apiRequest('DELETE', `/assets/${id}`);
+            alert('Asset deleted successfully');
+            loadAssets();
+        } catch(e) {
             alert('Error: ' + e.message);
-        });
+        }
     }
 }
 

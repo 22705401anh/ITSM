@@ -1,15 +1,18 @@
 from fastapi import FastAPI, Request
-from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 import logging
 import os
+import asyncio
 
 from app.config import settings
 from app.db import init_db
-from app.api import auth, assets, documentation, licenses, hardware_assets
+from app.api import auth, assets, documentation, licenses, hardware_assets, onboarding
+from app.models import onboarding as onboarding_models
+from app.models import settings as settings_models
+from app.models import network as network_models
 from app.web import routes as web_routes
 
 # Configure logging
@@ -20,6 +23,40 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+async def background_sync_routine():
+    """Periodically mirrors Primary DB to the local SQLite Fallback DB."""
+    while True:
+        # Run sync every 10 minutes (600 seconds)
+        await asyncio.sleep(600)
+        try:
+            from app.db import engine, sqlite_engine, Base, create_engine_for_url
+            
+            if engine and engine.name != "sqlite":
+                logger.info("Executing periodic Background Sync (Primary -> SQLite Mirror)...")
+                
+                local_sqlite = sqlite_engine
+                if not local_sqlite:
+                    local_sqlite = create_engine_for_url(settings.DATABASE_URL)
+                    
+                with local_sqlite.connect() as tgt_conn:
+                    with engine.connect() as src_conn:
+                        # Iterate through all tables in foreign-key dependency order
+                        for table in Base.metadata.sorted_tables:
+                            try:
+                                # Overwrite Strategy
+                                tgt_conn.execute(table.delete())
+                                rows = src_conn.execute(table.select()).fetchall()
+                                if rows:
+                                    dict_rows = [row._mapping for row in rows]
+                                    tgt_conn.execute(table.insert(), dict_rows)
+                                tgt_conn.commit()
+                            except Exception as table_err:
+                                tgt_conn.rollback()
+                                logger.error(f"Sync failed for table {table.name}: {table_err}")
+                logger.info("Background Sync completed successfully.")
+        except Exception as e:
+            logger.error(f"Background Sync Routine encountered an error: {e}")
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Handle startup and shutdown events."""
@@ -27,12 +64,18 @@ async def lifespan(app: FastAPI):
     logger.info("Starting up application...")
     init_db()
     logger.info("Database initialized")
+    
+    # Start background replication mirror
+    sync_task = asyncio.create_task(background_sync_routine())
+    
 
     yield
 
     # Shutdown
     logger.info("Shutting down application...")
-
+    if sync_task:
+        sync_task.cancel()
+    
 
 # Create FastAPI app
 app = FastAPI(
@@ -50,6 +93,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+from starlette.middleware.sessions import SessionMiddleware
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 
 
 # Exception handlers
@@ -107,6 +153,10 @@ app.include_router(assets.router, prefix="/api", tags=["assets"])
 app.include_router(licenses.router, prefix="/api", tags=["licenses"])
 app.include_router(documentation.router, prefix="/api", tags=["documentation"])
 app.include_router(hardware_assets.router, prefix="/api", tags=["hardware"])
-from app.api import admin
+from app.api import admin, problems, changes, discovery
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
+app.include_router(problems.router, prefix="/api/problems", tags=["problems"])
+app.include_router(changes.router, prefix="/api/changes", tags=["changes"])
+app.include_router(discovery.router, prefix="/api", tags=["discovery"])
+app.include_router(onboarding.router)
 app.include_router(web_routes.router, tags=["web"])

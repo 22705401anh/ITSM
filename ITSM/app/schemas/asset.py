@@ -15,6 +15,7 @@ class AssetType(str, Enum):
     PRINTER = "printer"
     SCANNER = "scanner"
     PHONE = "phone"
+    PHONE_NUMBER = "phone_number"
     SERVER = "server"
     ROUTER = "router"
     SWITCH = "switch"
@@ -129,6 +130,32 @@ class LicenseCreate(BaseModel):
     notes: Optional[str] = None
 
 
+class LicenseAssignmentCreate(BaseModel):
+    """Schema for assigning a license"""
+    user_id: Optional[int] = None
+    pc_id: Optional[int] = None
+    notes: Optional[str] = None
+
+
+class LicenseAssignmentResponse(BaseModel):
+    """Schema for license assignment response"""
+    id: int
+    license_id: int
+    user_id: Optional[int]
+    pc_id: Optional[int]
+    assigned_by_id: Optional[int]
+    assigned_date: datetime
+    status: str
+    notes: Optional[str]
+    
+    # Extended fields for display
+    user_name: Optional[str] = None
+    pc_name: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+
 class LicenseResponse(BaseModel):
     """Schema for license response"""
     id: int
@@ -146,6 +173,8 @@ class LicenseResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
     is_active: bool
+    
+    assignments: Optional[list[LicenseAssignmentResponse]] = []
 
     class Config:
         from_attributes = True
@@ -156,10 +185,13 @@ class LicenseAccessHistoryResponse(BaseModel):
     id: int
     license_id: int
     user_id: int
-    action: str  # viewed, exported, copied
+    action: str  # viewed, exported, copied, assigned, revoked
     ip_address: Optional[str]
     user_agent: Optional[str]
     created_at: datetime
+    
+    # Extended field
+    user_name: Optional[str] = None
 
     class Config:
         from_attributes = True

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 80" fill="none">
+  <!-- KOSTAL text -->
+  <text x="0" y="48" font-family="'Segoe UI', Arial, sans-serif" font-size="42" font-weight="800" fill="#1a3a5c" letter-spacing="2">KOSTAL</text>
+  <!-- Separator line -->
+  <line x1="222" y1="12" x2="222" y2="58" stroke="#4a8db7" stroke-width="2.5"/>
+  <!-- ITSM text -->
+  <text x="232" y="48" font-family="'Segoe UI', Arial, sans-serif" font-size="42" font-weight="300" fill="#4a8db7" letter-spacing="2">ITSM</text>
+  <!-- Subtitle -->
+  <text x="170" y="72" font-family="'Segoe UI', Arial, sans-serif" font-size="13" fill="#4a8db7" letter-spacing="1" text-anchor="middle" opacity="0.85">IT Service Management Solutions</text>
+</svg>

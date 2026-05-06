@@ -3,6 +3,7 @@
 {% block title %}Hardware Stock - KOSTAL ITSM{% endblock %}
 
 {% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
 <style>
     /* Modern Dashboard Styling */
     .page-header {
@@ -54,68 +55,104 @@
         color: #4a5568;
     }
 
+    .nav-pills {
+        background-color: #f8fafc;
+        padding: 6px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        display: inline-flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .nav-pills .nav-item {
+        margin: 0;
+    }
+
     .nav-pills .nav-link {
         border-radius: 8px;
         padding: 10px 20px;
         font-weight: 600;
-        color: #4a5568;
-        margin-right: 8px;
-        transition: all 0.2s ease;
+        color: #64748b;
+        margin: 0;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid transparent;
+        display: flex;
+        align-items: center;
     }
 
     .nav-pills .nav-link:hover {
-        background-color: #edf2f7;
+        background-color: #f1f5f9;
+        color: #1e293b;
     }
 
     .nav-pills .nav-link.active {
-        background-color: var(--primary, #4f46e5);
-        color: white;
-        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+        background-color: white;
+        color: var(--primary, #4f46e5);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
+        border-color: white;
+    }
+
+    .nav-pills .nav-export {
+        color: #059669;
+        background-color: #ecfdf5;
+        border-color: #d1fae5;
+    }
+    
+    .nav-pills .nav-export:hover {
+        background-color: #d1fae5;
+        color: #047857;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.1);
+        transform: translateY(-1px);
     }
 
     /* Table Improvements */
+    .table-responsive {
+        max-height: calc(100vh - 280px);
+        overflow-y: auto;
+        overflow-x: auto;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    }
+
     .custom-table {
         border-collapse: separate;
-        border-spacing: 0 8px;
+        border-spacing: 0;
+        font-size: 0.85rem;
+        margin-bottom: 0;
+        width: 100%;
     }
 
     .custom-table thead th {
+        position: sticky;
+        top: 0; /* Stick to top of table-responsive container */
+        z-index: 10;
         border: none;
-        background: transparent;
+        border-bottom: 2px solid #e2e8f0;
+        background: var(--bs-body-bg, #f4f6f9); /* Solid background to prevent overlap transparency */
         color: #718096;
         font-weight: 600;
         text-transform: uppercase;
         font-size: 0.75rem;
         letter-spacing: 0.05em;
-        padding-bottom: 4px;
+        padding-top: 12px;
+        padding-bottom: 12px;
+        white-space: nowrap;
     }
 
     .custom-table tbody tr {
         background: white;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-        border-radius: 8px;
         transition: all 0.2s;
     }
 
     .custom-table tbody tr:hover {
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
-        transform: translateY(-1px);
+        background-color: #f8fafc;
     }
 
     .custom-table tbody td {
-        border: none;
+        border-bottom: 1px solid #edf2f7;
         padding: 16px;
         vertical-align: middle;
-    }
-
-    .custom-table tbody td:first-child {
-        border-top-left-radius: 8px;
-        border-bottom-left-radius: 8px;
-    }
-
-    .custom-table tbody td:last-child {
-        border-top-right-radius: 8px;
-        border-bottom-right-radius: 8px;
     }
 
     /* Thumbnails */
@@ -331,6 +368,139 @@
         border-color: #e2e8f0;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
     }
+
+    /* Premium Modal Styling */
+    .premium-modal-content {
+        border-radius: 16px !important;
+        box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15) !important;
+        overflow: hidden;
+    }
+    
+    .premium-modal-content .modal-header {
+        border-bottom: 1px solid #f1f5f9;
+        padding: 20px 24px;
+    }
+
+    .premium-modal-content .modal-title {
+        font-weight: 700;
+        color: #1e293b;
+        font-size: 1.15rem;
+        letter-spacing: -0.01em;
+    }
+
+    .premium-modal-content .modal-body {
+        padding: 24px;
+    }
+
+    .premium-asset-display {
+        background: #f8fafc;
+        border-radius: 8px;
+        color: #334155;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .premium-form-label {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: #64748b;
+        margin-bottom: 8px;
+        letter-spacing: 0.05em;
+        display: block;
+    }
+
+    .premium-form-input {
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        color: #334155;
+        transition: all 0.2s ease;
+        background-color: white;
+    }
+
+    .premium-form-input:focus {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+        outline: none;
+    }
+
+    .premium-modal-footer {
+        padding: 16px 24px;
+        background: #f8fafc;
+        border-top: 1px solid #f1f5f9;
+        display: flex;
+        justify-content: flex-end;
+        gap: 12px;
+    }
+
+    .premium-btn-cancel {
+        background: transparent;
+        border: none;
+        color: #0f172a;
+        font-weight: 600;
+        padding: 10px 20px;
+        transition: all 0.2s;
+    }
+
+    .premium-btn-cancel:hover {
+        background: #e2e8f0;
+        border-radius: 8px;
+    }
+
+    .premium-btn-confirm {
+        background: #5c6bc0;
+        border: none;
+        color: white;
+        font-weight: 600;
+        padding: 10px 24px;
+        border-radius: 20px;
+        box-shadow: 0 4px 6px -1px rgba(92, 107, 192, 0.2);
+        transition: all 0.2s ease;
+    }
+
+    .premium-btn-confirm:hover {
+        background: #3f51b5;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 10px -2px rgba(63, 81, 181, 0.3);
+        color: white;
+    }
+
+    /* TomSelect Premium Overrides */
+    .ts-wrapper.premium-form-input {
+        padding: 0 !important;
+        border: none !important;
+        height: auto;
+    }
+    .ts-wrapper.premium-form-input .ts-control {
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        padding: 12px 16px;
+        font-size: 0.95rem;
+        color: #334155;
+        transition: all 0.2s ease;
+        background-color: white;
+        box-shadow: none;
+    }
+    .ts-wrapper.premium-form-input.focus .ts-control {
+        border-color: #6366f1;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+    .ts-dropdown {
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+    }
+    .ts-dropdown .option {
+        padding: 10px 16px;
+    }
 </style>
 {% endblock %}
 
@@ -371,8 +541,13 @@
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="import-tab" data-bs-toggle="tab" data-bs-target="#import" type="button"
                 role="tab" aria-controls="import" aria-selected="false">
-                <i class="fas fa-file-excel me-1"></i> Excel Import
+                <i class="fas fa-file-import me-1"></i> Excel Import
             </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <a href="/api/hardware/stock/export" class="nav-link nav-export">
+                <i class="fas fa-file-export me-1"></i> Excel Export
+            </a>
         </li>
         <li class="nav-item" role="presentation">
             <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button"
@@ -389,10 +564,29 @@
         <div class="tab-pane fade show active" id="inventory" role="tabpanel" aria-labelledby="inventory-tab">
 
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-4 gap-3">
-                <div class="search-wrapper w-100" style="max-width: 400px;">
-                    <i class="fas fa-search"></i>
-                    <input type="text" class="form-control" id="searchInput"
-                        placeholder="Search serial, model, or name..." onkeyup="filterStock()">
+                <div class="d-flex gap-2 w-100" style="max-width: 600px;">
+                    <div class="search-wrapper w-100">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="form-control" id="searchInput"
+                            placeholder="Search serial, model, or name..." onkeyup="filterStock()">
+                    </div>
+                    <select id="filterType" class="form-select" style="max-width: 150px;" onchange="filterStock()">
+                        <option value="">All Types</option>
+                        <option value="pc">PC / Laptop</option>
+                        <option value="monitor">Monitor</option>
+                        <option value="phone">Phone</option>
+                                <option value="phone_number">Phone Number</option>
+                        <option value="docking_station">Docking Station</option>
+                                <option value="printer">Printer</option>
+                    </select>
+                    <select id="filterStatus" class="form-select" style="max-width: 150px;" onchange="filterStock()">
+                        <option value="">All Status</option>
+                        <option value="Available">Available</option>
+                        <option value="Assigned">Assigned</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Broken">Broken</option>
+                        <option value="Retired">Retired</option>
+                    </select>
                 </div>
                 <div class="d-flex gap-2">
                     <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal"
@@ -410,13 +604,13 @@
                 <table class="table custom-table w-100" id="stockTable">
                     <thead>
                         <tr>
-                            <th style="width: 70px;" class="text-center">Image</th>
+                            <th class="text-center">Image</th>
                             <th>Hardware Details</th>
                             <th>Serial Number</th>
                             <th>Type</th>
                             <th>Status</th>
                             <th>Added On</th>
-                            <th class="text-end pe-4">Actions</th>
+                            <th class="text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="allStockList">
@@ -539,7 +733,9 @@
                                 <option value="pc">PC</option>
                                 <option value="monitor">Monitor</option>
                                 <option value="docking_station">Docking Station</option>
+                                <option value="printer">Printer</option>
                                 <option value="phone">Phone</option>
+                                <option value="phone_number">Phone Number</option>
                             </select>
                         </div>
                         <button class="btn btn-sm btn-light border rounded-circle" onclick="loadAuditLog()"><i
@@ -578,15 +774,17 @@
                                 <option value="pc">PC / Laptop</option>
                                 <option value="monitor">Monitor</option>
                                 <option value="docking_station">Docking Station</option>
+                                <option value="printer">Printer</option>
                                 <option value="phone">Phone</option>
+                                <option value="phone_number">Phone Number</option>
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold text-muted small text-uppercase">Serial Number</label>
+                            <label id="lblStockSerial" class="form-label fw-semibold text-muted small text-uppercase">Serial Number</label>
                             <input type="text" class="form-control" id="stockSerial" required>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label fw-semibold text-muted small text-uppercase">Model</label>
+                            <label id="lblStockModel" class="form-label fw-semibold text-muted small text-uppercase">Model</label>
                             <input type="text" class="form-control" id="stockModel" required>
                         </div>
                         <div class="col-12" id="pcNameGroup">
@@ -658,37 +856,35 @@
 <!-- Assign Stock Modal -->
 <div class="modal fade" id="assignStockModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content border-0 premium-modal-content">
             <form id="assignStockForm">
-                <div class="modal-header border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold">Assign Asset</h5>
+                <div class="modal-header">
+                    <h5 class="modal-title">Assign Asset</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
-                <div class="modal-body px-4 pt-3">
+                <div class="modal-body">
                     <input type="hidden" id="assignAssetType">
                     <input type="hidden" id="assignAssetId">
-                    <div class="mb-3 text-center">
-                        <div class="badge bg-body-tertiary text-body fs-6 w-100 p-3" id="assignAssetDisplay"></div>
+                    <div class="mb-4 text-center">
+                        <div id="assignAssetDisplay" class="premium-asset-display"></div>
                     </div>
-                    <div class="row g-3">
+                    <div class="row g-4">
                         <div class="col-12">
-                            <label class="form-label fw-semibold text-muted small text-uppercase">Assign To User</label>
-                            <select class="form-select" id="assignUserId" required>
+                            <label class="premium-form-label">Assign To User</label>
+                            <select class="form-select premium-form-input" id="assignUserId" required>
                                 <option value="">Loading users...</option>
                             </select>
                         </div>
                         <div class="col-12">
-                            <label class="form-label fw-semibold text-muted small text-uppercase">Assignment
-                                Notes</label>
-                            <textarea class="form-control" id="assignNotes" rows="2"
+                            <label class="premium-form-label">Assignment Notes</label>
+                            <textarea class="form-control premium-form-input" id="assignNotes" rows="3"
                                 placeholder="Optional details..."></textarea>
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
-                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="saveAssignBtn">Confirm
-                        Assignment</button>
+                <div class="modal-footer premium-modal-footer">
+                    <button type="button" class="btn premium-btn-cancel" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn premium-btn-confirm" id="saveAssignBtn">Confirm Assignment</button>
                 </div>
             </form>
         </div>
@@ -707,6 +903,60 @@
                 <img id="lightboxImg" src="" class="img-fluid rounded-3 shadow-lg"
                     style="max-height: 85vh; border: 4px solid white;">
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Asset Details Modal -->
+<div class="modal fade" id="editAssetModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <form id="editAssetForm">
+                <input type="hidden" id="editAssetType">
+                <input type="hidden" id="editAssetId">
+                <div class="modal-header border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold">Edit Asset Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body px-4 pt-3">
+                    <div class="badge bg-body-tertiary text-body mb-3 w-100 p-2" id="editAssetDisplay"></div>
+                    
+                    <div class="row g-3">
+                        <div class="col-sm-6" id="editNameGroup">
+                            <label class="form-label fw-semibold text-muted small text-uppercase">Hostname / Name</label>
+                            <input type="text" class="form-control" id="editAssetName">
+                        </div>
+                        <div class="col-sm-6" id="editSerialGroup">
+                            <label class="form-label fw-semibold text-muted small text-uppercase">Serial Number</label>
+                            <input type="text" class="form-control" id="editAssetSerial" required>
+                        </div>
+                        <div class="col-sm-6" id="editModelGroup">
+                            <label class="form-label fw-semibold text-muted small text-uppercase">Model</label>
+                            <input type="text" class="form-control" id="editAssetModel">
+                        </div>
+                        <div class="col-sm-6 d-none" id="editPhoneGroup">
+                            <label class="form-label fw-semibold text-muted small text-uppercase">Phone Number</label>
+                            <input type="text" class="form-control" id="editAssetPhone">
+                        </div>
+                        <div class="col-sm-6" id="editMacGroup">
+                            <label class="form-label fw-semibold text-muted small text-uppercase">MAC Address</label>
+                            <input type="text" class="form-control" id="editAssetMac">
+                        </div>
+                        <div class="col-sm-6" id="editIpGroup">
+                            <label class="form-label fw-semibold text-muted small text-uppercase">IP Address</label>
+                            <input type="text" class="form-control" id="editAssetIp">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold text-muted small text-uppercase">Notes</label>
+                            <textarea class="form-control" id="editAssetNotes" rows="2"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 px-4 pb-4">
+                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="saveEditAssetBtn">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -762,7 +1012,7 @@
             const data = await res.json();
             allStockItems = data.items;
             updateStats();
-            renderStockTable(allStockItems);
+            filterStock();
         } catch (e) {
             console.error('Error loading stock', e);
             document.getElementById('allStockList').innerHTML = '<tr><td colspan="7" class="text-center text-danger py-5"><i class="fas fa-exclamation-triangle fa-2x mb-2"></i><br>Failed to load data.</td></tr>';
@@ -783,16 +1033,29 @@
 
     function filterStock() {
         const query = document.getElementById('searchInput').value.toLowerCase();
-        const filtered = allStockItems.filter(i =>
-            (i.serial_number && i.serial_number.toLowerCase().includes(query)) ||
-            (i.model && i.model.toLowerCase().includes(query)) ||
-            (i.name && i.name.toLowerCase().includes(query))
-        );
+        const typeFilter = document.getElementById('filterType').value;
+        const statusFilter = document.getElementById('filterStatus').value;
+        
+        const filtered = allStockItems.filter(i => {
+            const matchesSearch = (i.serial_number && i.serial_number.toLowerCase().includes(query)) ||
+                                  (i.model && i.model.toLowerCase().includes(query)) ||
+                                  (i.name && i.name.toLowerCase().includes(query));
+            const matchesType = typeFilter ? i.asset_type === typeFilter : true;
+            const matchesStatus = statusFilter ? i.status === statusFilter : true;
+            
+            return matchesSearch && matchesType && matchesStatus;
+        });
         renderStockTable(filtered);
     }
 
     function renderStockTable(items) {
         const tbody = document.getElementById('allStockList');
+        
+        const truncateText = (text, max) => {
+            if (!text) return text;
+            return text.length > max ? text.substring(0, max) + '...' : text;
+        };
+
         if (!items || items.length === 0) {
             tbody.innerHTML = `<tr><td colspan="7" class="text-center text-muted py-5 bg-body rounded-3">
             <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
@@ -807,6 +1070,7 @@
                 'pc': '<i class="fas fa-laptop"></i>',
                 'monitor': '<i class="fas fa-desktop"></i>',
                 'docking_station': '<i class="fas fa-hdd"></i>',
+                'printer': '<i class="fas fa-print"></i>',
                 'phone': '<i class="fas fa-mobile-alt"></i>'
             };
             return map[type] || '<i class="fas fa-box"></i>';
@@ -814,7 +1078,7 @@
 
         const getTypeLabel = (type) => {
             const map = {
-                'pc': 'PC', 'monitor': 'Monitor', 'docking_station': 'Docking Station', 'phone': 'Phone'
+                'pc': 'PC', 'monitor': 'Monitor', 'docking_station': 'Docking Station', 'phone': 'Phone', 'printer': 'Printer'
             };
             return map[type] || type;
         };
@@ -830,9 +1094,19 @@
                 ? `<img src="${item.image_path}" class="stock-image-thumb shadow-sm" onclick="openLightbox('${item.image_path}')" title="Click to view full size">`
                 : `<div class="empty-thumb" onclick="openImageModal('${item.asset_type}', ${item.id}, '${item.serial_number}')" title="Click to upload image"><i class="fas fa-camera"></i></div>`;
 
-            let detailsHtml = `<div class="fw-bold text-body">${item.model || '-'}</div>`;
-            if (item.name) detailsHtml += `<div class="small text-muted">${item.name}</div>`;
-            if (item.notes) detailsHtml += `<div class="small text-muted mt-1" title="${item.notes}"><i class="fas fa-info-circle"></i> ${item.notes.substring(0, 25)}${item.notes.length > 25 ? '...' : ''}</div>`;
+            let detailsHtml = `<div class="fw-bold text-truncate" style="max-width: 280px;" title="View Timeline: ${item.model || '-'}">
+                <a href="/hardware/${item.asset_type}/${item.id}" class="text-decoration-none text-primary">${item.model || '-'}</a>
+            </div>`;
+            if (item.name) detailsHtml += `<div class="small text-muted mb-1 text-truncate" style="max-width: 280px;" title="${item.name}">${item.name}</div>`;
+            if (item.assigned_user) detailsHtml += `<div class="small text-primary mb-1 text-truncate fw-semibold" style="max-width: 280px;" title="Assigned to ${item.assigned_user}"><i class="fas fa-user-circle fa-fw"></i> <a href="/admin/users/${item.assigned_user_id}" class="text-decoration-none text-primary">${item.assigned_user}</a></div>`;
+            if (item.vendor) detailsHtml += `<div class="small text-muted text-truncate" style="max-width: 280px;" title="${item.vendor}"><i class="fas fa-industry fa-fw"></i> ${item.vendor}</div>`;
+            if (item.ip_address) detailsHtml += `<div class="small text-muted"><i class="fas fa-network-wired fa-fw"></i> ${item.ip_address}</div>`;
+            if (item.mac_address) detailsHtml += `<div class="small text-muted"><i class="fas fa-microchip fa-fw"></i> ${item.mac_address}</div>`;
+            if (item.last_seen_at) {
+                const lsDate = new Date(item.last_seen_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute:'2-digit' });
+                detailsHtml += `<div class="small text-success mt-1"><i class="fas fa-wifi fa-fw"></i> Seen: ${lsDate}</div>`;
+            }
+            if (item.notes) detailsHtml += `<div class="small text-muted mt-1 text-truncate" style="max-width: 280px;" title="${item.notes}"><i class="fas fa-info-circle fa-fw"></i> ${item.notes}</div>`;
 
             const dateAdded = item.created_at ? new Date(item.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
 
@@ -840,16 +1114,19 @@
             <tr>
                 <td class="text-center">${imgHtml}</td>
                 <td>${detailsHtml}</td>
-                <td><span class="font-monospace fw-semibold text-secondary">${item.serial_number}</span></td>
+                <td><span class="font-monospace fw-semibold text-secondary" title="Full SN: ${item.serial_number}">${truncateText(item.serial_number, 11)}</span></td>
                 <td><span class="type-badge">${getIcon(item.asset_type)} <span class="ms-1">${getTypeLabel(item.asset_type)}</span></span></td>
                 <td>${getStatusBadge(item.status)}</td>
                 <td class="text-muted small">${dateAdded}</td>
-                <td class="text-end pe-4">
+                <td class="text-center text-nowrap">
                     <button class="btn btn-sm btn-light border rounded-circle me-1" onclick="openAssignModal('${item.asset_type}', ${item.id}, '${item.serial_number}')" title="Assign to User">
                         <i class="fas fa-user-plus text-success"></i>
                     </button>
                     <button class="btn btn-sm btn-light border rounded-circle me-1" onclick="openStatusModal('${item.asset_type}', ${item.id}, '${item.serial_number}', '${item.status}')" title="Change Status">
                         <i class="fas fa-edit text-warning"></i>
+                    </button>
+                    <button class="btn btn-sm btn-light border rounded-circle me-1" onclick="openEditAssetModal('${item.asset_type}', ${item.id})" title="Edit Details">
+                        <i class="fas fa-sliders-h text-secondary"></i>
                     </button>
                     <button class="btn btn-sm btn-light border rounded-circle me-1" onclick="openImageModal('${item.asset_type}', ${item.id}, '${item.serial_number}', '${item.image_path || ''}')" title="Upload Image">
                         <i class="fas fa-camera text-primary"></i>
@@ -867,6 +1144,17 @@
         const type = document.getElementById('stockType').value;
         document.getElementById('pcNameGroup').classList.toggle('d-none', type !== 'pc');
         document.getElementById('phoneNumberGroup').classList.toggle('d-none', type !== 'phone');
+        
+        const lblSerial = document.getElementById('lblStockSerial');
+        const lblModel = document.getElementById('lblStockModel');
+        
+        if (type === 'phone_number') {
+            if (lblSerial) lblSerial.innerText = 'Phone Number';
+            if (lblModel) lblModel.innerText = 'Subscription';
+        } else {
+            if (lblSerial) lblSerial.innerText = 'Serial Number';
+            if (lblModel) lblModel.innerText = 'Model';
+        }
     }
 
     document.getElementById('addStockForm').addEventListener('submit', async (e) => {
@@ -876,12 +1164,20 @@
         btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
 
         try {
+            const type = document.getElementById('stockType').value;
+            let serialVal = document.getElementById('stockSerial').value;
+            let phoneVal = document.getElementById('stockPhoneNumber').value;
+            
+            if (type === 'phone_number') {
+                phoneVal = serialVal;
+            }
+
             const payload = {
-                asset_type: document.getElementById('stockType').value,
-                serial_number: document.getElementById('stockSerial').value,
+                asset_type: type,
+                serial_number: serialVal,
                 model: document.getElementById('stockModel').value,
                 name: document.getElementById('stockName').value,
-                phone_number: document.getElementById('stockPhoneNumber').value,
+                phone_number: phoneVal,
                 notes: document.getElementById('stockNotes').value
             };
 
@@ -1058,9 +1354,90 @@
         }
     });
 
+    // --- Edit Asset Details ---
+    function openEditAssetModal(type, id) {
+        const item = allStockItems.find(i => i.asset_type === type && i.id === id);
+        if (!item) return;
+
+        document.getElementById('editAssetType').value = item.asset_type;
+        document.getElementById('editAssetId').value = item.id;
+        document.getElementById('editAssetDisplay').innerHTML = `<i class="fas fa-tag"></i> ${type.toUpperCase()} &bull; ${item.serial_number}`;
+
+        document.getElementById('editAssetName').value = item.name || '';
+        document.getElementById('editAssetSerial').value = item.serial_number || '';
+        document.getElementById('editAssetModel').value = item.model || '';
+        
+        if (['phone', 'phone_number'].includes(type)) {
+            document.getElementById('editAssetPhone').value = item.name || ''; // name acts as phone number in stock/all
+        } else {
+            document.getElementById('editAssetPhone').value = '';
+        }
+
+        document.getElementById('editAssetMac').value = item.mac_address || '';
+        document.getElementById('editAssetIp').value = item.ip_address || '';
+        document.getElementById('editAssetNotes').value = item.notes || '';
+
+        // Toggle visibility based on type
+        document.getElementById('editNameGroup').classList.toggle('d-none', !['pc', 'printer'].includes(type));
+        document.getElementById('editPhoneGroup').classList.toggle('d-none', !['phone', 'phone_number'].includes(type));
+        document.getElementById('editMacGroup').classList.toggle('d-none', !['pc', 'printer'].includes(type));
+        document.getElementById('editIpGroup').classList.toggle('d-none', !['pc', 'printer'].includes(type));
+
+        new bootstrap.Modal(document.getElementById('editAssetModal')).show();
+    }
+
+    document.getElementById('editAssetForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('saveEditAssetBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+        const type = document.getElementById('editAssetType').value;
+        const id = document.getElementById('editAssetId').value;
+
+        const payload = {
+            serial_number: document.getElementById('editAssetSerial').value,
+            model: document.getElementById('editAssetModel').value,
+            notes: document.getElementById('editAssetNotes').value
+        };
+
+        if (['pc', 'printer'].includes(type)) {
+            payload.name = document.getElementById('editAssetName').value;
+        }
+        if (['phone', 'phone_number'].includes(type)) {
+            payload.phone_number = document.getElementById('editAssetPhone').value;
+        }
+        if (['pc', 'printer'].includes(type)) {
+            payload.mac_address = document.getElementById('editAssetMac').value;
+            payload.ip_address = document.getElementById('editAssetIp').value;
+        }
+
+        try {
+            const res = await fetch(`/api/hardware/stock/${type}/${id}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Failed to update asset');
+            }
+
+            bootstrap.Modal.getInstance(document.getElementById('editAssetModal')).hide();
+            loadStock();
+        } catch (err) {
+            alert(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = 'Save Changes';
+        }
+    });
+
     // --- Assignment Handling ---
 
     let allUsersCache = null;
+    let assignUserSelect = null;
 
     async function openAssignModal(type, id, serial) {
         document.getElementById('assignAssetType').value = type;
@@ -1083,8 +1460,19 @@
         }
 
         const select = document.getElementById('assignUserId');
-        select.innerHTML = '<option value="">Select a user...</option>' +
+        
+        if (assignUserSelect) {
+            assignUserSelect.destroy();
+        }
+        
+        select.innerHTML = '<option value="">Search for a user...</option>' +
             allUsersCache.map(u => `<option value="${u.id}">${u.full_name} (${u.email})</option>`).join('');
+
+        assignUserSelect = new TomSelect("#assignUserId", {
+            create: false,
+            sortField: { field: "text", direction: "asc" },
+            placeholder: "Search for a user..."
+        });
 
         new bootstrap.Modal(document.getElementById('assignStockModal')).show();
     }
@@ -1266,4 +1654,5 @@
         }
     }
 </script>
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 {% endblock %}

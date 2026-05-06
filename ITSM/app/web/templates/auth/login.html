@@ -1,63 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - KOSTAL ITSM</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <link href="/static/css/main.css" rel="stylesheet">
+
     <style>
-        body {
-            background: linear-gradient(135deg, #5a67d8 0%, #667eea 25%, #764ba2 100%);
+        body, html {
+            height: 100%;
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background-color: #f7fafc;
+        }
+
+        .login-layout {
+            display: flex;
             min-height: 100vh;
+        }
+
+        .login-image {
+            flex: 1.2;
+            background: url('/static/images/login-bg.png?v=3') no-repeat left center;
+            background-size: cover;
+            position: relative;
+            display: none;
+        }
+
+        @media (min-width: 992px) {
+            .login-image {
+                display: block;
+            }
+        }
+
+        /* Subtle overlay to ensure the image looks integrated */
+        .login-image::after {
+            content: '';
+            position: absolute;
+            top: 0; right: 0; bottom: 0; left: 0;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.05) 50%, rgba(247, 250, 252, 1) 100%);
+            pointer-events: none;
+        }
+
+        .login-form-container {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            padding: 2rem;
+            background: #f7fafc;
         }
 
         .login-wrapper {
             width: 100%;
             max-width: 420px;
-            padding: 1rem;
         }
 
         .login-card {
             border: none;
             border-radius: 12px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             background: white;
+            overflow: hidden;
         }
 
         .login-header {
-            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
-            color: white;
-            padding: 2rem 1.5rem;
+            padding: 2.5rem 2rem 1.5rem;
             text-align: center;
         }
 
         .login-header .logo-icon {
             font-size: 2.5rem;
             margin-bottom: 1rem;
+            color: #5a67d8;
         }
 
         .login-header h1 {
             font-size: 1.75rem;
             font-weight: 700;
             margin: 0 0 0.25rem 0;
-            color: white;
+            color: #1a202c;
         }
 
         .login-header p {
             font-size: 0.95rem;
-            color: rgba(255, 255, 255, 0.9);
+            color: #718096;
             margin: 0;
         }
 
         .login-body {
-            padding: 2rem;
+            padding: 0 2rem 2.5rem 2rem;
         }
 
         .form-group {
@@ -66,7 +100,7 @@
 
         .form-label {
             font-weight: 600;
-            color: #1a202c;
+            color: #4a5568;
             margin-bottom: 0.5rem;
             font-size: 0.95rem;
         }
@@ -76,11 +110,13 @@
             border: 1px solid #e2e8f0;
             border-radius: 6px;
             font-size: 0.95rem;
+            background-color: #f8fafc;
         }
 
         .form-control:focus {
             border-color: #5a67d8;
             box-shadow: 0 0 0 3px rgba(90, 103, 216, 0.1);
+            background-color: #ffffff;
         }
 
         .form-check {
@@ -88,7 +124,7 @@
         }
 
         .btn-login {
-            background: linear-gradient(135deg, #5a67d8 0%, #667eea 100%);
+            background: #5a67d8;
             border: none;
             color: white;
             padding: 0.75rem 1.5rem;
@@ -96,13 +132,63 @@
             border-radius: 6px;
             width: 100%;
             font-size: 0.95rem;
+            transition: all 0.2s ease;
         }
 
         .btn-login:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(90, 103, 216, 0.3);
+            background: #4c51bf;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(90, 103, 216, 0.2);
             color: white;
         }
+
+        .btn-sso {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            border-radius: 6px;
+            width: 100%;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            margin-bottom: 1rem;
+        }
+
+        .btn-sso:hover {
+            background: #e9ecef;
+            color: #212529;
+            text-decoration: none;
+            transform: translateY(-1px);
+        }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1rem 0;
+            color: #6c757d;
+        }
+
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .divider:not(:empty)::before {
+            margin-right: .25em;
+        }
+
+        .divider:not(:empty)::after {
+            margin-left: .25em;
+        }
+
 
         .alert-error {
             background-color: #fef2f2;
@@ -111,84 +197,88 @@
             padding: 1rem;
             border-radius: 6px;
             margin-bottom: 1.5rem;
-        }
-
-        .login-footer {
-            border-top: 1px solid #e2e8f0;
-            padding: 1.5rem;
-            text-align: center;
-            background: #f7fafc;
-        }
-
-        .login-footer p {
-            margin: 0;
-            color: #4a5568;
             font-size: 0.9rem;
-        }
-
-        .login-footer a {
-            color: #5a67d8;
-            font-weight: 600;
-        }
-
-        .login-footer a:hover {
-            color: #4c51bf;
         }
     </style>
 </head>
+
 <body>
-    <div class="login-wrapper">
-        <div class="login-card">
-            <div class="login-header">
-                <div class="logo-icon">
-                    <i class="fas fa-cogs"></i>
+    <div class="login-layout">
+        <!-- Left Side Image Background -->
+        <div class="login-image"></div>
+
+        <!-- Right Side Login Form -->
+        <div class="login-form-container">
+            <div class="login-wrapper">
+                <div class="login-card">
+                    <div class="login-header">
+                        <div class="logo-icon">
+                            <i class="fas fa-cogs"></i>
+                        </div>
+                        <h1>KOSTAL ITSM</h1>
+                        <p>Intelligent IT Service Management</p>
+                    </div>
+
+                    <div class="login-body">
+                        <a href="/api/auth/sso/windows" class="btn-sso">
+                            <i class="fab fa-windows text-primary me-2 fs-5"></i> Fast Access (Windows SSO)
+                        </a>
+
+                        <div class="divider">OR</div>
+
+                        <form id="loginForm">
+                            <div id="loginError" class="alert-error d-none"></div>
+
+                            <div class="form-group">
+                                <label for="username" class="form-label">
+                                    <i class="fas fa-user text-muted me-1"></i> Username
+                                </label>
+                                <input type="text" class="form-control" id="username" name="username"
+                                    placeholder="Enter your username" required autofocus>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="password" class="form-label">
+                                    <i class="fas fa-lock text-muted me-1"></i> Password
+                                </label>
+                                <input type="password" class="form-control" id="password" name="password"
+                                    placeholder="Enter your password" required>
+                            </div>
+
+                            <div class="form-check mb-4">
+                                <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                                <label class="form-check-label text-muted" style="font-size: 0.9rem;" for="remember">
+                                    Remember me
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn btn-login">
+                                <i class="fas fa-sign-in-alt me-1"></i> Sign In
+                            </button>
+                        </form>
+                    </div>
                 </div>
-                <h1>KOSTAL ITSM</h1>
-                <p>Intelligent IT Service Management</p>
-            </div>
-
-            <div class="login-body">
-                <form id="loginForm">
-                    <div id="loginError" class="alert-error d-none"></div>
-
-                    <div class="form-group">
-                        <label for="username" class="form-label">
-                            <i class="fas fa-user"></i> Username
-                        </label>
-                        <input type="text" class="form-control" id="username" name="username" 
-                               placeholder="Enter your username" required autofocus>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password" class="form-label">
-                            <i class="fas fa-lock"></i> Password
-                        </label>
-                        <input type="password" class="form-control" id="password" name="password" 
-                               placeholder="Enter your password" required>
-                    </div>
-
-                    <div class="form-check mb-4">
-                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                        <label class="form-check-label" for="remember">
-                            Remember me
-                        </label>
-                    </div>
-
-                    <button type="submit" class="btn btn-login mb-3">
-                        <i class="fas fa-sign-in-alt"></i> Sign In
-                    </button>
-                </form>
-            </div>
-
-            <div class="login-footer">
-                <p>Don't have an account? <a href="/register">Create one now</a></p>
             </div>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        document.getElementById('loginForm').addEventListener('submit', async function(event) {
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const error = urlParams.get('error');
+            const errorDiv = document.getElementById('loginError');
+            
+            if (error === 'sso_unauthorized') {
+                errorDiv.textContent = 'Access Denied: You do not have permission to access KOSTAL ITSM. Please request access from an administrator.';
+                errorDiv.classList.remove('d-none');
+            } else if (error === 'sso_failed') {
+                errorDiv.textContent = 'Windows Authentication failed. Please log in using your username and password below.';
+                errorDiv.classList.remove('d-none');
+            }
+        });
+
+        document.getElementById('loginForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
             const username = document.getElementById('username').value;
@@ -212,8 +302,16 @@
                     localStorage.setItem('refresh_token', data.refresh_token);
                     window.location.href = '/';
                 } else {
-                    const error = await response.json();
-                    errorDiv.textContent = error.detail || 'Login failed. Please check your credentials.';
+                    let errorMsg = 'Incorrect username or password. Please try again.';
+                    try {
+                        const error = await response.json();
+                        if (typeof error.detail === 'string') {
+                            errorMsg = error.detail;
+                        } else if (Array.isArray(error.detail)) {
+                            errorMsg = error.detail.map(e => e.msg || e).join(', ');
+                        }
+                    } catch (e) { }
+                    errorDiv.textContent = errorMsg;
                     errorDiv.classList.remove('d-none');
                 }
             } catch (error) {
@@ -225,6 +323,5 @@
         });
     </script>
 </body>
+
 </html>
-
-

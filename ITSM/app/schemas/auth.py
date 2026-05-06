@@ -20,10 +20,13 @@ class TokenResponse(BaseModel):
 class UserBase(BaseModel):
     """Base user schema."""
     username: str = Field(..., min_length=3, max_length=100)
-    email: EmailStr
+    email: str
     full_name: str = Field(..., min_length=2, max_length=255)
     phone: Optional[str] = None
     mobile: Optional[str] = None
+    department: Optional[str] = None
+    title: Optional[str] = None
+    profile_image: Optional[str] = None
     language: str = "en"
     timezone: str = "UTC"
 
@@ -36,12 +39,13 @@ class UserCreate(UserBase):
 
 class UserUpdate(BaseModel):
     """Schema for updating user."""
-    email: Optional[EmailStr] = None
+    email: Optional[str] = None
     full_name: Optional[str] = None
     phone: Optional[str] = None
     mobile: Optional[str] = None
     language: Optional[str] = None
     timezone: Optional[str] = None
+    profile_image: Optional[str] = None
 
 
 class UserResponse(UserBase):
@@ -50,6 +54,8 @@ class UserResponse(UserBase):
     entity_id: Optional[int]
     location_id: Optional[int]
     is_active: bool
+    role: str
+    assigned_pages: Optional[str]
     last_login: Optional[datetime]
     created_at: datetime
     updated_at: datetime

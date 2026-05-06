@@ -20,6 +20,7 @@ class ProblemResolutionCreate(BaseModel):
     keywords: Optional[str] = None
     related_problem_id: Optional[int] = None
     reference_links: Optional[str] = None
+    resolved_by: int = 1  # Default to admin user for now
 
 
 class ProblemResolutionResponse(BaseModel):
@@ -61,6 +62,7 @@ class GeneralDocumentCreate(BaseModel):
     expiry_date: Optional[datetime] = None
     tags: Optional[str] = None
     keywords: Optional[str] = None
+    author_id: int = 1  # Default to admin user for now
 
 
 class GeneralDocumentResponse(BaseModel):

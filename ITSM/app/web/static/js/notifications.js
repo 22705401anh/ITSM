@@ -28,7 +28,10 @@ class ProfessionalNotification {
                         <div class="modal-body" id="notificationBody">
                             <p id="notificationMessage">Message here</p>
                         </div>
-                        <div class="modal-footer border-0 pt-0">
+                        <div class="modal-footer border-0 pt-0 d-flex justify-content-end" id="notificationFooter">
+                            <button type="button" id="notificationCancelBtn" class="btn btn-light btn-lg px-4 d-none" data-bs-dismiss="modal">
+                                Cancel
+                            </button>
                             <button type="button" id="notificationBtn" class="btn btn-primary btn-lg px-5" data-bs-dismiss="modal">
                                 <i class="fas fa-check me-2"></i> OK
                             </button>
@@ -219,8 +222,12 @@ class ProfessionalNotification {
         // Clear previous callback
         btn.onclick = null;
 
-        // Show modal
-        const bsModal = new bootstrap.Modal(modal, { backdrop: 'static', keyboard: false });
+        const cancelBtn = document.getElementById('notificationCancelBtn');
+        cancelBtn.classList.add('d-none'); // Hide cancel button for normal alerts
+        btn.innerHTML = '<i class="fas fa-check me-2"></i> OK'; // Reset text
+        btn.className = 'btn btn-primary btn-lg px-5'; // Reset classes
+
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modal, { backdrop: 'static', keyboard: false });
 
         // Add callback on close if provided
         if (callback) {
@@ -228,6 +235,60 @@ class ProfessionalNotification {
         }
 
         bsModal.show();
+    }
+
+    async confirm(title = 'Confirm', message = 'Are you sure you want to proceed?', confirmText = 'Confirm', cancelText = 'Cancel', type = 'info') {
+        this.createModalHTML();
+
+        const modal = document.getElementById('professionalNotificationModal');
+        const icon = document.getElementById('notificationIcon');
+        const titleEl = document.getElementById('notificationTitle');
+        const messageEl = document.getElementById('notificationMessage');
+        const btn = document.getElementById('notificationBtn');
+        const cancelBtn = document.getElementById('notificationCancelBtn');
+
+        // Apply styling based on type
+        modal.classList.remove('success', 'error', 'warning', 'info');
+        modal.classList.add(type);
+        
+        const icons = {
+            success: 'fas fa-check-circle',
+            error: 'fas fa-exclamation-triangle',
+            warning: 'fas fa-exclamation-triangle',
+            info: 'fas fa-question-circle'
+        };
+        icon.className = `fa-2x me-3 ${icons[type] || 'fas fa-question-circle'}`;
+        
+        titleEl.textContent = title;
+        messageEl.textContent = message;
+
+        // Configure buttons
+        cancelBtn.classList.remove('d-none');
+        cancelBtn.textContent = cancelText;
+        btn.innerHTML = `<i class="fas fa-check me-2"></i> ${confirmText}`;
+
+        const bsModal = bootstrap.Modal.getOrCreateInstance(modal, { backdrop: 'static', keyboard: false });
+        
+        return new Promise((resolve) => {
+            let isConfirmed = false;
+
+            const handleConfirm = () => {
+                isConfirmed = true;
+                // Don't call bsModal.hide() here, data-bs-dismiss will handle it
+            };
+
+            const handleHidden = () => {
+                // Cleanup event listeners
+                btn.removeEventListener('click', handleConfirm);
+                modal.removeEventListener('hidden.bs.modal', handleHidden);
+                resolve(isConfirmed);
+            };
+
+            btn.addEventListener('click', handleConfirm);
+            modal.addEventListener('hidden.bs.modal', handleHidden);
+
+            bsModal.show();
+        });
     }
 
     success(title = 'Success!', message = 'Operation completed successfully!', callback = null) {
@@ -248,4 +309,4 @@ class ProfessionalNotification {
 }
 
 // Initialize globally
-const Notification = new ProfessionalNotification();
+const ITSMNotification = new ProfessionalNotification();
