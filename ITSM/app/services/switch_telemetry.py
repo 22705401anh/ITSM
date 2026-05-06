@@ -759,6 +759,7 @@ async def poll_device_telemetry(db_session, device):
         vlans = await get_device_vlans(ip, comm)
         stp = await get_device_stp(ip, comm)
         stack = await get_device_stack(ip, comm)
+        cdp = await get_cdp_neighbors(ip, comm)
         
         # Yield to the event loop so HTTP requests aren't starved
         await asyncio.sleep(0)
@@ -773,7 +774,8 @@ async def poll_device_telemetry(db_session, device):
             "sfp": sfp,
             "vlans": vlans,
             "stp": stp,
-            "stack": stack
+            "stack": stack,
+            "cdp": cdp
         }
         
         # Update or create telemetry

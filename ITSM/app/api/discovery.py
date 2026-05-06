@@ -791,18 +791,19 @@ async def get_topology(db: Session = Depends(get_db)):
     nodes = []
     edges = []
     
+    import json
+    cdp_map = {}
     switches = [d for d in devices if d.device_type == 'Switch' and d.snmp_status == 'CONNECTED']
     
-    # Resolve communities synchronously first to avoid concurrent db session usage
-    switch_communities = {sw.ip_address: _resolve_community(sw, db) for sw in switches}
-
-    # Concurrently fetch CDP neighbors for all connected switches
-    async def fetch_for_switch(ip, comm):
-        neighbors = await get_cdp_neighbors(ip, comm)
-        return ip, neighbors
-
-    cdp_results = await asyncio.gather(*(fetch_for_switch(sw.ip_address, switch_communities[sw.ip_address]) for sw in switches))
-    cdp_map = dict(cdp_results)
+    for sw in switches:
+        cdp_map[sw.ip_address] = []
+        if sw.telemetry and sw.telemetry.summary_data_json:
+            try:
+                summary_data = json.loads(sw.telemetry.summary_data_json)
+                if "cdp" in summary_data:
+                    cdp_map[sw.ip_address] = summary_data["cdp"]
+            except:
+                pass
     
     ip_to_id = {d.ip_address: d.id for d in devices}
     added_edges = set()
