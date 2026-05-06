@@ -55,7 +55,7 @@ async def get_discovery_stats(db: Session = Depends(get_db)):
 
 @router.get("/devices")
 def get_discovered_devices(db: Session = Depends(get_db)):
-    devices = db.query(DiscoveredDevice).order_by(DiscoveredDevice.last_seen.desc()).all()
+    devices = db.query(DiscoveredDevice).filter(DiscoveredDevice.status != 'IGNORED').order_by(DiscoveredDevice.last_seen.desc()).all()
     
     # Pre-fetch user mapping for all devices by MAC
     from sqlalchemy import text
@@ -784,7 +784,7 @@ async def get_topology(db: Session = Depends(get_db)):
     from app.services.switch_telemetry import get_cdp_neighbors
     import asyncio
     
-    devices = db.query(DiscoveredDevice).all()
+    devices = db.query(DiscoveredDevice).filter(DiscoveredDevice.status != 'IGNORED').all()
     if not devices:
         return {"nodes": [], "edges": []}
         

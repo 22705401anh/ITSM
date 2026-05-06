@@ -313,7 +313,7 @@ function nextPage() {
 
 function getFilteredDevices() {
   const q=(document.getElementById('searchInput')?.value||'').toLowerCase();
-  let devs=allDevices;
+  let devs = allDevices.filter(d => d.status !== 'IGNORED');
   if(currentFilter!=='All') devs=devs.filter(d=>{
     if(currentFilter==='Wireless Controller') return d.device_type==='Wireless Controller'||d.device_type==='WLC';
     if(currentFilter==='Access Point') return d.device_type==='Access Point'||d.device_type==='AP';
