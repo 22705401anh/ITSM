@@ -326,3 +326,56 @@ async def onboarding_detail(request: Request, request_id: int):
     return templates.TemplateResponse(request, "onboarding/detail.html", {"request_id": request_id})
 
 
+# --- Print Management Routes ---
+
+@router.get("/print", response_class=HTMLResponse)
+async def print_dashboard(request: Request):
+    """Print Management Dashboard."""
+    return templates.TemplateResponse(request, "print/dashboard.html", {})
+
+@router.get("/print/jobs", response_class=HTMLResponse)
+async def print_jobs(request: Request):
+    """Print Job Logs."""
+    return templates.TemplateResponse(request, "print/jobs.html", {})
+
+@router.get("/print/jobs/{job_id}", response_class=HTMLResponse)
+async def print_job_detail(request: Request, job_id: int):
+    """Print Job Detail."""
+    return templates.TemplateResponse(request, "print/job_detail.html", {"job_id": job_id})
+
+@router.get("/print/printers", response_class=HTMLResponse)
+async def print_printers(request: Request):
+    """Print Printers Inventory."""
+    return templates.TemplateResponse(request, "print/printers.html", {})
+
+@router.get("/print/servers", response_class=HTMLResponse)
+async def print_servers(request: Request):
+    """Print Servers & Agents."""
+    return templates.TemplateResponse(request, "print/servers.html", {})
+
+@router.get("/print/alerts", response_class=HTMLResponse)
+async def print_alerts(request: Request):
+    """Print System Alerts."""
+    return templates.TemplateResponse(request, "print/alerts.html", {})
+
+@router.get("/print/reports", response_class=HTMLResponse)
+async def print_reports(request: Request):
+    """Print Management Reports."""
+    return templates.TemplateResponse(request, "print/reports.html", {})
+
+@router.get("/print/policies", response_class=HTMLResponse)
+async def print_policies(request: Request):
+    """Print Management Policies and Quotas."""
+    return templates.TemplateResponse(request, "print/policies.html", {})
+
+@router.get("/print/release", response_class=HTMLResponse)
+async def print_release_station(request: Request):
+    """Secure Print Release Station."""
+    return templates.TemplateResponse(request, "print/release_station.html", {})
+
+@router.get("/print/settings", response_class=HTMLResponse)
+async def print_settings(request: Request):
+    """Print Management Settings — Cost rules, quotas, and configuration."""
+    return templates.TemplateResponse(request, "print/settings.html", {})
+
+

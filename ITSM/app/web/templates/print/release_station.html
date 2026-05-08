@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}Print Management — Release Station{% endblock %}
+{% block content %}
+<style>
+    .held-job-card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transition: transform 0.2s; }
+    .held-job-card:hover { transform: translateY(-2px); }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="fas fa-lock text-warning me-2"></i>Secure Release Station</h1>
+        <p class="text-muted mb-0 small">Review and release your held print jobs</p>
+    </div>
+    <button class="btn btn-outline-secondary btn-sm" onclick="loadHeldJobs()"><i class="fas fa-sync-alt me-1"></i>Refresh</button>
+</div>
+
+<!-- Held Jobs Container -->
+<div class="row g-4" id="heldJobsContainer">
+    <div class="col-12 text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">Loading held jobs...</p>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('access_token');
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    async function loadHeldJobs() {
+        const container = document.getElementById('heldJobsContainer');
+        container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary"></div></div>';
+        
+        try {
+            // We fetch the job list, filtered by status=held
+            // For administrators, this shows all held jobs. 
+            // In a real-world scenario, we'd add a "user_login=current_user" filter for non-admins.
+            const res = await fetch('/api/print/jobs/list?status=held&per_page=100', { headers });
+            if (!res.ok) throw new Error("Failed to fetch jobs");
+            
+            const data = await res.json();
+            
+            if (data.jobs.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5">
+                        <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+                        <h5 class="mt-3">No jobs held</h5>
+                        <p class="text-muted">You have no print jobs waiting for release.</p>
+                    </div>`;
+                return;
+            }
+            
+            container.innerHTML = data.jobs.map(job => `
+                <div class="col-md-6 col-xl-4">
+                    <div class="card held-job-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-3">
+                                <div>
+                                    <h5 class="card-title fw-bold text-truncate mb-0" title="${esc(job.document_name)}">${esc(job.document_name) || 'Unknown Document'}</h5>
+                                    <small class="text-muted"><i class="fas fa-user me-1"></i>${esc(job.user_display_name || job.user_login)}</small>
+                                </div>
+                                <span class="badge bg-warning text-dark align-self-start"><i class="fas fa-pause me-1"></i>Held</span>
+                            </div>
+                            
+                            <ul class="list-unstyled small mb-4">
+                                <li class="mb-1"><i class="fas fa-print me-2 text-muted"></i><strong>Printer:</strong> ${esc(job.printer_name || job.queue_name)}</li>
+                                <li class="mb-1"><i class="fas fa-file-alt me-2 text-muted"></i><strong>Pages:</strong> ${job.total_pages || '?'} (${job.is_color ? 'Color' : 'Mono'})</li>
+                                <li class="mb-1"><i class="fas fa-clock me-2 text-muted"></i><strong>Submitted:</strong> ${new Date(job.submitted_at).toLocaleString()}</li>
+                                <li><i class="fas fa-euro-sign me-2 text-muted"></i><strong>Cost:</strong> €${(job.estimated_cost || 0).toFixed(4)}</li>
+                            </ul>
+                            
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success flex-grow-1" onclick="releaseJob(${job.id}, this)">
+                                    <i class="fas fa-play me-1"></i>Release
+                                </button>
+                                <button class="btn btn-outline-danger" onclick="cancelJob(${job.id}, this)">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            
+        } catch (e) {
+            console.error(e);
+            container.innerHTML = `<div class="col-12"><div class="alert alert-danger">Error loading held jobs: ${e.message}</div></div>`;
+        }
+    }
+
+    async function releaseJob(jobId, btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        try {
+            const res = await fetch(`/api/print/user/jobs/${jobId}/release`, { method: 'POST', headers });
+            if (res.ok) {
+                // Show success briefly
+                btn.className = "btn btn-success flex-grow-1";
+                btn.innerHTML = '<i class="fas fa-check"></i> Queued';
+                setTimeout(loadHeldJobs, 1000);
+            } else {
+                const err = await res.json();
+                alert('Error: ' + err.detail);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-play me-1"></i>Release';
+            }
+        } catch (e) {
+            alert('Request failed');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-play me-1"></i>Release';
+        }
+    }
+
+    async function cancelJob(jobId, btn) {
+        if (!confirm("Are you sure you want to cancel this print job?")) return;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        try {
+            const res = await fetch(`/api/print/user/jobs/${jobId}/cancel`, { method: 'POST', headers });
+            if (res.ok) {
+                setTimeout(loadHeldJobs, 1000);
+            } else {
+                const err = await res.json();
+                alert('Error: ' + err.detail);
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-times"></i>';
+            }
+        } catch (e) {
+            alert('Request failed');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-times"></i>';
+        }
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+    
+    // Initial load
+    document.addEventListener("DOMContentLoaded", loadHeldJobs);
+</script>
+{% endblock %}

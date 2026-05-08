@@ -1,0 +1,490 @@
+{% extends "base.html" %}
+{% block title %}Print Jobs — Job Logs{% endblock %}
+{% block content %}
+<meta name="description" content="KOSTAL Print Management — Searchable, filterable print job logs with pagination and CSV export.">
+
+<style>
+    /* 
+     * ULTRA-MINIMALIST ENTERPRISE UI
+     * Focus: High Contrast, Crisp Typography, Whitespace, Stripe-like Aesthetics
+     */
+    
+    body {
+        background-color: #f8fafc;
+        font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        color: #334155;
+    }
+
+    /* Container Spacing */
+    .pro-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        padding: 40px 24px;
+    }
+
+    /* Crisp Typography */
+    .pro-title {
+        font-size: 1.75rem;
+        font-weight: 700;
+        color: #0f172a;
+        letter-spacing: -0.02em;
+    }
+    .pro-subtitle {
+        font-size: 0.95rem;
+        color: #64748b;
+        font-weight: 400;
+    }
+
+    /* Pristine Cards */
+    .pro-card {
+        background: #ffffff;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+        overflow: hidden;
+    }
+
+    /* Clean Inputs */
+    .pro-label {
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        margin-bottom: 6px;
+        display: block;
+    }
+    .pro-input {
+        background: #ffffff;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 0.9rem;
+        color: #0f172a;
+        width: 100%;
+        transition: all 0.2s ease;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.01);
+    }
+    .pro-input:focus {
+        outline: none;
+        border-color: #0f172a;
+        box-shadow: 0 0 0 1px #0f172a;
+    }
+    
+    /* Search Bar with Icon */
+    .pro-search-wrapper { position: relative; }
+    .pro-search-wrapper i {
+        position: absolute; top: 50%; left: 14px;
+        transform: translateY(-50%); color: #94a3b8;
+    }
+    .pro-search-wrapper input { padding-left: 40px; }
+
+    /* Stark Buttons */
+    .pro-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        transition: all 0.2s;
+        cursor: pointer;
+        border: 1px solid transparent;
+    }
+    .pro-btn-dark {
+        background: #0f172a;
+        color: #ffffff;
+    }
+    .pro-btn-dark:hover {
+        background: #1e293b;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+        color: #ffffff;
+    }
+    .pro-btn-outline {
+        background: #ffffff;
+        border-color: #cbd5e1;
+        color: #475569;
+    }
+    .pro-btn-outline:hover {
+        background: #f8fafc;
+        color: #0f172a;
+        border-color: #94a3b8;
+    }
+    .pro-btn-icon {
+        width: 36px; height: 36px; padding: 0;
+        border-radius: 8px; display: inline-flex; align-items: center; justify-content: center;
+    }
+
+    /* Minimal Table */
+    .pro-table-wrapper {
+        overflow-x: auto;
+    }
+    .pro-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 0;
+    }
+    .pro-table th {
+        background: #f8fafc;
+        padding: 14px 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        border-bottom: 1px solid #e2e8f0;
+        text-align: left;
+        white-space: nowrap;
+        user-select: none;
+        cursor: pointer;
+    }
+    .pro-table th:hover { color: #0f172a; background: #f1f5f9; }
+    .pro-table td {
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+        vertical-align: middle;
+    }
+    .pro-table tr:last-child td { border-bottom: none; }
+    .pro-table tr:hover td { background: #f8fafc; }
+    
+    .hover-link { transition: color 0.2s; }
+    .hover-link:hover { color: #0284c7 !important; text-decoration: underline !important; }
+
+    /* Elegant Status Pills */
+    .pro-pill {
+        display: inline-flex; align-items: center;
+        padding: 4px 12px; border-radius: 6px;
+        font-size: 0.75rem; font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+    .pill-success { background: #dcfce7; color: #166534; }
+    .pill-warning { background: #fef3c7; color: #92400e; }
+    .pill-info { background: #e0f2fe; color: #075985; }
+    .pill-danger { background: #fee2e2; color: #991b1b; }
+    .pill-neutral { background: #f1f5f9; color: #475569; }
+
+    /* Utilities */
+    .text-mono { font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace; font-size: 0.85rem; }
+    .doc-truncate { max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: inline-block; vertical-align: middle; }
+    .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: #e2e8f0; color: #64748b; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 600; }
+    
+    /* Pagination */
+    .pro-pagination { display: flex; gap: 4px; }
+    .pro-page-btn {
+        min-width: 32px; height: 32px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center;
+        font-size: 0.85rem; font-weight: 500; border: 1px solid transparent; background: transparent; color: #64748b; cursor: pointer;
+    }
+    .pro-page-btn:hover { background: #f1f5f9; color: #0f172a; }
+    .pro-page-btn.active { background: #0f172a; color: #ffffff; }
+
+    /* Live Toggle */
+    .live-toggle-wrapper {
+        display: inline-flex; align-items: center; gap: 8px;
+        background: #ffffff; border: 1px solid #cbd5e1;
+        padding: 6px 14px; border-radius: 8px; font-size: 0.85rem; font-weight: 600; color: #475569;
+        cursor: pointer; user-select: none; transition: all 0.2s;
+    }
+    .live-toggle-wrapper:hover { background: #f8fafc; border-color: #94a3b8; }
+    .live-toggle-wrapper.is-live { border-color: #10b981; color: #065f46; background: #ecfdf5; }
+    .live-pulse {
+        width: 8px; height: 8px; border-radius: 50%; background: #cbd5e1; display: inline-block;
+    }
+    .is-live .live-pulse {
+        background: #10b981;
+        box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7);
+        animation: pulse-green 1.5s infinite;
+    }
+    @keyframes pulse-green {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+</style>
+
+<div class="pro-container">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-5">
+        <div>
+            <h1 class="pro-title">Print Logs</h1>
+            <p class="pro-subtitle">Review, search, and export print job activity</p>
+        </div>
+        <div class="d-flex gap-3 mt-3 mt-md-0 align-items-center">
+            <div class="live-toggle-wrapper" id="liveToggle">
+                <span class="live-pulse"></span> Auto-Refresh
+            </div>
+            <a href="/print" class="pro-btn pro-btn-outline text-decoration-none">
+                <i class="fas fa-arrow-left me-2"></i> Dashboard
+            </a>
+            <button class="pro-btn pro-btn-dark" id="btnExport">
+                <i class="fas fa-download me-2"></i> Export CSV
+            </button>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="pro-card mb-4 p-4">
+        <div class="row g-3 align-items-end">
+            <div class="col-lg-4 col-md-6">
+                <label class="pro-label">Search</label>
+                <div class="pro-search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" class="pro-input" id="fSearch" placeholder="Search user, document, or queue...">
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-6">
+                <label class="pro-label">Status</label>
+                <select class="pro-input cursor-pointer" id="fStatus">
+                    <option value="">All Statuses</option>
+                    <option value="printed">Printed</option>
+                    <option value="printing">Printing</option>
+                    <option value="queued">Queued</option>
+                    <option value="failed">Failed</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <label class="pro-label">From Date</label>
+                <input type="date" class="pro-input cursor-pointer" id="fDateFrom">
+            </div>
+            <div class="col-lg-2 col-md-4">
+                <label class="pro-label">To Date</label>
+                <input type="date" class="pro-input cursor-pointer" id="fDateTo">
+            </div>
+            <div class="col-lg-2 col-md-4 d-flex gap-2">
+                <div class="flex-grow-1">
+                    <label class="pro-label">Printer Queue</label>
+                    <input type="text" class="pro-input" id="fPrinter" placeholder="Filter by ID...">
+                </div>
+                <div>
+                    <label class="pro-label">&nbsp;</label>
+                    <button class="pro-btn pro-btn-dark pro-btn-icon" id="btnFilter" style="height: 40px; width: 40px;">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Data Table -->
+    <div class="pro-card">
+        <div class="pro-table-wrapper">
+            <table class="pro-table" id="jobsTable">
+                <thead>
+                    <tr>
+                        <th data-sort="submitted_at" style="width: 15%;">Date <i class="fas fa-sort ms-1" style="opacity: 0.3;"></i></th>
+                        <th style="width: 20%;">User</th>
+                        <th style="width: 25%;">Document</th>
+                        <th style="width: 15%;">Queue</th>
+                        <th data-sort="total_pages" class="text-end" style="width: 10%;">Pages <i class="fas fa-sort ms-1" style="opacity: 0.3;"></i></th>
+                        <th class="text-center" style="width: 5%;">Fmt</th>
+                        <th style="width: 10%;">Status</th>
+                        <th style="width: 5%;"></th>
+                    </tr>
+                </thead>
+                <tbody id="jobsBody">
+                    <tr><td colspan="8" class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin me-2"></i> Loading data...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center p-4 border-top" style="border-color: #e2e8f0;">
+            <div class="text-muted" style="font-size: 0.85rem; font-weight: 500;" id="pagInfo">Loading...</div>
+            <div class="pro-pagination" id="pagBtns"></div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentPage = 1, perPage = 50, sortBy = 'submitted_at', sortDir = 'desc';
+    let searchTimer;
+    let liveInterval = null;
+    let isLive = false;
+
+    // Live Polling Logic
+    const toggleBtn = document.getElementById('liveToggle');
+    toggleBtn.addEventListener('click', () => {
+        isLive = !isLive;
+        if (isLive) {
+            toggleBtn.classList.add('is-live');
+            liveInterval = setInterval(() => {
+                if (currentPage === 1) loadJobs(true);
+            }, 1000);
+        } else {
+            toggleBtn.classList.remove('is-live');
+            clearInterval(liveInterval);
+        }
+    });
+
+    // Start Live Polling automatically on page load
+    toggleBtn.click();
+
+    // Listeners
+    document.getElementById('fSearch').addEventListener('input', () => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => { currentPage = 1; loadJobs(); }, 400);
+    });
+    document.getElementById('btnFilter').addEventListener('click', () => { currentPage = 1; loadJobs(); });
+    ['fStatus','fDateFrom','fDateTo'].forEach(id => {
+        document.getElementById(id).addEventListener('change', () => { currentPage = 1; loadJobs(); });
+    });
+
+    // Sorters
+    document.querySelectorAll('th[data-sort]').forEach(th => {
+        th.addEventListener('click', () => {
+            const col = th.dataset.sort;
+            if (sortBy === col) sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+            else { sortBy = col; sortDir = 'desc'; }
+            
+            document.querySelectorAll('th[data-sort] i').forEach(i => i.style.opacity = '0.3');
+            const icon = th.querySelector('i');
+            icon.className = sortDir === 'desc' ? 'fas fa-sort-down ms-1' : 'fas fa-sort-up ms-1';
+            icon.style.opacity = '1';
+            
+            loadJobs();
+        });
+    });
+
+    // Export
+    document.getElementById('btnExport').addEventListener('click', () => {
+        const p = buildParams();
+        window.open(`/api/print/jobs/export?${p.toString()}&token=${localStorage.getItem('access_token')}`);
+    });
+
+    function buildParams() {
+        const p = new URLSearchParams();
+        const fields = ['fSearch', 'fStatus', 'fDateFrom', 'fDateTo', 'fPrinter'];
+        const keys = ['search', 'status', 'date_from', 'date_to', 'printer'];
+        fields.forEach((id, idx) => {
+            const val = document.getElementById(id).value.trim();
+            if (val) p.set(keys[idx], val);
+        });
+        return p;
+    }
+
+    async function loadJobs(isBackground = false) {
+        const token = localStorage.getItem('access_token');
+        const p = buildParams();
+        p.set('page', currentPage); p.set('per_page', perPage); p.set('sort_by', sortBy); p.set('sort_dir', sortDir);
+
+        if (!isBackground) {
+            document.getElementById('jobsBody').innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin me-2"></i> Loading data...</td></tr>';
+        }
+
+        try {
+            const res = await fetch(`/api/print/jobs/list?${p.toString()}`, { headers: { 'Authorization': `Bearer ${token}` } });
+            if (!res.ok) throw new Error();
+            const data = await res.json();
+            renderJobs(data);
+        } catch (e) {
+            if (!isBackground) {
+                document.getElementById('jobsBody').innerHTML = '<tr><td colspan="8" class="text-center py-5 text-danger"><i class="fas fa-exclamation-triangle mb-2"></i><br>Failed to load data</td></tr>';
+            }
+        }
+    }
+
+    function getStatusPill(s) {
+        let cls = 'pill-neutral';
+        if(s === 'printed') cls = 'pill-success';
+        if(s === 'printing') cls = 'pill-warning';
+        if(s === 'queued') cls = 'pill-info';
+        if(s === 'failed') cls = 'pill-danger';
+        return `<span class="pro-pill ${cls}">${s ? s.charAt(0).toUpperCase() + s.slice(1) : 'Unknown'}</span>`;
+    }
+
+    function renderJobs(data) {
+        const tbody = document.getElementById('jobsBody');
+        if (!data.jobs || !data.jobs.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center py-5 text-muted"><i class="fas fa-inbox fa-2x mb-3" style="color: #cbd5e1;"></i><br><span style="font-weight: 500;">No records found</span></td></tr>';
+            document.getElementById('pagInfo').innerHTML = '0 records';
+            document.getElementById('pagBtns').innerHTML = '';
+            return;
+        }
+
+        tbody.innerHTML = data.jobs.map(j => {
+            const dateObj = j.submitted_at ? new Date(j.submitted_at) : null;
+            const dateStr = dateObj ? `${dateObj.toLocaleString('en-US', {month:'short', day:'2-digit'})}, ${dateObj.toLocaleString('en-US', {hour:'2-digit', minute:'2-digit', hour12:true})}` : '—';
+            
+            const initials = (j.user_display_name || j.user_login || 'U').substring(0,2).toUpperCase();
+            
+            // Format Indicators
+            let fmtHtml = '';
+            if (j.is_color === true) fmtHtml += '<span title="Color" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;margin-right:4px;"></span>';
+            else if (j.is_color === false) fmtHtml += '<span title="Mono" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;margin-right:4px;"></span>';
+            
+            if (j.is_duplex === true) fmtHtml += '<i class="fas fa-columns text-muted" title="Duplex" style="font-size:0.75rem;"></i>';
+            else if (j.is_duplex === false) fmtHtml += '<i class="far fa-file text-muted" title="Simplex" style="font-size:0.75rem;"></i>';
+
+            return `
+            <tr>
+                <td class="text-mono text-muted">${dateStr}</td>
+                <td>
+                    <div class="d-flex align-items-center gap-2">
+                        <div class="user-avatar">${initials}</div>
+                        <div>
+                            <div style="font-weight:600; font-size: 0.85rem;">
+                                <a href="${j.user_id ? '/admin/users/' + j.user_id : '/users_list?search=' + encodeURIComponent(j.user_login || j.user_display_name || '')}" class="hover-link" style="color:#0f172a; text-decoration: none;">
+                                    ${j.user_display_name || j.user_login || 'System'}
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="doc-truncate fw-medium" title="${(j.document_name||'').replace(/"/g,'&quot;')}">
+                        ${j.document_name || 'Untitled Document'}
+                    </div>
+                </td>
+                <td>
+                    <div style="font-size: 0.85rem; font-weight: 500;">
+                        <i class="fas fa-print me-2 text-muted"></i>
+                        ${j.printer_id 
+                            ? `<a href="/hardware/printer/${j.printer_id}" class="hover-link" style="color: inherit; text-decoration: none;">${j.printer_name || j.queue_name || '—'}</a>`
+                            : `<span style="color: inherit;">${j.printer_name || j.queue_name || '—'}</span>`
+                        }
+                    </div>
+                </td>
+                <td class="text-end fw-semibold" style="font-size: 0.95rem;">
+                    ${j.total_pages != null ? j.total_pages : '—'}
+                </td>
+                <td class="text-center">${fmtHtml}</td>
+                <td>${getStatusPill(j.status)}</td>
+                <td class="text-end">
+                    <a href="/print/jobs/${j.id}" class="pro-btn-outline" style="padding: 6px 10px; border-radius: 6px; font-size: 0.8rem; text-decoration: none;">
+                        View
+                    </a>
+                </td>
+            </tr>
+            `;
+        }).join('');
+
+        const start = (data.page - 1) * data.per_page + 1;
+        const end = Math.min(data.page * data.per_page, data.total);
+        document.getElementById('pagInfo').innerHTML = `Showing <strong>${start}</strong> to <strong>${end}</strong> of <strong>${data.total.toLocaleString()}</strong> results`;
+
+        let btns = '';
+        if (data.page > 1) btns += `<button class="pro-page-btn" onclick="goPage(${data.page-1})"><i class="fas fa-chevron-left"></i></button>`;
+        const maxBtns = 5;
+        let startP = Math.max(1, data.page - Math.floor(maxBtns/2));
+        let endP = Math.min(data.total_pages, startP + maxBtns - 1);
+        if (endP - startP + 1 < maxBtns) startP = Math.max(1, endP - maxBtns + 1);
+        
+        for (let i = startP; i <= endP; i++) {
+            btns += `<button class="pro-page-btn ${i === data.page ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+        }
+        if (data.page < data.total_pages) btns += `<button class="pro-page-btn" onclick="goPage(${data.page+1})"><i class="fas fa-chevron-right"></i></button>`;
+        document.getElementById('pagBtns').innerHTML = btns;
+    }
+
+    function goPage(p) { currentPage = p; loadJobs(); }
+
+    const initSortIcon = document.querySelector(`th[data-sort="${sortBy}"] i`);
+    if (initSortIcon) {
+        initSortIcon.className = sortDir === 'desc' ? 'fas fa-sort-down ms-1' : 'fas fa-sort-up ms-1';
+        initSortIcon.style.opacity = '1';
+    }
+
+    loadJobs();
+</script>
+{% endblock %}

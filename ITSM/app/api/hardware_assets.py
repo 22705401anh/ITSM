@@ -646,12 +646,53 @@ async def get_hardware_detail(asset_type: str, asset_id: int, db: Session = Depe
         ]
     elif asset_type == "printer":
         last_seen = getattr(asset, "last_seen_at", None)
+        
+        def safe_iso(dt):
+            if not dt: return None
+            if isinstance(dt, str): return dt
+            try: return dt.isoformat()
+            except: return str(dt)
+
         result.update({
             "name": getattr(asset, "name", None),
             "ip_address": getattr(asset, "ip_address", None),
             "mac_address": getattr(asset, "mac_address", None),
-            "last_seen_at": last_seen.isoformat() if last_seen else None,
+            "last_seen_at": safe_iso(last_seen),
         })
+        
+        from app.models.print_management import PrintPrinter, PrintJob
+        from sqlalchemy import desc
+        
+        pp = None
+        if getattr(asset, "ip_address", None):
+            pp = db.query(PrintPrinter).filter(PrintPrinter.ip_address == asset.ip_address).first()
+        if not pp and getattr(asset, "name", None):
+            pp = db.query(PrintPrinter).filter(PrintPrinter.name == asset.name).first()
+            
+        if pp:
+            result["snmp"] = {
+                "status": pp.status,
+                "error_state": pp.error_state,
+                "total_page_counter": pp.total_page_counter,
+                "toner_black": pp.toner_black,
+                "toner_cyan": pp.toner_cyan,
+                "toner_magenta": pp.toner_magenta,
+                "toner_yellow": pp.toner_yellow,
+                "last_seen": safe_iso(pp.last_seen)
+            }
+            
+            jobs = db.query(PrintJob).filter(PrintJob.printer_name == pp.name).order_by(desc(PrintJob.submitted_at)).limit(15).all()
+            result["print_logs"] = []
+            for j in jobs:
+                result["print_logs"].append({
+                    "id": j.id,
+                    "document_name": j.document_name,
+                    "user": j.user_display_name or j.user_login,
+                    "status": j.status,
+                    "total_pages": j.total_pages,
+                    "is_color": j.is_color,
+                    "submitted_at": safe_iso(j.submitted_at)
+                })
     elif asset_type == "phone" or asset_type == "phone_number":
         result.update({
             "phone_number": asset.phone_number
@@ -1420,6 +1461,7 @@ async def sync_discovery_data(
             elif is_new_mon:
                 monitor.status = "Pending"
 
+    from app.models.print_management import PrintPrinter
     for printer in payload.network_printers:
         p_db = db.query(Printer).filter(Printer.serial_number == printer.serial_number).first()
         is_new = p_db is None
@@ -1444,6 +1486,28 @@ async def sync_discovery_data(
             if printer.mac_address: p_db.mac_address = printer.mac_address
             updated += 1
             log_audit(db, "updated", "printer", p_db.id, serial_number=p_db.serial_number, model=p_db.model, details="Updated via network discovery")
+
+        # Also sync to Print Management module
+        pm_printer = db.query(PrintPrinter).filter(PrintPrinter.serial_number == printer.serial_number).first()
+        if not pm_printer and printer.ip_address:
+            pm_printer = db.query(PrintPrinter).filter(PrintPrinter.ip_address == printer.ip_address).first()
+            
+        if not pm_printer:
+            pm_printer = PrintPrinter(
+                name=printer.model or "Network Printer",
+                serial_number=printer.serial_number,
+                ip_address=printer.ip_address,
+                model=printer.model,
+                snmp_enabled=True,
+                status="online",
+                last_seen=datetime.utcnow()
+            )
+            db.add(pm_printer)
+        else:
+            pm_printer.ip_address = printer.ip_address
+            pm_printer.model = printer.model
+            pm_printer.snmp_enabled = True
+            pm_printer.last_seen = datetime.utcnow()
 
     db.commit()
     return {

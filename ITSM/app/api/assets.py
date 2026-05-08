@@ -227,7 +227,7 @@ async def list_assets(
                 # Apply search filter
                 if search:
                     search_lower = search.lower()
-                    searchable = f"{u.full_name} {specs.get('hostname', '')} {specs.get('laptop_sn', '')} {specs.get('monitor_sn', '')} {specs.get('docking_sn', '')} {specs.get('phone_number', '')} {specs.get('phone_model', '')} {specs.get('department', '')}".lower()
+                    searchable = f"{u.full_name} {getattr(u, 'username', '')} {specs.get('hostname', '')} {specs.get('laptop_sn', '')} {specs.get('monitor_sn', '')} {specs.get('docking_sn', '')} {specs.get('phone_number', '')} {specs.get('phone_model', '')} {specs.get('department', '')}".lower()
                     if search_lower not in searchable:
                         continue
 

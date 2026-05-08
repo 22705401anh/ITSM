@@ -1,0 +1,441 @@
+{% extends "base.html" %}
+{% block title %}Print Management — Settings{% endblock %}
+{% block content %}
+<meta name="description" content="KOSTAL Print Management Settings — Cost rules, agent configuration, and audit logs.">
+
+<style>
+    .pm-settings-card {
+        border: none; border-radius: 14px;
+        background: var(--bs-body-bg);
+        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .pm-settings-card .card-header {
+        background: transparent; border-bottom: 1px solid rgba(0,0,0,.06);
+        font-weight: 600; font-size: .95rem; padding: 16px 20px;
+    }
+    .pm-stat-mini {
+        text-align: center; padding: 16px;
+        border-radius: 12px; background: var(--bs-body-bg);
+        box-shadow: 0 2px 8px rgba(0,0,0,.04);
+        transition: transform .15s;
+    }
+    .pm-stat-mini:hover { transform: translateY(-2px); }
+    .pm-stat-mini .value { font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+    .pm-stat-mini .label { font-size: .72rem; text-transform: uppercase; opacity: .5; letter-spacing: .5px; font-weight: 600; }
+    .pm-rule-row { transition: background .15s; border-radius: 8px; }
+    .pm-rule-row:hover { background: rgba(99,102,241,.03); }
+    .pm-rule-badge { font-size: .7rem; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
+    .pm-audit-row { font-size: .85rem; }
+    .pm-audit-action { font-weight: 600; }
+    .pm-tab-content { min-height: 300px; }
+    .pm-empty { text-align: center; padding: 60px 20px; opacity: .4; }
+    .pm-empty i { font-size: 2.5rem; margin-bottom: 12px; }
+</style>
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="fas fa-cog me-2 text-primary"></i>Print Settings</h1>
+        <p class="text-muted mb-0 small">Cost rules, agent configuration, and audit trail</p>
+    </div>
+    <a href="/print" class="btn btn-sm btn-outline-primary"><i class="fas fa-chart-pie me-1"></i>Dashboard</a>
+</div>
+
+<!-- Stats Row -->
+<div class="row g-3 mb-4" id="statsRow">
+    <div class="col-6 col-md-3 col-xl"><div class="pm-stat-mini"><div class="value text-primary" id="stServers">—</div><div class="label">Servers</div></div></div>
+    <div class="col-6 col-md-3 col-xl"><div class="pm-stat-mini"><div class="value text-success" id="stAgents">—</div><div class="label">Agents</div></div></div>
+    <div class="col-6 col-md-3 col-xl"><div class="pm-stat-mini"><div class="value text-info" id="stQueues">—</div><div class="label">Queues</div></div></div>
+    <div class="col-6 col-md-3 col-xl"><div class="pm-stat-mini"><div class="value text-warning" id="stPrinters">—</div><div class="label">Printers</div></div></div>
+    <div class="col-6 col-md-3 col-xl"><div class="pm-stat-mini"><div class="value text-secondary" id="stJobs">—</div><div class="label">Total Jobs</div></div></div>
+    <div class="col-6 col-md-3 col-xl"><div class="pm-stat-mini"><div class="value text-danger" id="stRules">—</div><div class="label">Cost Rules</div></div></div>
+</div>
+
+<!-- Tabs -->
+<ul class="nav nav-tabs mb-3" id="settingsTabs">
+    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#tabRules"><i class="fas fa-euro-sign me-1"></i>Cost Rules</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabAudit"><i class="fas fa-clipboard-list me-1"></i>Audit Log</a></li>
+    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#tabAgent"><i class="fas fa-robot me-1"></i>Agent Setup</a></li>
+</ul>
+
+<div class="tab-content pm-tab-content">
+
+    <!-- Cost Rules Tab -->
+    <div class="tab-pane fade show active" id="tabRules">
+        <div class="card pm-settings-card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-euro-sign me-2 text-warning"></i>Cost Calculation Rules</span>
+                <button class="btn btn-sm btn-primary" onclick="showAddRule()"><i class="fas fa-plus me-1"></i>Add Rule</button>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width:30px">↕</th>
+                                <th>Name</th>
+                                <th>Type</th>
+                                <th>Scope</th>
+                                <th class="text-end">Mono/Page</th>
+                                <th class="text-end">Color/Page</th>
+                                <th>Paper</th>
+                                <th>Status</th>
+                                <th class="text-end" style="width:120px">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rulesBody">
+                            <tr><td colspan="9" class="pm-empty"><i class="fas fa-coins d-block"></i>Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Audit Log Tab -->
+    <div class="tab-pane fade" id="tabAudit">
+        <div class="card pm-settings-card">
+            <div class="card-header"><i class="fas fa-clipboard-list me-2 text-info"></i>Module Audit Log</div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0 align-middle">
+                        <thead class="table-light">
+                            <tr><th>Timestamp</th><th>Action</th><th>Entity</th><th>User</th><th>Details</th></tr>
+                        </thead>
+                        <tbody id="auditBody">
+                            <tr><td colspan="5" class="pm-empty"><i class="fas fa-clipboard-list d-block"></i>Loading…</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agent Setup Tab -->
+    <div class="tab-pane fade" id="tabAgent">
+        <div class="card pm-settings-card">
+            <div class="card-header"><i class="fas fa-robot me-2 text-success"></i>Agent Installation Guide</div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-download me-2 text-primary"></i>1. Deploy Agent Files</h6>
+                        <p class="small text-muted">Copy the <code>scripts/print_agent/</code> folder to the target Windows print server:</p>
+                        <div class="bg-dark text-light rounded-3 p-3 mb-3" style="font-family: 'Consolas', monospace; font-size:.82rem;">
+                            <div class="text-success mb-1"># Copy to print server</div>
+                            <div>xcopy /E /I scripts\print_agent C:\KOSTAL\PrintAgent</div>
+                        </div>
+
+                        <h6 class="fw-bold mb-3"><i class="fas fa-file-alt me-2 text-warning"></i>2. Configure</h6>
+                        <p class="small text-muted">Copy <code>config.json.example</code> to <code>config.json</code> and set the ITSM server URL:</p>
+                        <div class="bg-dark text-light rounded-3 p-3 mb-3" style="font-family: 'Consolas', monospace; font-size:.82rem;">
+<pre class="mb-0 text-light">{
+  "server_url": "http://&lt;ITSM_HOST&gt;:8000",
+  "poll_interval_seconds": 10,
+  "batch_size": 50,
+  "log_level": "INFO"
+}</pre>
+                        </div>
+
+                        <h6 class="fw-bold mb-3"><i class="fas fa-cogs me-2 text-info"></i>3. Install & Start</h6>
+                        <div class="bg-dark text-light rounded-3 p-3" style="font-family: 'Consolas', monospace; font-size:.82rem;">
+                            <div class="text-success mb-1"># Install Python dependencies</div>
+                            <div class="mb-2">pip install -r requirements.txt</div>
+                            <div class="text-success mb-1"># Install Windows Service</div>
+                            <div class="mb-2">install_service.bat</div>
+                            <div class="text-success mb-1"># Or run interactively for testing</div>
+                            <div>python kostal_print_agent.py --console</div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <h6 class="fw-bold mb-3"><i class="fas fa-network-wired me-2 text-danger"></i>Architecture</h6>
+                        <div class="card bg-light border-0 p-3">
+                            <pre class="mb-0 small" style="font-family:'Consolas',monospace;">
+┌─────────────────────────┐
+│   Windows Print Server  │
+│                         │
+│  ┌───────────────────┐  │
+│  │ KOSTAL Print Agent│  │
+│  │ ├─ Spooler Monitor│  │
+│  │ ├─ WMI Polling    │  │
+│  │ └─ SQLite Cache   │  │
+│  └────────┬──────────┘  │
+│           │ REST API    │
+└───────────┼─────────────┘
+            │
+            ▼
+┌─────────────────────────┐
+│   KOSTAL ITSM Backend   │
+│   /api/print/*          │
+│                         │
+│  ├─ Agent Register      │
+│  ├─ Heartbeat           │
+│  ├─ Job Submit (bulk)   │
+│  ├─ Printer Discovery   │
+│  └─ Dashboard / Reports │
+└─────────────────────────┘</pre>
+                        </div>
+
+                        <div class="mt-3">
+                            <h6 class="fw-bold mb-2"><i class="fas fa-shield-alt me-2 text-primary"></i>Security</h6>
+                            <ul class="small text-muted">
+                                <li>Agent authenticates via <code>X-Agent-Token</code> header</li>
+                                <li>Token is SHA-256 hashed in the database</li>
+                                <li>Web UI requires JWT + <code>print</code> permission</li>
+                                <li>All changes are written to the Audit Log</li>
+                            </ul>
+                        </div>
+
+                        <div class="mt-3">
+                            <h6 class="fw-bold mb-2"><i class="fas fa-sync-alt me-2 text-success"></i>Offline Resilience</h6>
+                            <ul class="small text-muted">
+                                <li>Agent caches jobs locally in SQLite when offline</li>
+                                <li>Automatic batch sync when connection is restored</li>
+                                <li>SHA-256 correlation IDs prevent duplicate submissions</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add/Edit Rule Modal -->
+<div class="modal fade" id="ruleModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="ruleModalTitle">Add Cost Rule</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="ruleId">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Rule Name</label>
+                    <input type="text" class="form-control" id="ruleName" placeholder="e.g. Default Global Rate">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label fw-semibold">Description</label>
+                    <input type="text" class="form-control" id="ruleDesc" placeholder="Optional description">
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Rule Type</label>
+                        <select class="form-select" id="ruleType">
+                            <option value="global">Global</option>
+                            <option value="department">Per Department</option>
+                            <option value="printer">Per Printer</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Department</label>
+                        <input type="text" class="form-control" id="ruleDept" placeholder="e.g. Engineering">
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Mono/Page (€)</label>
+                        <input type="number" class="form-control" id="ruleMono" step="0.001" value="0.03">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Color/Page (€)</label>
+                        <input type="number" class="form-control" id="ruleColor" step="0.001" value="0.10">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Duplex Discount %</label>
+                        <input type="number" class="form-control" id="ruleDuplex" step="1" value="0">
+                    </div>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Paper Size</label>
+                        <select class="form-select" id="rulePaper">
+                            <option value="">All Sizes</option>
+                            <option value="A4">A4</option>
+                            <option value="A3">A3</option>
+                            <option value="Letter">Letter</option>
+                            <option value="Legal">Legal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Priority</label>
+                        <input type="number" class="form-control" id="rulePriority" value="0" min="0" max="100">
+                        <div class="form-text">Higher = evaluated first</div>
+                    </div>
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ruleActive" checked>
+                    <label class="form-check-label" for="ruleActive">Active</label>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="btnSaveRule"><i class="fas fa-save me-1"></i>Save Rule</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('access_token');
+    const headers = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+
+    // ── Stats ──
+    async function loadStats() {
+        try {
+            const res = await fetch('/api/print/stats/summary', { headers });
+            if (!res.ok) return;
+            const s = await res.json();
+            document.getElementById('stServers').textContent = s.servers;
+            document.getElementById('stAgents').textContent = `${s.online_agents}/${s.agents}`;
+            document.getElementById('stQueues').textContent = s.queues;
+            document.getElementById('stPrinters').textContent = s.printers;
+            document.getElementById('stJobs').textContent = s.jobs.toLocaleString();
+            document.getElementById('stRules').textContent = `${s.active_rules}/${s.cost_rules}`;
+        } catch(e) { console.error(e); }
+    }
+
+    // ── Cost Rules ──
+    async function loadRules() {
+        const tbody = document.getElementById('rulesBody');
+        try {
+            const res = await fetch('/api/print/cost-rules/list', { headers });
+            if (!res.ok) throw new Error('Failed');
+            const rules = await res.json();
+            if (!rules.length) {
+                tbody.innerHTML = '<tr><td colspan="9" class="pm-empty"><i class="fas fa-coins d-block"></i>No cost rules configured.<br><small class="text-muted">Click "Add Rule" to create your first cost rule.</small></td></tr>';
+                return;
+            }
+            tbody.innerHTML = rules.map(r => `
+                <tr class="pm-rule-row">
+                    <td class="text-muted">${r.priority}</td>
+                    <td><strong>${esc(r.name)}</strong>${r.description ? '<br><small class="text-muted">' + esc(r.description) + '</small>' : ''}</td>
+                    <td><span class="pm-rule-badge bg-${r.rule_type === 'global' ? 'primary' : r.rule_type === 'department' ? 'warning' : 'info'} bg-opacity-10 text-${r.rule_type === 'global' ? 'primary' : r.rule_type === 'department' ? 'warning' : 'info'}">${r.rule_type}</span></td>
+                    <td>${r.department || r.printer_id || '—'}</td>
+                    <td class="text-end fw-bold">€${r.cost_per_mono_page.toFixed(3)}</td>
+                    <td class="text-end fw-bold">€${r.cost_per_color_page.toFixed(3)}</td>
+                    <td>${r.paper_size || 'All'}</td>
+                    <td>${r.is_active ? '<span class="badge bg-success">Active</span>' : '<span class="badge bg-secondary">Inactive</span>'}</td>
+                    <td class="text-end">
+                        <button class="btn btn-sm btn-outline-primary me-1" onclick="editRule(${r.id})"><i class="fas fa-edit"></i></button>
+                        <button class="btn btn-sm btn-outline-danger" onclick="deleteRule(${r.id}, '${esc(r.name)}')"><i class="fas fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="9" class="text-danger text-center py-4">Error loading rules</td></tr>';
+        }
+    }
+
+    let allRules = [];
+    function showAddRule() {
+        document.getElementById('ruleModalTitle').textContent = 'Add Cost Rule';
+        document.getElementById('ruleId').value = '';
+        document.getElementById('ruleName').value = '';
+        document.getElementById('ruleDesc').value = '';
+        document.getElementById('ruleType').value = 'global';
+        document.getElementById('ruleDept').value = '';
+        document.getElementById('ruleMono').value = '0.03';
+        document.getElementById('ruleColor').value = '0.10';
+        document.getElementById('ruleDuplex').value = '0';
+        document.getElementById('rulePaper').value = '';
+        document.getElementById('rulePriority').value = '0';
+        document.getElementById('ruleActive').checked = true;
+        new bootstrap.Modal(document.getElementById('ruleModal')).show();
+    }
+
+    async function editRule(id) {
+        const res = await fetch('/api/print/cost-rules/list', { headers });
+        const rules = await res.json();
+        const r = rules.find(x => x.id === id);
+        if (!r) return;
+        document.getElementById('ruleModalTitle').textContent = 'Edit Cost Rule';
+        document.getElementById('ruleId').value = r.id;
+        document.getElementById('ruleName').value = r.name;
+        document.getElementById('ruleDesc').value = r.description || '';
+        document.getElementById('ruleType').value = r.rule_type;
+        document.getElementById('ruleDept').value = r.department || '';
+        document.getElementById('ruleMono').value = r.cost_per_mono_page;
+        document.getElementById('ruleColor').value = r.cost_per_color_page;
+        document.getElementById('ruleDuplex').value = r.duplex_discount_pct;
+        document.getElementById('rulePaper').value = r.paper_size || '';
+        document.getElementById('rulePriority').value = r.priority;
+        document.getElementById('ruleActive').checked = r.is_active;
+        new bootstrap.Modal(document.getElementById('ruleModal')).show();
+    }
+
+    document.getElementById('btnSaveRule').addEventListener('click', async () => {
+        const id = document.getElementById('ruleId').value;
+        const body = {
+            name: document.getElementById('ruleName').value,
+            description: document.getElementById('ruleDesc').value || null,
+            rule_type: document.getElementById('ruleType').value,
+            department: document.getElementById('ruleDept').value || null,
+            cost_per_mono_page: parseFloat(document.getElementById('ruleMono').value),
+            cost_per_color_page: parseFloat(document.getElementById('ruleColor').value),
+            duplex_discount_pct: parseFloat(document.getElementById('ruleDuplex').value),
+            paper_size: document.getElementById('rulePaper').value || null,
+            priority: parseInt(document.getElementById('rulePriority').value),
+            is_active: document.getElementById('ruleActive').checked,
+        };
+        const url = id ? `/api/print/cost-rules/${id}` : '/api/print/cost-rules';
+        const method = id ? 'PATCH' : 'POST';
+        const res = await fetch(url, { method, headers, body: JSON.stringify(body) });
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('ruleModal')).hide();
+            loadRules();
+            loadStats();
+        } else {
+            alert('Failed to save rule');
+        }
+    });
+
+    async function deleteRule(id, name) {
+        if (!confirm(`Delete cost rule "${name}"?`)) return;
+        const res = await fetch(`/api/print/cost-rules/${id}`, { method: 'DELETE', headers });
+        if (res.ok) { loadRules(); loadStats(); }
+    }
+
+    // ── Audit Log ──
+    async function loadAudit() {
+        const tbody = document.getElementById('auditBody');
+        try {
+            const res = await fetch('/api/print/audit-logs?per_page=100', { headers });
+            if (!res.ok) throw new Error('Failed');
+            const data = await res.json();
+            if (!data.logs.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="pm-empty"><i class="fas fa-clipboard-list d-block"></i>No audit entries yet</td></tr>';
+                return;
+            }
+            tbody.innerHTML = data.logs.map(l => {
+                let details = '';
+                try { details = l.details ? JSON.stringify(JSON.parse(l.details)) : ''; } catch(e) { details = l.details || ''; }
+                return `
+                    <tr class="pm-audit-row">
+                        <td class="text-muted">${l.timestamp ? new Date(l.timestamp).toLocaleString() : '—'}</td>
+                        <td><span class="pm-audit-action">${formatAction(l.action)}</span></td>
+                        <td>${l.entity_type || '—'} ${l.entity_id ? '#' + l.entity_id : ''}</td>
+                        <td>${l.user_name || '—'}</td>
+                        <td class="text-muted small">${esc(details).substring(0, 120)}</td>
+                    </tr>
+                `;
+            }).join('');
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-danger text-center py-4">Error loading audit logs</td></tr>';
+        }
+    }
+
+    function formatAction(action) {
+        return (action || '').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    // Tab switching - lazy load audit
+    document.querySelector('a[href="#tabAudit"]').addEventListener('shown.bs.tab', () => loadAudit());
+
+    // Init
+    loadStats();
+    loadRules();
+</script>
+{% endblock %}

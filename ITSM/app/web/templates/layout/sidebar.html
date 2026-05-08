@@ -72,6 +72,66 @@
                 </div>
             </li>
 
+            <!-- Print Management -->
+            <li class="nav-item mt-1">
+                <a class="nav-link sidebar-link rounded-3 collapsed d-flex justify-content-between align-items-center" href="#collapsePrint" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapsePrint" data-title="Print Mgmt">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-print sidebar-icon"></i>
+                        <span class="sidebar-label ms-2 fw-medium">Print Mgmt</span>
+                    </div>
+                    <i class="fas fa-chevron-right sidebar-arrow"></i>
+                </a>
+                <div class="collapse" id="collapsePrint" data-bs-parent="#sidebarAccordion">
+                    <ul class="nav flex-column ms-4 py-1">
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/print" data-bs-toggle="tooltip" data-bs-placement="right" title="Print Dashboard">
+                                <span class="sidebar-label">Dashboard</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/print/jobs" data-bs-toggle="tooltip" data-bs-placement="right" title="Job Logs">
+                                <span class="sidebar-label">Job Logs</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/print/printers" data-bs-toggle="tooltip" data-bs-placement="right" title="Printers">
+                                <span class="sidebar-label">Printers</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/print/servers" data-bs-toggle="tooltip" data-bs-placement="right" title="Servers & Agents">
+                                <span class="sidebar-label">Servers & Agents</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/print/policies" data-bs-toggle="tooltip" data-bs-placement="right" title="Policies">
+                                <span class="sidebar-label">Policies & Quotas</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/print/release" data-bs-toggle="tooltip" data-bs-placement="right" title="Release Station">
+                                <span class="sidebar-label">Release Station</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/print/reports" data-bs-toggle="tooltip" data-bs-placement="right" title="Reports">
+                                <span class="sidebar-label">Reports</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/print/alerts" data-bs-toggle="tooltip" data-bs-placement="right" title="Alerts">
+                                <span class="sidebar-label">Alerts</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link sub-link py-1 rounded-2" href="/print/settings" data-bs-toggle="tooltip" data-bs-placement="right" title="Settings">
+                                <span class="sidebar-label">Settings</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+
             <!-- Service Management -->
             <li class="nav-item mt-1">
                 <a class="nav-link sidebar-link rounded-3 collapsed d-flex justify-content-between align-items-center" href="#collapseService" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="collapseService" data-title="Service Mgmt">
@@ -325,6 +385,10 @@ document.addEventListener('userLoaded', function(e) {
         window.location.href = '/';
         return;
     }
+    if (currentPath.startsWith('/print') && !assignedPages.includes('print')) {
+        window.location.href = '/';
+        return;
+    }
     
     // Hide Administration section if user doesn't have 'settings' permission
     if (!assignedPages.includes('settings')) {
@@ -362,6 +426,12 @@ document.addEventListener('userLoaded', function(e) {
     if (!assignedPages.includes('network')) {
         const netToggle = document.querySelector('a[href="#collapseNetwork"]');
         if (netToggle) netToggle.closest('.nav-item').style.display = 'none';
+    }
+
+    // Handle Print Management Section
+    if (!assignedPages.includes('print')) {
+        const printToggle = document.querySelector('a[href="#collapsePrint"]');
+        if (printToggle) printToggle.closest('.nav-item').style.display = 'none';
     }
 
     // Handle Service Management Section

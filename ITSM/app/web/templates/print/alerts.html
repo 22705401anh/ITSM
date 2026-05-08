@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Print Management — Alerts{% endblock %}
+{% block content %}
+<meta name="description" content="Active printer alerts and incidents.">
+
+<style>
+    .pm-alert-card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .pm-alert-icon { font-size: 2rem; }
+    .severity-warning { color: #f59e0b; }
+    .severity-critical { color: #ef4444; }
+    .severity-info { color: #3b82f6; }
+    .bg-severity-warning { background-color: rgba(245, 158, 11, 0.1); }
+    .bg-severity-critical { background-color: rgba(239, 68, 68, 0.1); }
+    .bg-severity-info { background-color: rgba(59, 130, 246, 0.1); }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h3 fw-bold mb-1"><i class="fas fa-bell me-2 text-danger"></i>Active Alerts</h1>
+        <p class="text-muted mb-0 small">Printers requiring attention (offline, low toner, errors)</p>
+    </div>
+    <button class="btn btn-sm btn-outline-secondary" onclick="loadAlerts()"><i class="fas fa-sync-alt me-1"></i>Refresh</button>
+</div>
+
+<div class="row" id="alertsContainer">
+    <div class="col-12 text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem('access_token');
+    const headers = { 'Authorization': `Bearer ${token}` };
+
+    async function loadAlerts() {
+        const container = document.getElementById('alertsContainer');
+        try {
+            const res = await fetch('/api/print/alerts', { headers });
+            if (!res.ok) throw new Error('Failed to fetch alerts');
+            const alerts = await res.json();
+            
+            if (alerts.length === 0) {
+                container.innerHTML = `
+                    <div class="col-12 text-center py-5 opacity-50">
+                        <i class="fas fa-check-circle text-success mb-3" style="font-size: 3rem;"></i>
+                        <h5>No Active Alerts</h5>
+                        <p class="text-muted">All printers are operating normally.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = alerts.map(a => `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card pm-alert-card h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-start mb-3">
+                                <div class="rounded p-3 bg-severity-${a.severity} me-3">
+                                    <i class="fas fa-${getIcon(a.alert_type)} pm-alert-icon severity-${a.severity}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold mb-1">${esc(a.printer_name)}</h6>
+                                    <div class="small text-muted mb-1"><i class="fas fa-network-wired me-1"></i>${esc(a.printer_ip)}</div>
+                                    <span class="badge bg-${a.severity === 'critical' ? 'danger' : a.severity === 'warning' ? 'warning text-dark' : 'info'} text-uppercase" style="font-size: 0.65rem;">
+                                        ${a.alert_type.replace('_', ' ')}
+                                    </span>
+                                </div>
+                            </div>
+                            <p class="small text-dark fw-medium mb-3">${esc(a.message)}</p>
+                            <div class="d-flex justify-content-between align-items-center mt-auto border-top pt-3">
+                                <div class="small text-muted" style="font-size: 0.75rem;">
+                                    <i class="fas fa-clock me-1"></i>Since ${new Date(a.first_detected).toLocaleString()}
+                                </div>
+                                ${a.itsm_ticket_id ? `<span class="badge bg-secondary">Ticket #${a.itsm_ticket_id}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+        } catch (e) {
+            container.innerHTML = `<div class="col-12 text-center text-danger py-4"><i class="fas fa-exclamation-triangle me-2"></i>Error loading alerts.</div>`;
+        }
+    }
+
+    function getIcon(type) {
+        if (type.includes('toner')) return 'fill-drip';
+        if (type.includes('offline')) return 'plug';
+        if (type.includes('paper')) return 'copy';
+        return 'exclamation-circle';
+    }
+
+    function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+    loadAlerts();
+</script>
+{% endblock %}

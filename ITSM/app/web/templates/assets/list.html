@@ -496,6 +496,10 @@ async function deleteAsset(id) {
 
 // Load assets on page load
 document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('search')) {
+        document.getElementById('searchAsset').value = urlParams.get('search');
+    }
     loadStats();
     loadAssets();
 });

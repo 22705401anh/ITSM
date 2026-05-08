@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% block title %}Print Job #{{ job_id }} — Detail{% endblock %}
+{% block content %}
+<style>
+    .pjd-card { border:none; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.06); background:var(--bs-body-bg); }
+    .pjd-label { font-size:.75rem; font-weight:600; text-transform:uppercase; letter-spacing:.5px; color:#94a3b8; margin-bottom:2px; }
+    .pjd-value { font-size:.92rem; font-weight:500; }
+    .pjd-status { display:inline-block; padding:4px 14px; border-radius:20px; font-size:.8rem; font-weight:700; text-transform:capitalize; }
+    .pjd-status-printed  { background:#dcfce7; color:#166534; }
+    .pjd-status-printing { background:#fef3c7; color:#92400e; }
+    .pjd-status-queued   { background:#e0e7ff; color:#3730a3; }
+    .pjd-status-failed   { background:#fecaca; color:#991b1b; }
+    .pjd-status-cancelled{ background:#f1f5f9; color:#475569; }
+    .pjd-timeline { position:relative; padding-left:28px; }
+    .pjd-timeline::before { content:''; position:absolute; left:10px; top:0; bottom:0; width:2px; background:#e2e8f0; }
+    .pjd-tl-item { position:relative; margin-bottom:16px; }
+    .pjd-tl-dot { position:absolute; left:-24px; top:4px; width:14px; height:14px; border-radius:50%; border:2px solid #fff; box-shadow:0 0 0 2px #e2e8f0; }
+    .pjd-tl-dot-submitted { background:#6366f1; }
+    .pjd-tl-dot-printing  { background:#f59e0b; }
+    .pjd-tl-dot-printed   { background:#10b981; }
+    .pjd-tl-dot-failed    { background:#ef4444; }
+    .pjd-tl-dot-cancelled { background:#94a3b8; }
+    .pjd-tl-dot-error     { background:#ef4444; }
+    .pjd-tl-type { font-weight:600; font-size:.85rem; text-transform:capitalize; }
+    .pjd-tl-time { font-size:.75rem; color:#94a3b8; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="/print/jobs" class="text-decoration-none text-muted small"><i class="fas fa-arrow-left me-1"></i>Back to Job Logs</a>
+        <h1 class="h4 fw-bold mt-1 mb-0"><i class="fas fa-file-alt me-2 text-primary"></i>Print Job #{{ job_id }}</h1>
+    </div>
+    <span class="pjd-status" id="jobStatus">Loading...</span>
+</div>
+
+<div class="row g-3" id="jobContent">
+    <!-- Left: Details -->
+    <div class="col-lg-8">
+        <div class="card pjd-card p-4 mb-3">
+            <h6 class="fw-bold mb-3"><i class="fas fa-info-circle me-2 text-primary"></i>Job Details</h6>
+            <div class="row g-3" id="detailGrid"></div>
+        </div>
+        <div class="card pjd-card p-4">
+            <h6 class="fw-bold mb-3"><i class="fas fa-user me-2 text-success"></i>User & Workstation</h6>
+            <div class="row g-3" id="userGrid"></div>
+        </div>
+    </div>
+    <!-- Right: Timeline -->
+    <div class="col-lg-4">
+        <div class="card pjd-card p-4">
+            <h6 class="fw-bold mb-3"><i class="fas fa-stream me-2 text-info"></i>Event Timeline</h6>
+            <div class="pjd-timeline" id="timeline">
+                <div class="text-muted small text-center py-3">Loading...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const jobId = {{ job_id }};
+
+    async function loadJob() {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch(`/api/print/jobs/${jobId}`, { headers: { 'Authorization': `Bearer ${token}` }});
+        if (!res.ok) { document.getElementById('jobContent').innerHTML = '<div class="alert alert-danger">Job not found</div>'; return; }
+        const j = await res.json();
+
+        // Status badge
+        const statusEl = document.getElementById('jobStatus');
+        statusEl.textContent = j.status;
+        statusEl.className = 'pjd-status pjd-status-' + j.status;
+
+        // Detail grid
+        const fields = [
+            ['Document', j.document_name || '—'],
+            ['Printer', j.printer_name || '—'],
+            ['Queue', j.queue_name || '—'],
+            ['Server', j.server_name || '—'],
+            ['Location', j.printer_location || '—'],
+            ['Driver', j.driver_name || '—'],
+            ['Pages', j.total_pages != null ? j.total_pages : '—'],
+            ['Copies', j.copies || 1],
+            ['Color', j.is_color === true ? '🎨 Color' : (j.is_color === false ? '⬛ Mono' : '—')],
+            ['Duplex', j.is_duplex === true ? '📄📄 Duplex' : (j.is_duplex === false ? '📄 Simplex' : '—')],
+            ['Paper', j.paper_size || '—'],
+            ['File Size', j.file_size_bytes ? (j.file_size_bytes / 1024).toFixed(1) + ' KB' : '—'],
+            ['Estimated Cost', j.estimated_cost != null ? '€' + j.estimated_cost.toFixed(2) : '—'],
+            ['Submitted', j.submitted_at ? new Date(j.submitted_at).toLocaleString() : '—'],
+            ['Started', j.started_at ? new Date(j.started_at).toLocaleString() : '—'],
+            ['Completed', j.completed_at ? new Date(j.completed_at).toLocaleString() : '—'],
+        ];
+        document.getElementById('detailGrid').innerHTML = fields.map(([l, v]) =>
+            `<div class="col-6 col-md-4"><div class="pjd-label">${l}</div><div class="pjd-value">${v}</div></div>`
+        ).join('');
+
+        // User grid
+        const uFields = [
+            ['Login', j.user_login || '—'],
+            ['Display Name', j.user_display_name || '—'],
+            ['Email', j.user_email || '—'],
+            ['Department', j.user_department || '—'],
+            ['Cost Center', j.user_cost_center || '—'],
+            ['Workstation', j.workstation || '—'],
+        ];
+        document.getElementById('userGrid').innerHTML = uFields.map(([l, v]) =>
+            `<div class="col-6 col-md-4"><div class="pjd-label">${l}</div><div class="pjd-value">${v}</div></div>`
+        ).join('');
+
+        // Timeline
+        const tl = document.getElementById('timeline');
+        if (!j.events || !j.events.length) {
+            tl.innerHTML = '<div class="text-muted small text-center py-3">No events recorded</div>';
+        } else {
+            tl.innerHTML = j.events.map(e => `
+                <div class="pjd-tl-item">
+                    <div class="pjd-tl-dot pjd-tl-dot-${e.event_type}"></div>
+                    <div class="pjd-tl-type">${e.event_type}</div>
+                    <div class="pjd-tl-time">${e.timestamp ? new Date(e.timestamp).toLocaleString() : ''} · ${e.source || ''}</div>
+                    ${e.event_data ? '<div class="text-muted" style="font-size:.78rem;margin-top:2px">' + e.event_data + '</div>' : ''}
+                </div>
+            `).join('');
+        }
+    }
+
+    loadJob();
+</script>
+{% endblock %}

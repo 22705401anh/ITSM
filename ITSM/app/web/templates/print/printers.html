@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block title %}Print Management — Printers{% endblock %}
+{% block content %}
+<style>
+    .pp-card { border:none; border-radius:14px; box-shadow:0 2px 12px rgba(0,0,0,.06); background:var(--bs-body-bg); }
+    .pp-table { font-size:.85rem; margin:0; }
+    .pp-table thead th { background:#f8f9fb; font-weight:600; font-size:.78rem; text-transform:uppercase; letter-spacing:.5px; color:#64748b; border-bottom:2px solid #e2e8f0; padding:10px 12px; white-space:nowrap; }
+    .pp-table tbody td { padding:10px 12px; vertical-align:middle; }
+    .pp-table tbody tr { transition:background .12s; }
+    .pp-table tbody tr:hover { background:rgba(99,102,241,.03); }
+    .pp-status { display:inline-block; padding:2px 10px; border-radius:20px; font-size:.75rem; font-weight:600; }
+    .pp-status-online  { background:#dcfce7; color:#166534; }
+    .pp-status-offline { background:#fecaca; color:#991b1b; }
+    .pp-status-error   { background:#fef3c7; color:#92400e; }
+    .pp-status-unknown { background:#f1f5f9; color:#94a3b8; }
+    .pp-toner-bar { height:8px; border-radius:4px; background:#e2e8f0; overflow:hidden; min-width:60px; }
+    .pp-toner-fill { height:100%; border-radius:4px; transition:width .3s; }
+    .pp-toner-label { font-size:.72rem; font-weight:600; min-width:30px; text-align:right; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 class="h4 fw-bold mb-1"><i class="fas fa-print me-2 text-primary"></i>Printer Inventory</h1>
+        <p class="text-muted mb-0 small">All managed printers and their current status</p>
+    </div>
+    <a href="/print" class="btn btn-sm btn-outline-secondary"><i class="fas fa-chart-pie me-1"></i>Dashboard</a>
+</div>
+
+<div class="card pp-card">
+    <div class="table-responsive">
+        <table class="table pp-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Model</th>
+                    <th>IP Address</th>
+                    <th>Location</th>
+                    <th>Department</th>
+                    <th>Status</th>
+                    <th>Page Counter</th>
+                    <th>Toner</th>
+                    <th>Last Seen</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="printerBody">
+                <tr><td colspan="10" class="text-center py-5 text-muted"><i class="fas fa-spinner fa-spin me-2"></i>Loading...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content" style="border-radius:14px;border:none;">
+    <div class="modal-header border-0 pb-0"><h6 class="modal-title fw-bold"><i class="fas fa-edit me-2 text-primary"></i>Edit Printer</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+    <div class="modal-body">
+        <input type="hidden" id="editId">
+        <div class="mb-2"><label class="form-label small fw-semibold">Name</label><input class="form-control form-control-sm" id="editName"></div>
+        <div class="mb-2"><label class="form-label small fw-semibold">Location</label><input class="form-control form-control-sm" id="editLocation"></div>
+        <div class="mb-2"><label class="form-label small fw-semibold">Department</label><input class="form-control form-control-sm" id="editDept"></div>
+        <div class="mb-2"><label class="form-label small fw-semibold">Model</label><input class="form-control form-control-sm" id="editModel"></div>
+        <div class="mb-2"><label class="form-label small fw-semibold">IP Address</label><input class="form-control form-control-sm" id="editIP"></div>
+    </div>
+    <div class="modal-footer border-0 pt-0">
+        <button class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button class="btn btn-sm btn-primary" id="btnSaveEdit"><i class="fas fa-save me-1"></i>Save</button>
+    </div>
+</div></div></div>
+
+<script>
+    async function loadPrinters() {
+        const token = localStorage.getItem('access_token');
+        const res = await fetch('/api/print/printers/list', { headers: { 'Authorization': `Bearer ${token}` }});
+        const printers = await res.json();
+        const tbody = document.getElementById('printerBody');
+
+        if (!printers.length) {
+            tbody.innerHTML = '<tr><td colspan="10" class="text-center py-5 text-muted"><i class="fas fa-print d-block mb-2" style="font-size:2rem"></i>No printers registered yet.<br><small>Printers will appear once an agent discovers them.</small></td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = printers.map(p => {
+            const tonerBars = renderToner(p);
+            return `<tr>
+                <td class="fw-medium">${p.hardware_id ? `<a href="/hardware/printer/${p.hardware_id}" class="text-decoration-none" style="color: inherit;">${p.name}</a>` : p.name}</td>
+                <td>${p.model || '—'}</td>
+                <td><code class="small">${p.ip_address || '—'}</code></td>
+                <td>${p.location || '—'}</td>
+                <td>${p.department || '—'}</td>
+                <td><span class="pp-status pp-status-${p.status||'unknown'}">${p.status||'unknown'}</span></td>
+                <td class="text-end fw-semibold">${p.total_page_counter != null ? p.total_page_counter.toLocaleString() : '—'}</td>
+                <td>${tonerBars}</td>
+                <td class="text-nowrap small">${p.last_seen ? new Date(p.last_seen).toLocaleDateString() : '—'}</td>
+                <td><button class="btn btn-sm btn-outline-primary py-0 px-2" onclick="openEdit(${p.id},'${esc(p.name)}','${esc(p.location)}','${esc(p.department)}','${esc(p.model)}','${esc(p.ip_address)}')"><i class="fas fa-edit"></i></button></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function esc(s) { return (s||'').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+    function renderToner(p) {
+        if (p.toner_black == null) return '<span class="text-muted small">N/A</span>';
+        const bars = [
+            { label: 'K', val: p.toner_black, color: '#1e293b' },
+            { label: 'C', val: p.toner_cyan, color: '#06b6d4' },
+            { label: 'M', val: p.toner_magenta, color: '#ec4899' },
+            { label: 'Y', val: p.toner_yellow, color: '#eab308' },
+        ];
+        return bars.filter(b => b.val != null).map(b =>
+            `<div class="d-flex align-items-center gap-1 mb-1"><span class="pp-toner-label">${b.label}</span><div class="pp-toner-bar flex-grow-1"><div class="pp-toner-fill" style="width:${b.val}%;background:${b.color}"></div></div><span class="pp-toner-label">${b.val}%</span></div>`
+        ).join('');
+    }
+
+    function openEdit(id, name, loc, dept, model, ip) {
+        document.getElementById('editId').value = id;
+        document.getElementById('editName').value = name;
+        document.getElementById('editLocation').value = loc;
+        document.getElementById('editDept').value = dept;
+        document.getElementById('editModel').value = model;
+        document.getElementById('editIP').value = ip;
+        new bootstrap.Modal(document.getElementById('editModal')).show();
+    }
+
+    document.getElementById('btnSaveEdit').addEventListener('click', async () => {
+        const token = localStorage.getItem('access_token');
+        const id = document.getElementById('editId').value;
+        const body = {
+            name: document.getElementById('editName').value,
+            location: document.getElementById('editLocation').value,
+            department: document.getElementById('editDept').value,
+            model: document.getElementById('editModel').value,
+            ip_address: document.getElementById('editIP').value,
+        };
+        await fetch(`/api/print/printers/${id}`, {
+            method: 'PATCH', headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+        loadPrinters();
+    });
+
+    loadPrinters();
+</script>
+{% endblock %}

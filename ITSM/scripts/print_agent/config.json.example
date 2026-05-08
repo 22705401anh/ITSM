@@ -1,0 +1,10 @@
+{
+    "server_url": "http://localhost:8000",
+    "agent_id": "",
+    "auth_token": "",
+    "polling_interval_seconds": 5,
+    "heartbeat_interval_seconds": 60,
+    "local_cache_path": "./cache.db",
+    "log_level": "INFO",
+    "log_file": "./kostal_print_agent.log"
+}

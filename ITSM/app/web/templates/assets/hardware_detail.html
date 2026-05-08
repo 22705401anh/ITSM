@@ -255,6 +255,8 @@
                 <!-- Populated via JS -->
             </div>
 
+            <div id="printerSpecificWidgets"></div>
+
             <!-- Lifecycle Timeline Card -->
             <div class="premium-card p-4">
                 <div class="d-flex align-items-center mb-4">
@@ -640,6 +642,157 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         document.getElementById('telemetryRow').innerHTML = telemetryHtml;
+
+        if (assetType === 'printer') {
+            let printerHtml = '';
+            
+            // SNMP Telemetry
+            if (asset.snmp) {
+                const s = asset.snmp;
+                
+                let snmpStatusHtml = '';
+                if (s.status === 'online' || s.status === 'idle' || s.status === 'printing') {
+                    snmpStatusHtml = `<span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-50 px-3 py-2"><i class="fas fa-check-circle me-1"></i> SNMP Online</span>`;
+                } else {
+                    snmpStatusHtml = `<span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-50 px-3 py-2"><i class="fas fa-exclamation-circle me-1"></i> ${s.status || 'Offline'}</span>`;
+                }
+
+                if (s.error_state) {
+                    snmpStatusHtml += `<span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-50 px-3 py-2 ms-2"><i class="fas fa-exclamation-triangle text-warning me-1"></i> ${s.error_state}</span>`;
+                }
+                
+                printerHtml += `
+                <div class="premium-card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4 border-bottom border-light pb-3">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-soft icon-soft-dark me-3" style="width: 40px; height: 40px;">
+                                <i class="fas fa-tachometer-alt"></i>
+                            </div>
+                            <h5 class="mb-0 fw-bold brand-font text-dark">SNMP Telemetry</h5>
+                        </div>
+                        <div>${snmpStatusHtml}</div>
+                    </div>
+                    
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="text-label mb-3">Consumables (Toner Levels)</div>
+                `;
+                
+                const addToner = (color, level, hex) => {
+                    if (level === null || level === undefined) return '';
+                    return `
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <span style="font-size: 0.85rem; font-weight: 600; text-transform: capitalize;">${color}</span>
+                                <span style="font-size: 0.85rem; font-weight: 600; color: ${hex};">${level}%</span>
+                            </div>
+                            <div class="progress" style="height: 8px; border-radius: 4px; background-color: #f1f5f9;">
+                                <div class="progress-bar" role="progressbar" style="width: ${level}%; background-color: ${hex}; border-radius: 4px;" aria-valuenow="${level}" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                        </div>
+                    `;
+                };
+
+                let toners = '';
+                toners += addToner('Black', s.toner_black, '#0f172a');
+                toners += addToner('Cyan', s.toner_cyan, '#0ea5e9');
+                toners += addToner('Magenta', s.toner_magenta, '#ec4899');
+                toners += addToner('Yellow', s.toner_yellow, '#eab308');
+
+                if (!toners) {
+                    toners = `<div class="text-muted small"><i class="fas fa-info-circle me-1"></i> Toner data unavailable via SNMP.</div>`;
+                }
+                
+                printerHtml += toners;
+                
+                printerHtml += `
+                        </div>
+                        <div class="col-md-6 border-start border-light ps-4">
+                            <div class="text-label mb-3">Hardware Usage</div>
+                            <div class="d-flex align-items-center mb-4">
+                                <div class="icon-soft icon-soft-info" style="width: 48px; height: 48px; font-size: 1.2rem;">
+                                    <i class="fas fa-copy"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h3 class="mb-0 fw-bold text-dark">${s.total_page_counter !== null ? s.total_page_counter.toLocaleString() : '—'}</h3>
+                                    <p class="mb-0 text-muted small">Total Lifetime Pages</p>
+                                </div>
+                            </div>
+                            <div class="text-muted" style="font-size: 0.8rem;">
+                                <i class="fas fa-sync-alt me-1"></i> Last Polled: ${s.last_seen ? formatDate(s.last_seen) : 'Never'}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                `;
+            }
+
+            // Print Logs Table
+            if (asset.print_logs && asset.print_logs.length > 0) {
+                printerHtml += `
+                <div class="premium-card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div class="d-flex align-items-center">
+                            <div class="icon-soft icon-soft-primary me-3" style="width: 40px; height: 40px;">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <h5 class="mb-0 fw-bold brand-font text-dark">Recent Print Jobs</h5>
+                        </div>
+                        <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm">${asset.print_logs.length} Recent</span>
+                    </div>
+                    
+                    <div class="elegant-table-container">
+                        <table class="elegant-table">
+                            <thead>
+                                <tr>
+                                    <th class="ps-4">Time</th>
+                                    <th>User</th>
+                                    <th>Document</th>
+                                    <th>Pages</th>
+                                    <th>Format</th>
+                                    <th class="pe-4">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${asset.print_logs.map(log => {
+                                    let statusPill = '';
+                                    if(log.status === 'printed') statusPill = '<span class="status-pill success">Printed</span>';
+                                    else if(log.status === 'printing') statusPill = '<span class="status-pill warning">Printing</span>';
+                                    else if(log.status === 'failed') statusPill = '<span class="status-pill danger">Failed</span>';
+                                    else if(log.status === 'cancelled') statusPill = '<span class="status-pill danger">Cancelled</span>';
+                                    else statusPill = '<span class="status-pill secondary">' + (log.status || 'Unknown') + '</span>';
+
+                                    let fmtHtml = '';
+                                    if (log.is_color === true) fmtHtml = '<span title="Color" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#ef4444;"></span>';
+                                    else if (log.is_color === false) fmtHtml = '<span title="Mono" style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#94a3b8;"></span>';
+
+                                    return `
+                                        <tr>
+                                            <td class="ps-4 text-muted" style="font-size: 0.8rem;">${formatDate(log.submitted_at)}</td>
+                                            <td class="fw-medium text-dark">${log.user}</td>
+                                            <td><div style="max-width: 200px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${log.document_name || ''}">${log.document_name || 'Untitled'}</div></td>
+                                            <td class="fw-semibold">${log.total_pages || '—'}</td>
+                                            <td>${fmtHtml}</td>
+                                            <td class="pe-4">${statusPill}</td>
+                                        </tr>
+                                    `;
+                                }).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                `;
+            } else {
+                printerHtml += `
+                <div class="premium-card p-4 mb-4 text-center">
+                    <i class="fas fa-inbox fa-3x text-muted opacity-25 mb-3 mt-2"></i>
+                    <h6 class="text-muted">No recent print jobs found for this printer.</h6>
+                </div>
+                `;
+            }
+
+            document.getElementById('printerSpecificWidgets').innerHTML = printerHtml;
+        }
 
         if ((assetType === 'pc' || assetType === 'printer') && asset.mac_address) {
             fetch(`/api/discovery/locate_mac/${encodeURIComponent(asset.mac_address)}`, {

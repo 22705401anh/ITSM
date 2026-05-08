@@ -13,6 +13,7 @@ from app.api import auth, assets, documentation, licenses, hardware_assets, onbo
 from app.models import onboarding as onboarding_models
 from app.models import settings as settings_models
 from app.models import network as network_models
+from app.models import print_management as print_management_models
 from app.web import routes as web_routes
 
 # Configure logging
@@ -153,10 +154,11 @@ app.include_router(assets.router, prefix="/api", tags=["assets"])
 app.include_router(licenses.router, prefix="/api", tags=["licenses"])
 app.include_router(documentation.router, prefix="/api", tags=["documentation"])
 app.include_router(hardware_assets.router, prefix="/api", tags=["hardware"])
-from app.api import admin, problems, changes, discovery
+from app.api import admin, problems, changes, discovery, print_management
 app.include_router(admin.router, prefix="/api/admin", tags=["admin"])
 app.include_router(problems.router, prefix="/api/problems", tags=["problems"])
 app.include_router(changes.router, prefix="/api/changes", tags=["changes"])
 app.include_router(discovery.router, prefix="/api", tags=["discovery"])
+app.include_router(print_management.router, prefix="/api", tags=["print_management"])
 app.include_router(onboarding.router)
 app.include_router(web_routes.router, tags=["web"])

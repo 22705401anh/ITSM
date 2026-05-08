@@ -1,0 +1,460 @@
+{% extends "base.html" %}
+{% block title %}Print Management — Dashboard{% endblock %}
+{% block content %}
+<meta name="description" content="KOSTAL Print Management Dashboard — Real-time print tracking, usage analytics, and fleet health overview.">
+
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    :root {
+        --pm-primary: #4f46e5;
+        --pm-primary-light: #818cf8;
+        --pm-success: #10b981;
+        --pm-warning: #f59e0b;
+        --pm-danger: #ef4444;
+        --pm-info: #0ea5e9;
+        --pm-surface: #ffffff;
+        --pm-bg: #f8fafc;
+        --pm-text-main: #0f172a;
+        --pm-text-muted: #64748b;
+        --pm-border: #e2e8f0;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background-color: var(--pm-bg);
+        color: var(--pm-text-main);
+    }
+
+    .pm-header-title {
+        font-weight: 800;
+        letter-spacing: -0.5px;
+        color: var(--pm-text-main);
+    }
+
+    .pm-kpi-card {
+        border: 1px solid rgba(255,255,255,0.8);
+        border-radius: 16px;
+        background: linear-gradient(145deg, #ffffff, #f8fafc);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03), 0 1px 3px rgba(0, 0, 0, 0.02);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        overflow: hidden;
+        height: 100%;
+    }
+    .pm-kpi-card::before {
+        content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 4px;
+        background: linear-gradient(90deg, var(--pm-primary), var(--pm-primary-light));
+        opacity: 0; transition: opacity 0.3s;
+    }
+    .pm-kpi-card:hover { 
+        transform: translateY(-5px); 
+        box-shadow: 0 12px 30px rgba(0,0,0,0.06), 0 4px 10px rgba(0,0,0,0.04); 
+    }
+    .pm-kpi-card:hover::before { opacity: 1; }
+
+    .pm-kpi-icon {
+        width: 54px; height: 54px; border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1.4rem;
+        background: linear-gradient(135deg, rgba(79, 70, 229, 0.1), rgba(79, 70, 229, 0.02));
+        color: var(--pm-primary);
+        box-shadow: inset 0 2px 4px rgba(255,255,255,0.5);
+        transition: transform 0.3s;
+    }
+    .pm-kpi-icon.success { color: var(--pm-success); background: rgba(16, 185, 129, 0.1); }
+    .pm-kpi-icon.warning { color: var(--pm-warning); background: rgba(245, 158, 11, 0.1); }
+    .pm-kpi-icon.danger { color: var(--pm-danger); background: rgba(239, 68, 68, 0.1); }
+    .pm-kpi-icon.info { color: var(--pm-info); background: rgba(14, 165, 233, 0.1); }
+
+    .pm-kpi-card:hover .pm-kpi-icon { transform: scale(1.08) rotate(3deg); }
+
+    .pm-kpi-value { font-size: 2rem; font-weight: 800; letter-spacing: -1px; line-height: 1.1; color: var(--pm-text-main); margin-bottom: 2px; }
+    .pm-kpi-label { font-size: 0.8rem; font-weight: 600; color: var(--pm-text-muted); text-transform: uppercase; letter-spacing: 0.8px; }
+
+    .pm-chart-card {
+        border: 1px solid var(--pm-border); 
+        border-radius: 16px;
+        background: var(--pm-surface);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.02);
+        transition: box-shadow 0.3s;
+        height: 100%;
+    }
+    .pm-chart-card:hover { box-shadow: 0 8px 25px rgba(0,0,0,0.04); }
+    .pm-chart-title { font-weight: 700; font-size: 1.05rem; color: var(--pm-text-main); display: flex; align-items: center; }
+    .pm-chart-title i { opacity: 0.8; }
+
+    .pm-rank-list { list-style: none; padding: 0; margin: 0; }
+    .pm-rank-list li {
+        display: flex; justify-content: space-between; align-items: center;
+        padding: 12px 16px; border-radius: 12px;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+        background: transparent;
+        border: 1px solid transparent;
+    }
+    .pm-rank-list li:hover { 
+        background: var(--pm-bg);
+        border-color: var(--pm-border);
+        transform: translateX(4px);
+    }
+    .pm-rank-badge { font-weight: 700; width: 32px; height: 32px; border-radius: 50%; background: #f1f5f9; display: flex; align-items: center; justify-content: center; color: var(--pm-text-muted); font-size: 0.85rem;}
+    .pm-rank-bar-bg { height: 6px; border-radius: 4px; background: #f1f5f9; width: 100%; margin-top: 6px; overflow: hidden; }
+    .pm-rank-bar { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--pm-primary), var(--pm-primary-light)); transition: width 1s cubic-bezier(0.4, 0, 0.2, 1); }
+
+    .pm-period-btn { font-weight: 600; border-radius: 8px !important; padding: 6px 16px; border-color: var(--pm-border); color: var(--pm-text-muted); transition: all 0.2s; background: var(--pm-surface); }
+    .pm-period-btn.active { background: var(--pm-primary); color: #fff; border-color: var(--pm-primary); box-shadow: 0 4px 10px rgba(79, 70, 229, 0.3); z-index: 2; }
+    .pm-period-btn:hover:not(.active) { background: #f1f5f9; color: var(--pm-text-main); z-index: 1; }
+
+    .pm-stat-pill {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;
+        box-shadow: inset 0 1px 2px rgba(255,255,255,0.5);
+        border: 1px solid rgba(0,0,0,0.05);
+    }
+
+    .pm-empty-state { text-align: center; padding: 60px 20px; opacity: .5; flex-direction: column; justify-content: center; display: flex; align-items: center; }
+    .pm-empty-state i { font-size: 3rem; margin-bottom: 16px; color: var(--pm-text-muted); }
+
+    /* Animations */
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .animate-slide-up { animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; opacity: 0; }
+    .delay-1 { animation-delay: 0.1s; }
+    .delay-2 { animation-delay: 0.2s; }
+    .delay-3 { animation-delay: 0.3s; }
+</style>
+
+<!-- Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 animate-slide-up">
+    <div>
+        <h1 class="h3 pm-header-title mb-1"><i class="fas fa-print me-2" style="color: var(--pm-primary);"></i>Print Management</h1>
+        <p class="text-muted mb-0 small" style="font-weight: 500;">Real-time print usage tracking & fleet analytics</p>
+    </div>
+    <div class="d-flex gap-3 align-items-center">
+        <div class="btn-group shadow-sm" id="periodBtns">
+            <button class="btn pm-period-btn" data-days="7">7D</button>
+            <button class="btn pm-period-btn active" data-days="30">30D</button>
+            <button class="btn pm-period-btn" data-days="90">90D</button>
+            <button class="btn pm-period-btn" data-days="365">1Y</button>
+            <button class="btn pm-period-btn" data-days="9999">ALL</button>
+        </div>
+        <a href="/print/jobs" class="btn btn-primary fw-bold shadow-sm" style="border-radius: 8px; padding: 8px 16px;"><i class="fas fa-list me-2"></i>Job Logs</a>
+    </div>
+</div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4 animate-slide-up delay-1" id="kpiRow">
+    <div class="col-6 col-md-4 col-xl">
+        <div class="pm-kpi-card p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="pm-kpi-icon"><i class="fas fa-file-alt"></i></div>
+                <div>
+                    <div class="pm-kpi-value" id="kpiJobs">—</div>
+                    <div class="pm-kpi-label">Total Jobs</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="pm-kpi-card p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="pm-kpi-icon success"><i class="fas fa-copy"></i></div>
+                <div>
+                    <div class="pm-kpi-value" id="kpiPages">—</div>
+                    <div class="pm-kpi-label">Total Pages</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4 col-xl">
+        <div class="pm-kpi-card p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="pm-kpi-icon warning"><i class="fas fa-euro-sign"></i></div>
+                <div>
+                    <div class="pm-kpi-value" id="kpiCost">—</div>
+                    <div class="pm-kpi-label">Total Cost</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-6 col-xl">
+        <div class="pm-kpi-card p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="pm-kpi-icon danger"><i class="fas fa-exclamation-triangle"></i></div>
+                <div>
+                    <div class="pm-kpi-value" id="kpiFailed">—</div>
+                    <div class="pm-kpi-label">Failed / Cancelled</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-12 col-md-6 col-xl">
+        <div class="pm-kpi-card p-3">
+            <div class="d-flex align-items-center gap-3">
+                <div class="pm-kpi-icon info"><i class="fas fa-server"></i></div>
+                <div>
+                    <div class="pm-kpi-value" id="kpiServers">—</div>
+                    <div class="pm-kpi-label">Active Agents</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Row -->
+<div class="row g-3 mb-4 animate-slide-up delay-2">
+    <!-- Daily Pages Trend -->
+    <div class="col-lg-8">
+        <div class="pm-chart-card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <span class="pm-chart-title"><i class="fas fa-chart-area me-2 text-primary"></i>Pages per Day</span>
+                <div class="d-flex gap-2">
+                    <span class="pm-stat-pill bg-primary bg-opacity-10 text-primary" id="pillColor">
+                        <i class="fas fa-palette"></i> <span>0 color</span>
+                    </span>
+                    <span class="pm-stat-pill" style="background: rgba(100, 116, 139, 0.1); color: var(--pm-text-muted);" id="pillMono">
+                        <i class="fas fa-adjust"></i> <span>0 mono</span>
+                    </span>
+                    <span class="pm-stat-pill bg-success bg-opacity-10 text-success" id="pillDuplex">
+                        <i class="fas fa-columns"></i> <span>0 duplex</span>
+                    </span>
+                </div>
+            </div>
+            <div style="position: relative; height: 320px; width: 100%;">
+                <canvas id="chartDaily"></canvas>
+            </div>
+        </div>
+    </div>
+    <!-- Color / Duplex Ratio -->
+    <div class="col-lg-4">
+        <div class="pm-chart-card p-4 mb-3" style="height: auto;">
+            <span class="pm-chart-title mb-4"><i class="fas fa-palette me-2 text-primary"></i>Color vs Mono</span>
+            <div style="position: relative; height: 160px; width: 100%;">
+                <canvas id="chartColor"></canvas>
+            </div>
+        </div>
+        <div class="pm-chart-card p-4" style="height: auto;">
+            <span class="pm-chart-title mb-4"><i class="fas fa-columns me-2 text-success"></i>Duplex vs Simplex</span>
+            <div style="position: relative; height: 160px; width: 100%;">
+                <canvas id="chartDuplex"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Top Users / Top Printers -->
+<div class="row g-3 mb-4 animate-slide-up delay-3">
+    <div class="col-lg-6">
+        <div class="pm-chart-card p-4">
+            <span class="pm-chart-title mb-4"><i class="fas fa-users me-2 text-primary"></i>Top Users by Pages</span>
+            <ul class="pm-rank-list" id="topUsers">
+                <li class="pm-empty-state"><i class="fas fa-user-slash"></i>No data yet</li>
+            </ul>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="pm-chart-card p-4">
+            <span class="pm-chart-title mb-4"><i class="fas fa-print me-2 text-success"></i>Top Printers by Pages</span>
+            <ul class="pm-rank-list" id="topPrinters">
+                <li class="pm-empty-state"><i class="fas fa-print"></i>No data yet</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+
+<script>
+    let dailyChart, colorChart, duplexChart;
+    let currentDays = 30;
+
+    // Custom Chart Defaults for Professional Look
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#64748b';
+    Chart.defaults.scale.grid.color = '#f1f5f9';
+
+    document.querySelectorAll('.pm-period-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.pm-period-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentDays = parseInt(btn.dataset.days);
+            loadDashboard(currentDays);
+        });
+    });
+
+    async function loadDashboard(days) {
+        try {
+            const token = localStorage.getItem('access_token');
+            const res = await fetch(`/api/print/dashboard?days=${days}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) throw new Error('Failed to load');
+            const d = await res.json();
+            renderKPIs(d.kpi);
+            renderDailyChart(d.daily_pages);
+            renderColorChart(d.kpi);
+            renderDuplexChart(d.kpi);
+            renderTopList('topUsers', d.top_users, 'fas fa-user', (item) => {
+                return item.item_id ? `/admin/users/${item.item_id}` : `/users_list?search=${encodeURIComponent(item.name)}`;
+            });
+            renderTopList('topPrinters', d.top_printers, 'fas fa-print', (item) => {
+                return item.item_id ? `/hardware/printer/${item.item_id}?type=printer` : `/print/printers`;
+            });
+
+            const pillColor = document.querySelector('#pillColor span');
+            const pillMono = document.querySelector('#pillMono span');
+            const pillDuplex = document.querySelector('#pillDuplex span');
+            
+            if (pillColor && d && d.kpi) pillColor.textContent = `${(d.kpi.color_jobs || 0).toLocaleString()} color`;
+            if (pillMono && d && d.kpi) pillMono.textContent = `${(d.kpi.mono_jobs || 0).toLocaleString()} mono`;
+            if (pillDuplex && d && d.kpi) pillDuplex.textContent = `${(d.kpi.duplex_jobs || 0).toLocaleString()} duplex`;
+        } catch (e) {
+            console.error('Dashboard load error:', e);
+        }
+    }
+
+    function renderKPIs(k) {
+        document.getElementById('kpiJobs').textContent = k.total_jobs.toLocaleString();
+        document.getElementById('kpiPages').textContent = k.total_pages.toLocaleString();
+        document.getElementById('kpiCost').textContent = '€' + k.total_cost.toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2});
+        document.getElementById('kpiFailed').textContent = (k.failed_jobs + k.cancelled_jobs).toLocaleString();
+        document.getElementById('kpiServers').textContent = k.active_agents;
+    }
+
+    function renderDailyChart(data) {
+        const ctx = document.getElementById('chartDaily');
+        if (dailyChart) dailyChart.destroy();
+        
+        // Create Gradient
+        const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 300);
+        gradient.addColorStop(0, 'rgba(79, 70, 229, 0.2)');
+        gradient.addColorStop(1, 'rgba(79, 70, 229, 0.0)');
+
+        dailyChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: data.map(d => d.date),
+                datasets: [{
+                    label: 'Pages',
+                    data: data.map(d => d.pages),
+                    borderColor: '#4f46e5',
+                    backgroundColor: gradient,
+                    fill: true, tension: .35, cubicInterpolationMode: 'monotone', pointRadius: 0, pointHoverRadius: 6,
+                    borderWidth: 3,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#4f46e5',
+                    pointBorderWidth: 2,
+                }, {
+                    label: 'Cost (€)',
+                    data: data.map(d => d.cost),
+                    borderColor: '#f59e0b',
+                    borderDash: [5,5],
+                    fill: false, tension: .35, cubicInterpolationMode: 'monotone', pointRadius: 0, pointHoverRadius: 5,
+                    borderWidth: 2, yAxisID: 'y1',
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { 
+                    legend: { display: true, position: 'top', align: 'end', labels: { usePointStyle: true, pointStyle: 'circle', boxWidth: 8, padding: 20, font: {weight: '600'} }},
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        titleFont: { size: 13, family: "'Inter', sans-serif" },
+                        bodyFont: { size: 13, family: "'Inter', sans-serif" },
+                        padding: 12, cornerRadius: 8, displayColors: true
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } },
+                    y: { 
+                        beginAtZero: true, border: { display: false },
+                        grid: { color: '#f8fafc', drawBorder: false }
+                    },
+                    y1: { 
+                        beginAtZero: true, position: 'right', border: { display: false },
+                        grid: { display: false }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderDonut(id, labels, dataVals, colors, existing) {
+        const ctx = document.getElementById(id);
+        if (!ctx) return existing;
+        if (existing) existing.destroy();
+        
+        const sum = dataVals.reduce((a, b) => a + b, 0);
+        if (sum === 0) {
+            return new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: ['No Data'], datasets: [{ data: [1], backgroundColor: ['#f1f5f9'], borderWidth: 0 }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, cutout: '75%',
+                    plugins: { legend: { display: false }, tooltip: { enabled: false } }
+                }
+            });
+        }
+        
+        return new Chart(ctx, {
+            type: 'doughnut',
+            data: { labels, datasets: [{ data: dataVals, backgroundColor: colors, borderWidth: 0, hoverOffset: 4 }] },
+            options: {
+                responsive: true, maintainAspectRatio: false, cutout: '75%',
+                plugins: { 
+                    legend: { position: 'right', labels: { usePointStyle: true, pointStyle: 'circle', padding: 16, font: { weight: '500' }}},
+                    tooltip: {
+                        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+                        padding: 10, cornerRadius: 8
+                    }
+                }
+            }
+        });
+    }
+
+    function renderColorChart(r) {
+        colorChart = renderDonut('chartColor', ['Color', 'Mono'], [r.color_jobs || 0, r.mono_jobs || 0], ['#4f46e5', '#94a3b8'], colorChart);
+    }
+    function renderDuplexChart(r) {
+        duplexChart = renderDonut('chartDuplex', ['Duplex', 'Simplex'], [r.duplex_jobs || 0, r.simplex_jobs || 0], ['#10b981', '#f59e0b'], duplexChart);
+    }
+
+    function renderTopList(elId, items, icon, linkBuilder = null) {
+        const ul = document.getElementById(elId);
+        if (!items.length) { ul.innerHTML = '<li class="pm-empty-state"><i class="' + icon + '"></i><div class="fw-medium">No data yet</div></li>'; return; }
+        const maxVal = Math.max(...items.map(i => i.value));
+        ul.innerHTML = items.map((item, idx) => {
+            let nameHtml = item.name;
+            if (linkBuilder) {
+                const url = linkBuilder(item);
+                if (url) {
+                    nameHtml = `<a href="${url}" style="text-decoration:none; color:inherit;" class="hover-primary">${item.name}</a>`;
+                }
+            }
+            return `
+            <li>
+                <div class="d-flex align-items-center gap-3 flex-grow-1" style="min-width:0">
+                    <span class="pm-rank-badge">${idx + 1}</span>
+                    <div class="flex-grow-1" style="min-width:0">
+                        <div class="text-truncate fw-bold" style="color: var(--pm-text-main); font-size: 0.95rem;">${nameHtml}</div>
+                        <div class="pm-rank-bar-bg">
+                            <div class="pm-rank-bar" style="width:${Math.round(item.value / maxVal * 100)}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="fw-bold text-nowrap ms-3" style="font-size: 1.1rem; color: var(--pm-text-main);">${item.value.toLocaleString()}</div>
+            </li>
+            `;
+        }).join('');
+    }
+
+    // Initial load
+    loadDashboard(currentDays);
+</script>
+{% endblock %}

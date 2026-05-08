@@ -16,11 +16,14 @@ echo Waiting 5 seconds for the FastAPI server to boot up before launching API sy
 timeout /t 5 /nobreak >nul
 echo.
 
-echo [3/4] Starting Asset Inventory Sync...
+echo [3/5] Starting Asset Inventory Sync...
 start "Asset Inventory Sync" powershell -NoExit -ExecutionPolicy Bypass -File "scripts\Sync-ITSMAssets.ps1"
 
-echo [4/4] Starting Printer Inventory Sync...
+echo [4/5] Starting Printer Inventory Sync...
 start "Printer Inventory Sync" powershell -NoExit -ExecutionPolicy Bypass -File "scripts\Sync-ITSMPrinters.ps1"
+
+echo [5/5] Starting Print SNMP Worker...
+start "Print SNMP Worker" cmd /k "venv\Scripts\activate && python scripts\print_snmp_worker.py"
 
 echo.
 echo =======================================================
