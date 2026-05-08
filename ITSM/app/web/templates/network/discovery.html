@@ -161,7 +161,7 @@ html.dark-theme .disc-tag{color:var(--primary-light)}
       </div>
       <div class="disc-search">
         <i class="fas fa-search"></i>
-        <input type="text" placeholder="Search by name, IP, vendor, MAC, or user..." id="searchInput" oninput="renderDevices()">
+        <input type="text" placeholder="Search by name, IP, vendor, MAC, user, or port..." id="searchInput" oninput="renderDevices()">
         <i class="fas fa-filter" style="cursor:pointer"></i>
       </div>
       <div class="disc-actions">
@@ -339,7 +339,32 @@ function getFilteredDevices() {
     if(currentFilter==='Access Point') return d.device_type==='Access Point'||d.device_type==='AP';
     return d.device_type===currentFilter;
   });
-  if(q) devs=devs.filter(d=>(d.hostname||'').toLowerCase().includes(q)||(d.ip_address||'').includes(q)||(d.vendor||'').toLowerCase().includes(q)||(d.mac_address||'').toLowerCase().includes(q)||(d.assigned_user||'').toLowerCase().includes(q));
+
+  if (q) {
+    devs = devs.filter(d => {
+      let match = false;
+      if ((d.hostname||'').toLowerCase().includes(q) || 
+          (d.ip_address||'').includes(q) || 
+          (d.vendor||'').toLowerCase().includes(q) || 
+          (d.mac_address||'').toLowerCase().includes(q) || 
+          (d.assigned_user||'').toLowerCase().includes(q)) {
+          match = true;
+      }
+      
+      d.matched_ports = [];
+      if (d.ports_summary && d.ports_summary.length > 0) {
+          for (let p of d.ports_summary) {
+              if ((p.a||'').toLowerCase().includes(q) || (p.n||'').toLowerCase().includes(q) || (p.u||'').toLowerCase().includes(q)) {
+                  d.matched_ports.push(p);
+                  match = true;
+              }
+          }
+      }
+      return match;
+    });
+  } else {
+    devs.forEach(d => d.matched_ports = []);
+  }
 
   // Work Items Sidebar Filters
   if (document.getElementById('cbUnreachable')?.checked) devs = devs.filter(d => d.snmp_status === 'FAILED');
@@ -404,8 +429,18 @@ function renderDevices(){
         statusBadge = '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle" style="opacity: 0.7">Unmanaged</span>';
     }
     
+    let portsHtml = '';
+    if (d.matched_ports && d.matched_ports.length > 0) {
+        let pills = d.matched_ports.slice(0, 3).map(p => {
+            let uStr = p.u ? ` (User: ${p.u})` : '';
+            return `<span class="badge bg-info-subtle text-info border border-info-subtle" style="font-size: 0.65rem; margin-top: 4px; padding: 0.2rem 0.4rem"><i class="fas fa-network-wired me-1"></i>${p.n}: ${p.a || 'Active'}${uStr}</span>`;
+        }).join(' ');
+        if (d.matched_ports.length > 3) pills += ` <span class="badge bg-secondary-subtle text-secondary" style="font-size: 0.65rem;">+${d.matched_ports.length - 3} more</span>`;
+        portsHtml = `<div class="mt-1 d-flex flex-wrap gap-1">${pills}</div>`;
+    }
+    
     let actions=`<div class="dropdown"><button class="disc-dots" data-bs-toggle="dropdown"><i class="fas fa-ellipsis-v"></i></button><ul class="dropdown-menu dropdown-menu-end shadow-sm">${d.snmp_status==='CONNECTED'&&(d.device_type==='Switch'||d.device_type==='Router')?`<li><a class="dropdown-item" href="#" onclick="viewPorts(${d.id})"><i class="fas fa-network-wired text-info me-2"></i>View Ports</a></li>`:''}${d.status!=='MATCHED'?`<li><a class="dropdown-item" href="#" onclick="syncDevice(${d.id})"><i class="fas fa-link text-primary me-2"></i>Sync to CMDB</a></li>`:''}<li><hr class="dropdown-divider"></li><li><a class="dropdown-item text-danger" href="#" onclick="ignoreDevice(${d.id})"><i class="fas fa-ban me-2"></i>Ignore</a></li></ul></div>`;
-    return `<tr><td style="width:36px;text-align:center"><input class="form-check-input device-checkbox" type="checkbox" value="${d.id}"></td><td><div class="disc-tag"><i class="fas fa-tag"></i></div></td><td><a href="/network/discovery/${d.id}" class="dev-link">${d.hostname||'Unknown'}</a><div class="dev-sub">${sub}</div>${userHtml}</td><td class="mono">${d.ip_address}</td><td style="color:#6b7280">${family}</td><td>${statusBadge}</td><td class="mono">${mac}</td><td>${actions}</td></tr>`;
+    return `<tr><td style="width:36px;text-align:center"><input class="form-check-input device-checkbox" type="checkbox" value="${d.id}"></td><td><div class="disc-tag"><i class="fas fa-tag"></i></div></td><td><a href="/network/discovery/${d.id}" class="dev-link">${d.hostname||'Unknown'}</a><div class="dev-sub">${sub}</div>${userHtml}${portsHtml}</td><td class="mono">${d.ip_address}</td><td style="color:#6b7280">${family}</td><td>${statusBadge}</td><td class="mono">${mac}</td><td>${actions}</td></tr>`;
   }).join('');
   
   updateSelectedCount();

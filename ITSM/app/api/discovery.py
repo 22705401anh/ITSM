@@ -55,7 +55,8 @@ async def get_discovery_stats(db: Session = Depends(get_db)):
 
 @router.get("/devices")
 def get_discovered_devices(db: Session = Depends(get_db)):
-    devices = db.query(DiscoveredDevice).filter(DiscoveredDevice.status != 'IGNORED').order_by(DiscoveredDevice.last_seen.desc()).all()
+    from sqlalchemy.orm import joinedload
+    devices = db.query(DiscoveredDevice).options(joinedload(DiscoveredDevice.telemetry)).filter(DiscoveredDevice.status != 'IGNORED').order_by(DiscoveredDevice.last_seen.desc()).all()
     
     # Pre-fetch user mapping for all devices by MAC
     from sqlalchemy import text
@@ -80,6 +81,28 @@ def get_discovered_devices(db: Session = Depends(get_db)):
                     user = mac_to_user[mac]
                     break
                     
+        ports_summary = []
+        if getattr(d, 'telemetry', None) and d.telemetry.ports_data_json:
+            import json
+            try:
+                ports_data = json.loads(d.telemetry.ports_data_json)
+                for p in ports_data:
+                    p_macs = p.get("macs_connected", [])
+                    p_users = []
+                    for m in p_macs:
+                        if m in mac_to_user:
+                            if mac_to_user[m] not in p_users:
+                                p_users.append(mac_to_user[m])
+                                
+                    if p.get("alias") or p_users:
+                        ports_summary.append({
+                            "n": p.get("name", ""), 
+                            "a": p.get("alias", ""),
+                            "u": ", ".join(p_users)
+                        })
+            except Exception:
+                pass
+                
         result.append({
             "id": d.id,
             "hostname": d.hostname,
@@ -96,7 +119,8 @@ def get_discovered_devices(db: Session = Depends(get_db)):
             "snmp_error": d.snmp_error,
             "serial_number": d.serial_number,
             "uptime": d.uptime,
-            "assigned_user": user
+            "assigned_user": user,
+            "ports_summary": ports_summary
         })
     return result
 

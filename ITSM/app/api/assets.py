@@ -171,6 +171,7 @@ async def list_assets(
                 specs = {
                     "department": getattr(u, 'department', '') or "",
                     "ad_active": getattr(u, 'ad_active', True),
+                    "auth_type": getattr(u, 'auth_type', 'local'),
                     "pcs": [{"id": p_item.id, "name": p_item.name or "", "model": p_item.model or "", "sn": p_item.serial_number or ""} for p_item in pcs],
                     "monitors": [{"id": m_item.id, "model": m_item.model or "", "sn": m_item.serial_number or ""} for m_item in monitors],
                     "docking_sn": docks[0].serial_number if docks else "",

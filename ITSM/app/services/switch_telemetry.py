@@ -17,14 +17,19 @@ from app.models.network import DiscoveredDevice, DeviceTelemetry
 logger = logging.getLogger(__name__)
 
 
-_global_snmp_engine = None
+_engine_cache = {}
 
 def _get_snmp_engine():
-    global _global_snmp_engine
-    if _global_snmp_engine is None:
-        from pysnmp.hlapi.v3arch.asyncio import SnmpEngine
-        _global_snmp_engine = SnmpEngine()
-    return _global_snmp_engine
+    import asyncio
+    from pysnmp.hlapi.v3arch.asyncio import SnmpEngine
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return SnmpEngine()
+        
+    if loop not in _engine_cache:
+        _engine_cache[loop] = SnmpEngine()
+    return _engine_cache[loop]
 
 async def get_arp_table(ip: str, community: str = 'public') -> dict:
     """Fetches the ARP table (MAC to IP mapping) from an L3 switch via SNMP."""
@@ -457,7 +462,6 @@ async def get_device_hardware_software(ip: str, community: str) -> dict:
         # Walk Entity MIB columns
         descr, model_name, hw_rev, sw_rev, serial, phys_class = await asyncio.gather(
             _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.2', engine),   # entPhysicalDescr
-            _snmp_walk(ip, community, '1.3.6.1.4.1.9.9.46.1.3.1.1.2', engine), # ... actually we should just let these use engine ...
             _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.13', engine),  # entPhysicalModelName
             _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.8', engine),   # entPhysicalHardwareRev
             _snmp_walk(ip, community, '1.3.6.1.2.1.47.1.1.1.1.10', engine),  # entPhysicalSoftwareRev

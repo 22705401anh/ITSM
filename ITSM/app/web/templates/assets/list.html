@@ -356,9 +356,11 @@ async function loadAssets() {
             let assignedHtml = '';
             
             if (isUserBundle) {
-                if (specs.ad_active === false) {
+                if (specs.auth_type === 'local') {
+                    assignedHtml = '<span class="badge bg-secondary" style="font-size: 0.85rem;"><i class="fas fa-database me-1"></i>Local User</span>';
+                } else if (specs.ad_active === false) {
                     assignedHtml = '<span class="badge bg-danger" style="font-size: 0.85rem;"><i class="fas fa-user-times me-1"></i>AD Disabled</span>';
-                } else if (specs.ad_active === true) {
+                } else {
                     assignedHtml = '<span class="badge bg-info" style="font-size: 0.85rem;"><i class="fas fa-user-check me-1"></i>AD Enabled</span>';
                 }
             } else {

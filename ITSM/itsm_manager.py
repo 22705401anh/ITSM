@@ -382,4 +382,8 @@ class ITSMServiceManager(ctk.CTk):
 
 if __name__ == "__main__":
     app = ITSMServiceManager()
-    app.mainloop()
+    try:
+        app.mainloop()
+    except KeyboardInterrupt:
+        print("\nShutting down ITSM Service Manager gracefully...")
+        app.on_closing()

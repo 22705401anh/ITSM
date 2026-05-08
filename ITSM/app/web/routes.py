@@ -1,7 +1,11 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy.orm import Session
+from app.db import get_db
+from app.models.network import DiscoveredDevice
 import os
+import json
 
 # Setup templates directory
 templates_dir = os.path.join(os.path.dirname(__file__), "templates")
@@ -263,6 +267,33 @@ async def network_topology(request: Request):
 async def network_discovery_device_360(request: Request, device_id: int):
     """Network Discovery Device 360 page."""
     return templates.TemplateResponse(request, "network/device_360.html", {"device_id": device_id})
+
+@router.get("/network/discovery/{device_id}/ports/{port_index}/history", response_class=HTMLResponse)
+async def network_port_history_view(request: Request, device_id: int, port_index: str, db: Session = Depends(get_db)):
+    """Full screen port traffic history."""
+    device_name = f"DEVICE_ID: {device_id}"
+    port_name = f"PORT_INDEX: {port_index}"
+    
+    device = db.query(DiscoveredDevice).filter(DiscoveredDevice.id == device_id).first()
+    if device:
+        device_name = device.hostname or device.ip_address or device_name
+        
+        if getattr(device, 'telemetry', None) and device.telemetry.ports_data_json:
+            try:
+                ports_data = json.loads(device.telemetry.ports_data_json)
+                for p in ports_data:
+                    if str(p.get("index", "")) == str(port_index):
+                        port_name = p.get("name") or port_name
+                        break
+            except Exception:
+                pass
+                
+    return templates.TemplateResponse(request, "network/port_history.html", {
+        "device_id": device_id, 
+        "port_index": port_index,
+        "device_name": device_name,
+        "port_name": port_name
+    })
 
 
 @router.get("/admin/entities", response_class=HTMLResponse)

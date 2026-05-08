@@ -523,17 +523,17 @@ async def run_auto_discovery():
                         
                     for res in results:
                         if isinstance(res, dict) and res.get('is_alive'):
-                            device = db.query(DiscoveredDevice).filter_by(ip_address=res['ip']).first()
+                            device = db.query(DiscoveredDevice).filter_by(ip_address=res['ip_address']).first()
                             if not device:
-                                device = DiscoveredDevice(ip_address=res['ip'])
+                                device = DiscoveredDevice(ip_address=res['ip_address'])
                                 db.add(device)
                             
                             device.hostname = res.get('hostname')
-                            device.mac_address = res.get('mac')
+                            device.mac_address = res.get('mac_address')
                             device.vendor = res.get('vendor')
                             device.device_type = res.get('device_type')
                             device.os_info = res.get('os_info')
-                            device.serial_number = res.get('serial')
+                            device.serial_number = res.get('serial_number')
                             device.last_seen = datetime.utcnow()
                             device.is_active = True
                             

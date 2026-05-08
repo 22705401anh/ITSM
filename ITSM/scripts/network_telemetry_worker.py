@@ -77,8 +77,8 @@ async def run_worker():
 
 if __name__ == "__main__":
     if sys.platform == "win32":
-        # Required for massive concurrent network sockets on Windows
-        asyncio.set_event_loop_policy(asyncio.WindowsProactorEventLoopPolicy())
+        # Required to fix UDP/datagram transport assertion errors with pysnmp on Windows
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
         
     try:
         asyncio.run(run_worker())

@@ -511,7 +511,7 @@ function openPortDetails(index) {
     // ── Traffic & Status History Section ──
     html += `<div class="pm-section">
         <div class="pm-section-head"><div class="pm-section-icon" style="background:rgba(139,92,246,0.1);color:#8b5cf6"><i class="fas fa-history"></i></div><span class="pm-section-label">24-Hour Port History</span></div>
-        <div style="height:200px; width:100%; position:relative;">
+        <div style="height:200px; width:100%; position:relative; cursor:pointer;" onclick="window.open('/network/discovery/${deviceId}/ports/${index}/history', '_blank')" title="Click to view full screen">
             <canvas id="portTrafficChart"></canvas>
         </div>
     </div>`;
@@ -562,7 +562,7 @@ function openPortDetails(index) {
                 if (res && res.length > 0) {
                     res.forEach(r => {
                         const d = new Date(r.timestamp);
-                        labels.push(d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}));
+                        labels.push(d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'}));
                         dataIn.push(r.in_mbps);
                         dataOut.push(r.out_mbps);
                         
@@ -573,7 +573,7 @@ function openPortDetails(index) {
                 } else {
                     // Fallback to show at least the current status if history is empty
                     const now = new Date();
-                    labels.push(now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}));
+                    labels.push(now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'}));
                     dataIn.push(0);
                     dataOut.push(0);
                     const isUp = (p.admin_status === '1' && p.oper_status === '1') ? 1 : 0;

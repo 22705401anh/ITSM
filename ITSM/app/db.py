@@ -33,7 +33,7 @@ def create_engine_for_url(url: str) -> Engine:
         e = create_engine(
             url,
             echo=settings.SQLALCHEMY_ECHO,
-            connect_args={"check_same_thread": False},
+            connect_args={"check_same_thread": False, "timeout": 30},
             poolclass=StaticPool,
         )
         

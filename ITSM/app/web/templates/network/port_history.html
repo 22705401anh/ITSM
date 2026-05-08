@@ -1,0 +1,464 @@
+{% extends "base.html" %}
+{% block title %}Port Traffic History | KOSTAL ITSM{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Ultra-Minimalist Enterprise Styling */
+body { background: #fafafa; }
+.ph-wrapper {
+    font-family: 'Inter', system-ui, sans-serif;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    color: #111827;
+}
+.ph-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #eaeaea;
+}
+.ph-breadcrumb {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #6b7280;
+    margin-bottom: 0.75rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.ph-breadcrumb a { color: #6b7280; text-decoration: none; transition: color 0.15s; }
+.ph-breadcrumb a:hover { color: #111827; }
+.ph-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: #111827;
+}
+.ph-subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    color: #6b7280;
+    margin-top: 0.5rem;
+    letter-spacing: 0.02em;
+}
+
+/* KPI Grid */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+.kpi-card {
+    background: #fff;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+}
+.kpi-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.kpi-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #111827;
+}
+.kpi-unit {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #9ca3af;
+    margin-left: 0.2rem;
+}
+
+/* Chart Container */
+.chart-panel {
+    background: #fff;
+    border: 1px solid #eaeaea;
+    border-radius: 8px;
+    padding: 1.5rem;
+    height: 550px;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    position: relative;
+}
+
+/* Health Analysis Card */
+.health-analysis-card {
+    background: #fff;
+    border-left: 4px solid #10b981;
+    border-radius: 8px;
+    padding: 1.25rem 1.5rem;
+    border-top: 1px solid #eaeaea;
+    border-right: 1px solid #eaeaea;
+    border-bottom: 1px solid #eaeaea;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+    margin-bottom: 2rem;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+.health-analysis-card.warning { border-left-color: #f59e0b; }
+.health-analysis-card.critical { border-left-color: #ef4444; }
+.ha-icon { font-size: 2rem; color: #10b981; }
+.health-analysis-card.warning .ha-icon { color: #f59e0b; }
+.health-analysis-card.critical .ha-icon { color: #ef4444; }
+.ha-content h5 { margin: 0; font-size: 1.05rem; font-weight: 600; color: #111827; letter-spacing: -0.01em; }
+.ha-content p { margin: 0; margin-top: 0.35rem; font-size: 0.85rem; color: #4b5563; line-height: 1.4; }
+
+/* Live Badge */
+.live-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    margin-left: auto;
+}
+
+.live-dot {
+    width: 6px;
+    height: 6px;
+    background-color: #ef4444;
+    border-radius: 50%;
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 4px rgba(239, 68, 68, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="ph-wrapper">
+    <!-- Header -->
+    <div class="ph-header">
+        <div>
+            <div class="ph-breadcrumb">
+                <a href="/network/discovery/{{ device_id }}"><i class="fas fa-arrow-left"></i> Device 360</a>
+                <span>/</span>
+                <span>Port Telemetry</span>
+            </div>
+            <h1 class="ph-title">Network Interface Analytics</h1>
+            <div class="ph-subtitle">{{ device_name }} &nbsp;|&nbsp; {{ port_name }}</div>
+        </div>
+        <div>
+            <button class="btn btn-sm btn-outline-secondary" style="font-size: 0.8rem; font-weight: 500;" onclick="location.reload()">
+                <i class="fas fa-sync-alt me-1"></i> Refresh Data
+            </button>
+        </div>
+    </div>
+    
+    <!-- KPIs -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-label d-flex align-items-center">
+                <i class="fas fa-arrow-down me-1" style="color: #3b82f6;"></i> Current Download 
+                <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+            </div>
+            <div class="kpi-value" id="kpi-current-down">0.00<span class="kpi-unit">Mbps</span></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label d-flex align-items-center">
+                <i class="fas fa-arrow-up me-1" style="color: #10b981;"></i> Current Upload 
+                <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+            </div>
+            <div class="kpi-value" id="kpi-current-up">0.00<span class="kpi-unit">Mbps</span></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label"><i class="fas fa-wave-square" style="color: #8b5cf6;"></i> Avg Total Traffic</div>
+            <div class="kpi-value" id="kpi-avg-total">0.00<span class="kpi-unit">Mbps</span></div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label"><i class="fas fa-server text-muted"></i> Datapoints Collected</div>
+            <div class="kpi-value" id="kpi-count">0<span class="kpi-unit">pts</span></div>
+        </div>
+    </div>
+    
+    <!-- Health Analysis -->
+    <div class="health-analysis-card" id="health-analysis" style="display: none;">
+        <div class="ha-icon" id="ha-icon"><i class="fas fa-check-circle"></i></div>
+        <div class="ha-content">
+            <h5 id="ha-title">Port Health Assessment</h5>
+            <p id="ha-message">Analyzing telemetry data...</p>
+        </div>
+    </div>
+    
+    <!-- Chart -->
+    <div class="chart-panel">
+        <canvas id="fullPortTrafficChart"></canvas>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+        const ctx = document.getElementById('fullPortTrafficChart');
+        if (!ctx) return;
+        
+        const deviceId = {{ device_id }};
+        const portIndex = '{{ port_index }}';
+        
+        // Setup rich gradients for Datadog-style aesthetic
+        const canvasCtx = ctx.getContext('2d');
+        const gradientIn = canvasCtx.createLinearGradient(0, 0, 0, 400);
+        gradientIn.addColorStop(0, 'rgba(59, 130, 246, 0.25)');
+        gradientIn.addColorStop(1, 'rgba(59, 130, 246, 0.0)');
+        
+        const gradientOut = canvasCtx.createLinearGradient(0, 0, 0, 400);
+        gradientOut.addColorStop(0, 'rgba(16, 185, 129, 0.25)');
+        gradientOut.addColorStop(1, 'rgba(16, 185, 129, 0.0)');
+
+        const gradientStatus = canvasCtx.createLinearGradient(0, 0, 0, 400);
+        gradientStatus.addColorStop(0, 'rgba(245, 158, 11, 0.15)');
+        gradientStatus.addColorStop(1, 'rgba(245, 158, 11, 0.0)');
+        
+        const chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { 
+                        label: 'Download', 
+                        borderColor: '#3b82f6', 
+                        backgroundColor: gradientIn,
+                        data: [], 
+                        fill: true, 
+                        tension: 0.35, 
+                        borderWidth: 2, 
+                        pointRadius: 0, 
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#3b82f6',
+                        pointBorderWidth: 2,
+                        yAxisID: 'y' 
+                    },
+                    { 
+                        label: 'Upload', 
+                        borderColor: '#10b981', 
+                        backgroundColor: gradientOut,
+                        data: [], 
+                        fill: true, 
+                        tension: 0.35, 
+                        borderWidth: 2, 
+                        pointRadius: 0, 
+                        pointHoverRadius: 5,
+                        pointBackgroundColor: '#fff',
+                        pointBorderColor: '#10b981',
+                        pointBorderWidth: 2,
+                        yAxisID: 'y' 
+                    },
+                    { 
+                        label: 'Link Status (1=Up, 0=Down)', 
+                        borderColor: 'rgba(245, 158, 11, 0.4)', 
+                        backgroundColor: gradientStatus,
+                        data: [], 
+                        fill: true, 
+                        stepped: true, 
+                        borderWidth: 1.5, 
+                        borderDash: [3, 3],
+                        pointRadius: 0, 
+                        pointHoverRadius: 0,
+                        yAxisID: 'yStatus' 
+                    }
+                ]
+            },
+            options: {
+                responsive: true, 
+                maintainAspectRatio: false,
+                interaction: { 
+                    mode: 'index', 
+                    intersect: false 
+                },
+                plugins: { 
+                    legend: { 
+                        display: true, 
+                        position: 'top', 
+                        align: 'end',
+                        labels: { 
+                            usePointStyle: true, 
+                            boxWidth: 8,
+                            font: { size: 12, family: "'Inter', sans-serif", weight: '500' },
+                            color: '#4b5563'
+                        } 
+                    },
+                    tooltip: {
+                        backgroundColor: '#ffffff',
+                        titleColor: '#111827',
+                        bodyColor: '#4b5563',
+                        titleFont: { size: 12, family: "'Inter', sans-serif", weight: '600' },
+                        bodyFont: { size: 12, family: "'JetBrains Mono', monospace" },
+                        padding: 12,
+                        cornerRadius: 6,
+                        borderColor: '#e5e7eb',
+                        borderWidth: 1,
+                        boxPadding: 6,
+                        displayColors: true,
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + Number(context.raw).toFixed(2) + ' Mbps';
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: { 
+                        display: true, 
+                        grid: { display: false, drawBorder: false },
+                        ticks: { font: { family: "'JetBrains Mono', monospace", size: 10 }, color: '#9ca3af', maxRotation: 0, maxTicksLimit: 12 }
+                    },
+                    y: { 
+                        display: true, 
+                        beginAtZero: true, 
+                        grid: { borderDash: [2,4], color: '#f3f4f6', drawBorder: false }, 
+                        title: { display: true, text: 'Megabits per Second (Mbps)', font: { family: "'Inter', sans-serif", size: 11, weight: '500' }, color: '#9ca3af' },
+                        ticks: { font: { family: "'JetBrains Mono', monospace", size: 11 }, color: '#9ca3af', padding: 8 }
+                    },
+                    yStatus: { display: false, min: 0, max: 1.5 }
+                }
+            }
+        });
+        
+        async function fetchAndRenderChart() {
+            try {
+                const token = localStorage.getItem('access_token');
+                const headers = { 'Content-Type': 'application/json' };
+                if (token) headers['Authorization'] = 'Bearer ' + token;
+                
+                const response = await fetch(`/api/discovery/devices/${deviceId}/ports/${portIndex}/history?hours=24`, { headers });
+                if (!response.ok) throw new Error("Failed to fetch history");
+                
+                const res = await response.json();
+                
+                const labels = [];
+                const dataIn = [];
+                const dataOut = [];
+                const dataStatus = [];
+                
+                let peakIn = 0, peakOut = 0, sumTotal = 0;
+                
+                if (res && res.length > 0) {
+                    res.forEach(r => {
+                        const d = new Date(r.timestamp);
+                        labels.push(d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'}));
+                        // From an endpoint's perspective:
+                        // Switch out_bytes -> PC Download
+                        // Switch in_bytes  -> PC Upload
+                        const downMbps = Number(r.out_mbps) || 0;
+                        const upMbps = Number(r.in_mbps) || 0;
+                        const isUp = (r.admin_status === '1' && r.oper_status === '1') ? 1 : 0;
+                        
+                        dataIn.push(downMbps);
+                        dataOut.push(upMbps);
+                        dataStatus.push(isUp);
+                        
+                        if (downMbps > peakIn) peakIn = downMbps;
+                        if (upMbps > peakOut) peakOut = upMbps;
+                        sumTotal += (downMbps + upMbps);
+                    });
+                    
+                    // Update KPIs
+                    const currentIn = dataIn.length > 0 ? dataIn[dataIn.length - 1] : 0;
+                    const currentOut = dataOut.length > 0 ? dataOut[dataOut.length - 1] : 0;
+                    
+                    document.getElementById('kpi-current-down').innerHTML = currentIn.toFixed(2) + '<span class="kpi-unit">Mbps</span>';
+                    document.getElementById('kpi-current-up').innerHTML = currentOut.toFixed(2) + '<span class="kpi-unit">Mbps</span>';
+                    document.getElementById('kpi-avg-total').innerHTML = (sumTotal / res.length).toFixed(2) + '<span class="kpi-unit">Mbps</span>';
+                    document.getElementById('kpi-count').innerHTML = res.length + '<span class="kpi-unit">pts</span>';
+                    
+                    // Calculate Health Analysis
+                    let flapCount = 0;
+                    let isDownNow = dataStatus.length > 0 ? dataStatus[dataStatus.length - 1] === 0 : false;
+                    for(let i=1; i<dataStatus.length; i++) {
+                        if (dataStatus[i] !== dataStatus[i-1]) flapCount++;
+                    }
+                    
+                    const haCard = document.getElementById('health-analysis');
+                    const haIcon = document.getElementById('ha-icon');
+                    const haTitle = document.getElementById('ha-title');
+                    const haMessage = document.getElementById('ha-message');
+                    
+                    haCard.style.display = 'flex';
+                    haCard.className = 'health-analysis-card'; // reset
+                    
+                    if (flapCount >= 3) {
+                        haCard.classList.add('critical');
+                        haIcon.innerHTML = '<i class="fas fa-exclamation-triangle"></i>';
+                        haTitle.innerText = 'Critical: Port Flapping Detected';
+                        haMessage.innerText = `The port link status has dropped and recovered ${flapCount} times in this period. Immediate intervention required (check for bad physical cable, faulty transceiver, or duplex mismatch).`;
+                    } else if (isDownNow && sumTotal > 0) {
+                        haCard.classList.add('warning');
+                        haIcon.innerHTML = '<i class="fas fa-plug-circle-xmark"></i>';
+                        haTitle.innerText = 'Warning: Active Link Dropped';
+                        haMessage.innerText = 'The port was passing traffic recently but is currently reporting a DOWN state. Verify if the endpoint was intentionally disconnected or powered off.';
+                    } else if (isDownNow && sumTotal === 0) {
+                        haCard.classList.add('warning');
+                        haIcon.innerHTML = '<i class="fas fa-bed"></i>';
+                        haTitle.innerText = 'Notice: Port Inactive & Down';
+                        haMessage.innerText = 'The port is currently down and has not passed any traffic during this telemetry period. No intervention needed unless a device is expected to be online here.';
+                    } else if (peakIn > 800 || peakOut > 800) {
+                        haCard.classList.add('warning');
+                        haIcon.innerHTML = '<i class="fas fa-tachometer-alt"></i>';
+                        haTitle.innerText = 'Warning: High Traffic Utilization';
+                        haMessage.innerText = 'Traffic spikes have exceeded 800 Mbps. The link may be approaching Gigabit saturation. Consider monitoring for dropped packets or upgrading capacity if sustained.';
+                    } else {
+                        haCard.classList.add('healthy');
+                        haIcon.innerHTML = '<i class="fas fa-shield-check"></i>';
+                        haTitle.innerText = 'Status: Stable & Healthy';
+                        haMessage.innerText = 'The link is UP, stable, and traffic is flowing normally without approaching saturation limits. No intervention needed.';
+                    }
+                    
+                } else {
+                    const now = new Date();
+                    labels.push(now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit', second:'2-digit'}));
+                    dataIn.push(0); dataOut.push(0); dataStatus.push(0);
+                    chartInstance.options.plugins.title = {
+                        display: true, text: 'No historical telemetry data available yet...', color: '#9ca3af', font: { style: 'italic', size: 12, family: "'Inter', sans-serif" }
+                    };
+                }
+                
+                chartInstance.data.labels = labels;
+                chartInstance.data.datasets[0].data = dataIn;
+                chartInstance.data.datasets[1].data = dataOut;
+                chartInstance.data.datasets[2].data = dataStatus;
+                
+                // Use update('none') to prevent the entire chart from flashing/re-animating on every poll
+                chartInstance.update('none');
+                
+            } catch (e) {
+                console.error('Traffic history poll error:', e);
+            }
+        }
+        
+        // Initial load
+        await fetchAndRenderChart();
+        
+        // Live poll every 10 seconds (matches background telemetry script)
+        setInterval(fetchAndRenderChart, 10000);
+    });
+</script>
+{% endblock %}
