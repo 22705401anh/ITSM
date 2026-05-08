@@ -199,7 +199,10 @@ function Get-InstalledSoftware {
     # Deduplicate
     $UniqueSoftware = @{}
     foreach ($sw in $Software) { $UniqueSoftware[$sw.name] = $sw }
-    return $UniqueSoftware.Values
+    
+    $ResultArray = @()
+    foreach ($val in $UniqueSoftware.Values) { $ResultArray += $val }
+    return $ResultArray
 }
 
 function Get-InstalledPrinters {
@@ -350,12 +353,12 @@ foreach ($Computer in $Computers) {
             $BIOS = Get-CimInstance -ClassName Win32_BIOS -CimSession $Session -ErrorAction Stop
             $Net = Get-NetworkDetails -CimSession $Session
             $User = Get-LoggedOnUser -CimSession $Session
-            $AttachedMonitors = Get-Monitors -CimSession $Session
+            $AttachedMonitors = @(Get-Monitors -CimSession $Session)
             $WinVer = Get-WindowsVersion -CimSession $Session
             $Intune = Get-IntuneStatus -CimSession $Session
             $AntiVirus = Get-Antivirus -CimSession $Session
-            $InstalledSW = Get-InstalledSoftware -CimSession $Session
-            $Printers = Get-InstalledPrinters -CimSession $Session
+            $InstalledSW = @(Get-InstalledSoftware -CimSession $Session)
+            $Printers = @(Get-InstalledPrinters -CimSession $Session)
             $PrintVolume = Get-PrintVolume -Computer $Computer -CimSession $Session
 
             $RAM = "$([math]::Round($CS.TotalPhysicalMemory / 1GB)) GB"

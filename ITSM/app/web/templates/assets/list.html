@@ -78,14 +78,18 @@
         border: none;
         border-bottom: 2px solid #e2e8f0;
         background: var(--bs-body-bg, #f4f6f9); /* Solid background to prevent overlap transparency */
-        color: #718096;
+        color: #475569;
         font-weight: 600;
-        text-transform: uppercase;
-        font-size: 0.75rem;
-        letter-spacing: 0.05em;
-        padding-top: 12px;
-        padding-bottom: 12px;
-        white-space: nowrap;
+        font-size: 0.8rem;
+        letter-spacing: 0.02em;
+        padding: 12px 10px;
+        white-space: normal;
+        vertical-align: middle;
+    }
+    
+    .custom-table thead th i {
+        color: #94a3b8;
+        font-size: 0.85rem;
     }
 
     .custom-table tbody tr {
@@ -99,7 +103,7 @@
 
     .custom-table tbody td {
         border-bottom: 1px solid #edf2f7;
-        padding: 16px;
+        padding: 12px 10px;
         vertical-align: middle;
     }
 
@@ -188,17 +192,17 @@
         <table class="table custom-table w-100">
             <thead>
                 <tr>
-                    <th><i class="fas fa-user me-1"></i>Full Name</th>
-                    <th><i class="fas fa-desktop me-1"></i>Host Name</th>
-                    <th><i class="fas fa-link me-1"></i>Status</th>
-                    <th><i class="fas fa-laptop me-1"></i>Laptop Model</th>
-                    <th><i class="fas fa-hashtag me-1"></i>Laptop SN</th>
-                    <th><i class="fas fa-monitor me-1"></i>Monitor Model</th>
-                    <th><i class="fas fa-hashtag me-1"></i>Monitor SN</th>
-                    <th><i class="fas fa-dock me-1"></i>Docking SN</th>
-                    <th><i class="fas fa-box me-1"></i>Accessories</th>
-                    <th><i class="fas fa-mobile me-1"></i>Phone Model</th>
-                    <th><i class="fas fa-phone me-1"></i>Phone #</th>
+                    <th><i class="fas fa-user fa-fw me-1"></i>User</th>
+                    <th><i class="fas fa-desktop fa-fw me-1"></i>Hostname</th>
+                    <th><i class="fas fa-circle-check fa-fw me-1"></i>Status</th>
+                    <th><i class="fas fa-laptop fa-fw me-1"></i>Laptop</th>
+                    <th><i class="fas fa-barcode fa-fw me-1"></i>Laptop SN</th>
+                    <th><i class="fas fa-display fa-fw me-1"></i>Monitor</th>
+                    <th><i class="fas fa-barcode fa-fw me-1"></i>Monitor SN</th>
+                    <th><i class="fas fa-plug fa-fw me-1"></i>Dock SN</th>
+                    <th><i class="fas fa-cube fa-fw me-1"></i>Accessories</th>
+                    <th><i class="fas fa-mobile-screen fa-fw me-1"></i>Phone</th>
+                    <th><i class="fas fa-phone-flip fa-fw me-1"></i>Ext</th>
                     <th class="w-100 border-0"></th> <!-- Filler column to absorb extra space -->
                 </tr>
             </thead>
@@ -352,10 +356,10 @@ async function loadAssets() {
             let assignedHtml = '';
             
             if (isUserBundle) {
-                if (hasHardware) {
-                    assignedHtml = '<span class="badge bg-success" style="font-size: 0.85rem;">Hardware Assigned</span>';
-                } else {
-                    assignedHtml = '<span class="badge bg-secondary" style="font-size: 0.85rem;">No Equipment</span>';
+                if (specs.ad_active === false) {
+                    assignedHtml = '<span class="badge bg-danger" style="font-size: 0.85rem;"><i class="fas fa-user-times me-1"></i>AD Disabled</span>';
+                } else if (specs.ad_active === true) {
+                    assignedHtml = '<span class="badge bg-info" style="font-size: 0.85rem;"><i class="fas fa-user-check me-1"></i>AD Enabled</span>';
                 }
             } else {
                 const assignedColor = a.assigned_user_id ? 'success' : 'danger';

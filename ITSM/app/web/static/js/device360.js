@@ -394,6 +394,9 @@ function portHTML(p) {
     return `<div class="port-cell" onclick="openPortDetails(${p.index})">${tip}<div class="port-tile ${tileCls}" ${tileStyle}>${vlanBadge}<span class="port-icon"><i class="fas fa-ethernet"></i></span></div><div class="port-lbl">${name}</div></div>`;
 }
 
+let portTrafficChartInstance = null;
+let portTrafficInterval = null;
+
 function openPortDetails(index) {
     const ports = window.globalPortsData || [];
     const p = ports.find(x => x.index == index);
@@ -473,14 +476,24 @@ function openPortDetails(index) {
         </div>`;
     }
 
+    let nNameHtml = nName;
+    if (p.neighbor_url) {
+        nNameHtml = `<a href="${p.neighbor_url}" target="_blank" style="color:#3b82f6;text-decoration:none;font-weight:600" class="hover-underline" title="View Hardware Profile">${nName} <i class="fas fa-external-link-alt" style="font-size:0.8em;margin-left:3px"></i></a>`;
+    }
+    
+    let nUserHtml = nUser;
+    if (p.neighbor_user_url) {
+        nUserHtml = `<a href="${p.neighbor_user_url}" target="_blank" style="color:#3b82f6;text-decoration:none;font-weight:600" class="hover-underline" title="View User Profile">${nUser} <i class="fas fa-external-link-alt" style="font-size:0.8em;margin-left:3px"></i></a>`;
+    }
+
     // ── Neighbor Section ──
     const hasNeighbor = nName !== 'N/A' || nIp !== 'N/A' || nUser !== 'N/A';
     html += `<div class="pm-section">
         <div class="pm-section-head"><div class="pm-section-icon si-net"><i class="fas fa-network-wired"></i></div><span class="pm-section-label">Connected Devices</span></div>
         <div class="pm-kv-grid">
-            ${kvRow('Hostname', nName)}
+            ${kvRow('Hostname', nNameHtml)}
             ${kvRow('IP Address', nIp, 'mono')}
-            ${kvRow('User', nUser)}
+            ${kvRow('User', nUserHtml)}
             ${kvRow('MAC Address', nMac, 'mono')}
             ${kvRow('Data Source', dSrcHtml)}
             ${kvRow('Capabilities', nCaps)}
@@ -495,13 +508,105 @@ function openPortDetails(index) {
         </div>`;
     }
 
+    // ── Traffic & Status History Section ──
+    html += `<div class="pm-section">
+        <div class="pm-section-head"><div class="pm-section-icon" style="background:rgba(139,92,246,0.1);color:#8b5cf6"><i class="fas fa-history"></i></div><span class="pm-section-label">24-Hour Port History</span></div>
+        <div style="height:200px; width:100%; position:relative;">
+            <canvas id="portTrafficChart"></canvas>
+        </div>
+    </div>`;
+
     document.getElementById('pm-body').innerHTML = html;
     document.getElementById('portModal').classList.remove('d-none');
+    
+    // Initialize Chart
+    const ctx = document.getElementById('portTrafficChart');
+    if (ctx) {
+        if (portTrafficChartInstance) portTrafficChartInstance.destroy();
+        
+        portTrafficChartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    { label: 'Download (Mbps)', borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,0.1)', data: [], fill: true, tension: 0.4, borderWidth: 2, pointRadius: 2, yAxisID: 'y' },
+                    { label: 'Upload (Mbps)', borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.1)', data: [], fill: true, tension: 0.4, borderWidth: 2, pointRadius: 2, yAxisID: 'y' },
+                    { label: 'Status (1=Up, 0=Down)', borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.1)', data: [], fill: true, stepped: true, borderWidth: 2, pointRadius: 2, yAxisID: 'yStatus' }
+                ]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: { legend: { display: true, position: 'top', labels: { boxWidth: 12, usePointStyle: true, font: { size: 11 } } } },
+                scales: {
+                    x: { display: true, grid: { display: false } },
+                    y: { display: true, beginAtZero: true, grid: { borderDash: [2,4], color: '#e5e7eb' }, title: { display: true, text: 'Mbps' } },
+                    yStatus: { display: false, min: 0, max: 1.5 }
+                }
+            }
+        });
+        
+        if (portTrafficInterval) {
+            clearInterval(portTrafficInterval);
+            portTrafficInterval = null;
+        }
+        
+        const fetchHistory = async () => {
+            try {
+                const res = await apiRequest('GET', `/discovery/devices/${deviceId}/ports/${index}/history`);
+                const labels = [];
+                const dataIn = [];
+                const dataOut = [];
+                const dataStatus = [];
+                
+                if (res && res.length > 0) {
+                    res.forEach(r => {
+                        const d = new Date(r.timestamp);
+                        labels.push(d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}));
+                        dataIn.push(r.in_mbps);
+                        dataOut.push(r.out_mbps);
+                        
+                        // Status conversion: Up = 1, else 0
+                        const isUp = (r.admin_status === '1' && r.oper_status === '1') ? 1 : 0;
+                        dataStatus.push(isUp);
+                    });
+                } else {
+                    // Fallback to show at least the current status if history is empty
+                    const now = new Date();
+                    labels.push(now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}));
+                    dataIn.push(0);
+                    dataOut.push(0);
+                    const isUp = (p.admin_status === '1' && p.oper_status === '1') ? 1 : 0;
+                    dataStatus.push(isUp);
+                    
+                    // Display message in chart title
+                    portTrafficChartInstance.options.plugins.title = {
+                        display: true,
+                        text: 'Waiting for background telemetry (updates every 10 secs)...',
+                        color: '#6b7280',
+                        font: { style: 'italic', size: 12 }
+                    };
+                }
+                
+                portTrafficChartInstance.data.labels = labels;
+                portTrafficChartInstance.data.datasets[0].data = dataIn;
+                portTrafficChartInstance.data.datasets[1].data = dataOut;
+                portTrafficChartInstance.data.datasets[2].data = dataStatus;
+                portTrafficChartInstance.update();
+            } catch (e) { console.error('Traffic history poll error:', e); }
+        };
+        
+        fetchHistory();
+    }
 }
 
 function closePortDetails(e) {
     if (e && e.target.id !== 'portModal') return;
     document.getElementById('portModal').classList.add('d-none');
+    if (portTrafficInterval) {
+        clearInterval(portTrafficInterval);
+        portTrafficInterval = null;
+    }
 }
 
 // ── Sidebar Navigation ──

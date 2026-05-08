@@ -68,3 +68,17 @@ class DiscoveryLog(Base):
     log_output = Column(Text, nullable=True)
     
     job = relationship("DiscoveryJob", back_populates="logs")
+
+class PortTelemetryHistory(Base):
+    __tablename__ = "port_telemetry_history"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    device_id = Column(Integer, ForeignKey("discovered_devices.id"), index=True)
+    port_index = Column(String(50), index=True)
+    in_bytes = Column(Integer, default=0) # using Integer, sqlite handles 64-bit transparently
+    out_bytes = Column(Integer, default=0)
+    admin_status = Column(String(20))
+    oper_status = Column(String(20))
+    timestamp = Column(DateTime, default=datetime.utcnow, index=True)
+    
+    device = relationship("DiscoveredDevice")

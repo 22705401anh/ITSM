@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}Users Administration - KOSTAL ITSM{% endblock %}
+
+{% block content %}
+<div class="py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h2">Users Management</h1>
+        <div class="d-flex gap-2">
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importADModal">
+                <i class="fas fa-cloud-download-alt"></i> Import from AD
+            </button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
+                <i class="fas fa-user-plus"></i> Add Local User
+            </button>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">All Users</h5>
+            <div class="input-group" style="max-width: 350px;">
+                <span class="input-group-text bg-transparent border-end-0">
+                    <i class="fas fa-search text-muted"></i>
+                </span>
+                <input type="text" id="userSearchInput" class="form-control border-start-0"
+                       placeholder="Search by name, email, or username..." 
+                       onkeyup="filterUsers()">
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+            <table class="table table-striped table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Full Name</th>
+                        <th>Type</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTable">
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">Loading users...</td>
+                    </tr>
+                </tbody>
+            </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Local User Modal -->
+<div class="modal fade" id="addUserModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Local User</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="addUserForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="newUsername" class="form-label">Username</label>
+                        <input type="text" class="form-control" id="newUsername" name="username" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newEmail" class="form-label">Email</label>
+                        <input type="email" class="form-control" id="newEmail" name="email" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newFullName" class="form-label">Full Name</label>
+                        <input type="text" class="form-control" id="newFullName" name="full_name" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="newPassword" class="form-label">Password</label>
+                        <input type="password" class="form-control" id="newPassword" name="password" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Import from AD Modal -->
+<div class="modal fade" id="importADModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-success text-white">
+                <h5 class="modal-title"><i class="fas fa-cloud-download-alt me-2"></i>Import User from Active Directory</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-muted mb-3">
+                    Search for an AD user and import them to ITSM. They will login using their Active Directory (domain) credentials.
+                </p>
+                <div class="input-group mb-3">
+                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                    <input type="text" class="form-control" id="adSearchInput" 
+                           placeholder="Type a username, name or email to search AD..."
+                           onkeyup="searchADUsers()">
+                    <button class="btn btn-outline-success" type="button" onclick="searchADUsers()">
+                        <i class="fas fa-sync-alt"></i> Search
+                    </button>
+                </div>
+                <div id="adSearchResults" style="max-height: 400px; overflow-y: auto;">
+                    <div class="text-center text-muted py-4">
+                        <i class="fas fa-users fa-2x mb-2 opacity-50"></i>
+                        <p class="mb-0">Start typing to search Active Directory users</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Toast notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999;">
+    <div id="toastNotification" class="toast align-items-center border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="toastMessage"></div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+let allADUsers = [];
+
+document.addEventListener('DOMContentLoaded', loadUsers);
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('toastNotification');
+    const toastMsg = document.getElementById('toastMessage');
+    toast.className = `toast align-items-center border-0 text-bg-${type}`;
+    toastMsg.textContent = message;
+    const bsToast = new bootstrap.Toast(toast, { delay: 3000 });
+    bsToast.show();
+}
+
+async function loadUsers() {
+    try {
+        const res = await fetch('/api/admin/users');
+        if (!res.ok) throw new Error('Failed to fetch users');
+        const users = await res.json();
+        
+        const tbody = document.getElementById('usersTable');
+        if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No users found.</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = users.map(u => `
+            <tr class="align-middle">
+                <td><span class="fw-bold">${u.username}</span></td>
+                <td>${u.email}</td>
+                <td>${u.full_name}</td>
+                <td>
+                    ${u.auth_type === 'ldap' 
+                        ? '<span class="badge bg-info"><i class="fas fa-network-wired me-1"></i>AD / LDAP</span>' 
+                        : '<span class="badge bg-secondary"><i class="fas fa-database me-1"></i>Local</span>'}
+                </td>
+                <td class="text-end text-nowrap">
+                    <a href="/admin/users/${u.id}" class="btn btn-sm btn-outline-info" title="View Profile">
+                        <i class="fas fa-id-card"></i>
+                    </a>
+                </td>
+            </tr>
+        `).join('');
+    } catch (e) {
+        document.getElementById('usersTable').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading users.</td></tr>';
+        console.error(e);
+    }
+}
+
+function filterUsers() {
+    const query = document.getElementById('userSearchInput').value.toLowerCase().trim();
+    const rows = document.querySelectorAll('#usersTable tr');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        if (row.querySelector('td[colspan]')) return;
+        const username = (row.cells[0]?.textContent || '').toLowerCase();
+        const email = (row.cells[1]?.textContent || '').toLowerCase();
+        const fullName = (row.cells[2]?.textContent || '').toLowerCase();
+
+        const matches = !query || username.includes(query) || email.includes(query) || fullName.includes(query);
+        row.style.display = matches ? '' : 'none';
+        if (matches) visibleCount++;
+    });
+
+    const existingNoResults = document.getElementById('noSearchResults');
+    if (existingNoResults) existingNoResults.remove();
+
+    if (visibleCount === 0 && query) {
+        const tbody = document.getElementById('usersTable');
+        const noResultsRow = document.createElement('tr');
+        noResultsRow.id = 'noSearchResults';
+        noResultsRow.innerHTML = `<td colspan="6" class="text-center text-muted py-4">
+            <i class="fas fa-search fa-2x mb-2 opacity-50 d-block"></i>
+            No users found matching "<strong>${query}</strong>"
+        </td>`;
+        tbody.appendChild(noResultsRow);
+    }
+}
+
+// --- AD Import Functions ---
+let adSearchTimeout = null;
+
+function searchADUsers() {
+    clearTimeout(adSearchTimeout);
+    adSearchTimeout = setTimeout(doSearchAD, 300);
+}
+
+async function doSearchAD() {
+    const query = document.getElementById('adSearchInput').value.trim().toLowerCase();
+    const container = document.getElementById('adSearchResults');
+
+    if (query.length < 2) {
+        container.innerHTML = `<div class="text-center text-muted py-4">
+            <i class="fas fa-users fa-2x mb-2 opacity-50"></i>
+            <p class="mb-0">Type at least 2 characters to search</p>
+        </div>`;
+        return;
+    }
+
+    container.innerHTML = `<div class="text-center py-4">
+        <div class="spinner-border spinner-border-sm text-success" role="status"></div>
+        <span class="ms-2">Searching Active Directory...</span>
+    </div>`;
+
+    try {
+        // Fetch AD users if not cached
+        if (allADUsers.length === 0) {
+            const res = await fetch('/api/admin/ad-users');
+            if (!res.ok) throw new Error('Failed to fetch AD users');
+            allADUsers = await res.json();
+        }
+
+        // Filter by search query
+        const filtered = allADUsers.filter(u => {
+            if (!u || !u.username || u.username === 'None' || u.username.endsWith('$')) return false;
+            const hasT = (val) => val && typeof val === 'string' && val !== 'None' && val.toLowerCase().includes(query);
+            return hasT(u.name) || hasT(u.email) || hasT(u.username) || hasT(u.department);
+        }).slice(0, 20); // Limit to 20 results
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div class="text-center text-muted py-4">
+                <i class="fas fa-user-slash fa-2x mb-2 opacity-50"></i>
+                <p class="mb-0">No AD users found matching "<strong>${query}</strong>"</p>
+            </div>`;
+            return;
+        }
+
+        container.innerHTML = `<div class="list-group">
+            ${filtered.map(u => `
+                <div class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar bg-success text-white rounded-circle d-flex align-items-center justify-content-center me-3" 
+                                 style="width: 36px; height: 36px; min-width: 36px; font-size: 0.85rem;">
+                                ${(u.name && u.name !== 'None') ? u.name.charAt(0).toUpperCase() : '?'}
+                            </div>
+                            <div>
+                                <div class="fw-bold">${u.name || u.username}</div>
+                                <small class="text-muted">
+                                    <code>${u.username}</code>
+                                    ${u.email && u.email !== 'None' ? ' &bull; ' + u.email : ''}
+                                    ${u.department && u.department !== 'None' ? ' &bull; ' + u.department : ''}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="btn btn-sm btn-success" onclick="importADUser('${u.username}')" id="importBtn_${u.username}">
+                        <i class="fas fa-plus me-1"></i> Import
+                    </button>
+                </div>
+            `).join('')}
+        </div>
+        <div class="text-muted small text-center mt-2">Showing ${filtered.length} of ${allADUsers.length} AD users</div>`;
+
+    } catch (e) {
+        container.innerHTML = `<div class="text-center text-danger py-4">
+            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+            <p class="mb-0">Error: ${e.message}</p>
+        </div>`;
+    }
+}
+
+async function importADUser(username) {
+    const btn = document.getElementById(`importBtn_${username}`);
+    if (!btn) return;
+
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Importing...';
+
+    try {
+        const res = await fetch('/api/admin/import-ad-user', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            btn.innerHTML = '<i class="fas fa-check"></i> Imported';
+            btn.className = 'btn btn-sm btn-outline-secondary disabled';
+            showToast(`${data.message}`, 'success');
+            loadUsers(); // Refresh the users table
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fas fa-plus me-1"></i> Import';
+            showToast(data.detail || 'Import failed', 'danger');
+        }
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-plus me-1"></i> Import';
+        showToast('Network error: ' + e.message, 'danger');
+    }
+}
+
+// Add User Form handler
+document.getElementById('addUserForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const payload = Object.fromEntries(formData.entries());
+    
+    const btn = this.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating...';
+
+    try {
+        const res = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('addUserModal')).hide();
+            this.reset();
+            showToast('User created successfully', 'success');
+            loadUsers();
+        } else {
+            const data = await res.json();
+            showToast(data.detail || 'Failed to create user', 'danger');
+        }
+    } catch (e) {
+        showToast('Network error: ' + e.message, 'danger');
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = 'Create User';
+    }
+});
+</script>
+{% endblock %}

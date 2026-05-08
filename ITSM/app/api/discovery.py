@@ -431,6 +431,8 @@ async def get_device_ports(device_id: int, force: bool = False, db: Session = De
     mac_to_ip = {}
     mac_to_hostname = {}
     mac_to_user = {}
+    mac_to_url = {}
+    mac_to_user_url = {}
     
     # 1. Check Network Discovery table
     db_devices = db.query(DiscoveredDevice).filter(DiscoveredDevice.mac_address.isnot(None)).all()
@@ -445,12 +447,12 @@ async def get_device_ports(device_id: int, force: bool = False, db: Session = De
     # 2. Check Hardware Asset (PC) table using raw SQL to avoid mapper import errors
     from sqlalchemy import text
     db_pcs = db.execute(text("""
-        SELECT p.name, p.ip_address, p.mac_address, u.full_name 
+        SELECT p.id, p.name, p.ip_address, p.mac_address, u.full_name, u.id 
         FROM pcs p 
         LEFT JOIN users u ON p.current_user_id = u.id 
         WHERE p.mac_address IS NOT NULL
     """)).fetchall()
-    for pc_name, pc_ip, pc_mac, pc_user in db_pcs:
+    for pc_id, pc_name, pc_ip, pc_mac, pc_user, u_id in db_pcs:
         if pc_mac:
             # PCs can sometimes have multiple MACs separated by comma
             for mac in [m.strip().lower() for m in pc_mac.split(',')]:
@@ -460,20 +462,26 @@ async def get_device_ports(device_id: int, force: bool = False, db: Session = De
                     mac_to_hostname[mac] = pc_name
                 if pc_user and mac not in mac_to_user:
                     mac_to_user[mac] = pc_user
+                if mac not in mac_to_url:
+                    mac_to_url[mac] = f"/hardware/pc/{pc_id}"
+                if u_id and mac not in mac_to_user_url:
+                    mac_to_user_url[mac] = f"/admin/users/{u_id}"
 
     # 3. Check Printers
     db_printers = db.execute(text("""
-        SELECT model, ip_address, mac_address 
+        SELECT id, model, ip_address, mac_address 
         FROM printers 
         WHERE mac_address IS NOT NULL
     """)).fetchall()
-    for pr_model, pr_ip, pr_mac in db_printers:
+    for pr_id, pr_model, pr_ip, pr_mac in db_printers:
         if pr_mac:
             for mac in [m.strip().lower() for m in pr_mac.split(',')]:
                 if pr_ip and mac not in mac_to_ip:
                     mac_to_ip[mac] = pr_ip
                 if pr_model and mac not in mac_to_hostname:
                     mac_to_hostname[mac] = pr_model
+                if mac not in mac_to_url:
+                    mac_to_url[mac] = f"/hardware/printer/{pr_id}"
                 
     # Inject IPs back into port data
     for p in ports:
@@ -489,6 +497,8 @@ async def get_device_ports(device_id: int, force: bool = False, db: Session = De
             ips = []
             names = []
             users = []
+            urls = []
+            user_urls = []
             sources = []
             
             for m in macs:
@@ -506,19 +516,27 @@ async def get_device_ports(device_id: int, force: bool = False, db: Session = De
                         sources.append("ITSM Assets")
                     if m in mac_to_hostname:
                         names.append(mac_to_hostname[m])
+                    if m in mac_to_url:
+                        urls.append(mac_to_url[m])
                 
                 # DB is always the only source for users
                 if m in mac_to_user:
                     users.append(mac_to_user[m])
                     sources.append("ITSM Assets")
+                if m in mac_to_user_url:
+                    user_urls.append(mac_to_user_url[m])
                     
             # If we didn't find CDP IP but we found end-user IPs, inject them
             if ips and not p.get("neighbor_ip"):
                 p["neighbor_ip"] = ", ".join(list(dict.fromkeys([ip.strip() for ip_str in ips for ip in ip_str.split(',')])))
             if names and not p.get("neighbor_name"):
                 p["neighbor_name"] = ", ".join(list(dict.fromkeys(names)))
+            if urls and not p.get("neighbor_url"):
+                p["neighbor_url"] = urls[0] # Take the first valid URL
             if users and not p.get("neighbor_user"):
                 p["neighbor_user"] = ", ".join(list(dict.fromkeys(users)))
+            if user_urls and not p.get("neighbor_user_url"):
+                p["neighbor_user_url"] = user_urls[0]
                 
             if "Live (SNMP)" in sources:
                 p["data_source"] = "Live (SNMP)"
@@ -733,6 +751,86 @@ def _resolve_community(device, db):
                 break
     return community
 
+@router.get("/devices/{device_id}/ports/{port_index}/traffic")
+async def get_device_port_traffic(device_id: int, port_index: str, db: Session = Depends(get_db)):
+    """Fetch live traffic for a specific port for charting."""
+    d = db.query(DiscoveredDevice).filter(DiscoveredDevice.id == device_id).first()
+    if not d:
+        raise HTTPException(status_code=404, detail="Device not found")
+        
+    if d.snmp_status != "CONNECTED":
+        raise HTTPException(status_code=400, detail="Device is not connected via SNMP.")
+        
+    community = _resolve_community(d, db)
+    
+    from app.services.switch_telemetry import get_port_traffic
+    try:
+        traffic_data = await get_port_traffic(d.ip_address, community, port_index)
+        return traffic_data
+    except Exception as e:
+        logger.error(f"Error fetching port traffic for device {device_id} port {port_index}: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.get("/devices/{device_id}/ports/{port_index}/history")
+async def get_device_port_history(device_id: int, port_index: str, db: Session = Depends(get_db)):
+    """Fetch historical traffic and status for a specific port."""
+    from app.models.network import PortTelemetryHistory
+    from app.db import engine
+    from datetime import datetime, timedelta
+    import sqlalchemy
+    
+    try:
+        # Auto-create table if user hasn't restarted
+        PortTelemetryHistory.__table__.create(engine, checkfirst=True)
+    except Exception:
+        pass
+    
+    # Last 24 hours
+    since = datetime.utcnow() - timedelta(hours=24)
+    
+    try:
+        history_records = db.query(PortTelemetryHistory).filter(
+            PortTelemetryHistory.device_id == device_id,
+            PortTelemetryHistory.port_index == port_index,
+            PortTelemetryHistory.timestamp >= since
+        ).order_by(PortTelemetryHistory.timestamp.asc()).all()
+    except sqlalchemy.exc.OperationalError:
+        # Fallback if creation somehow failed
+        history_records = []
+    
+    results = []
+    last_in = None
+    last_out = None
+    last_time = None
+    
+    for r in history_records:
+        mbps_in = 0
+        mbps_out = 0
+        
+        if last_time and last_in is not None and last_out is not None:
+            dt = (r.timestamp - last_time).total_seconds()
+            if dt > 0:
+                dIn = r.in_bytes - last_in
+                if dIn < 0: dIn += (r.in_bytes > 0xFFFFFFFF and 0xFFFFFFFFFFFFFFFF or 0xFFFFFFFF)
+                dOut = r.out_bytes - last_out
+                if dOut < 0: dOut += (r.out_bytes > 0xFFFFFFFF and 0xFFFFFFFFFFFFFFFF or 0xFFFFFFFF)
+                
+                mbps_in = (dIn * 8) / (dt * 1000000)
+                mbps_out = (dOut * 8) / (dt * 1000000)
+                
+        results.append({
+            "timestamp": r.timestamp.isoformat() + "Z",
+            "in_mbps": round(mbps_in, 2),
+            "out_mbps": round(mbps_out, 2),
+            "admin_status": r.admin_status,
+            "oper_status": r.oper_status
+        })
+        
+        last_in = r.in_bytes
+        last_out = r.out_bytes
+        last_time = r.timestamp
+        
+    return results
 
 @router.get("/devices/{device_id}/detail/{section}")
 async def get_device_section_data(device_id: int, section: str, force: bool = False, db: Session = Depends(get_db)):

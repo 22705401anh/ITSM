@@ -3,155 +3,214 @@
 {% block title %}Asset Dashboard - KOSTAL ITSM{% endblock %}
 
 {% block content %}
-<!-- Premium Dashboard Styling -->
+<!-- Clean Modern Light Dashboard -->
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&display=swap');
 
     .asset-dashboard {
         font-family: 'Inter', sans-serif;
-        color: #2b3440;
+        color: #334155;
+        background-color: #f8fafc;
+        min-height: 100vh;
     }
 
     h1, h2, h3, h4, h5, h6, .brand-font {
         font-family: 'Outfit', sans-serif;
     }
 
-    /* Glassmorphism Cards */
-    .glass-card {
-        background: rgba(255, 255, 255, 0.85);
-        backdrop-filter: blur(16px);
-        -webkit-backdrop-filter: blur(16px);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        border-radius: 20px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
-    }
-    .glass-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.08);
-    }
-
-    /* Gradients & Colors */
-    .gradient-primary { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); }
-    .gradient-success { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-    .gradient-warning { background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); }
-    .gradient-danger { background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); }
-    .gradient-info { background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%); }
-    .gradient-dark { background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); }
-
-    .text-gradient {
-        background: linear-gradient(135deg, #4f46e5 0%, #0ea5e9 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    /* Micro-Widgets */
-    .stat-widget {
-        display: flex;
-        align-items: center;
-        padding: 10px;
-        border-radius: 12px;
-        background: white;
+    /* Premium Soft Cards */
+    .premium-card {
+        background: #ffffff;
+        border-radius: 16px;
         border: 1px solid #f1f5f9;
-        box-shadow: 0 1px 5px rgba(0,0,0,0.02);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02), 0 2px 4px -1px rgba(0, 0, 0, 0.02);
+        transition: all 0.3s ease;
     }
-    .stat-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
-        display: flex;
+    .premium-card:hover {
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+        transform: translateY(-2px);
+    }
+
+    /* Soft Icons */
+    .icon-soft {
+        display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1rem;
-        color: white;
+        border-radius: 12px;
+    }
+    .icon-soft-primary { background: #eff6ff; color: #3b82f6; }
+    .icon-soft-success { background: #f0fdf4; color: #22c55e; }
+    .icon-soft-warning { background: #fffbeb; color: #f59e0b; }
+    .icon-soft-danger { background: #fef2f2; color: #ef4444; }
+    .icon-soft-info { background: #f0f9ff; color: #0ea5e9; }
+    .icon-soft-dark { background: #f1f5f9; color: #475569; }
+
+    /* Typography */
+    .text-label { 
+        font-size: 0.7rem; 
+        font-weight: 600; 
+        text-transform: uppercase; 
+        letter-spacing: 0.05em; 
+        color: #64748b; 
+    }
+    .text-value { 
+        font-size: 1.05rem; 
+        font-weight: 600; 
+        color: #0f172a; 
+    }
+
+    /* Telemetry Micro-Widgets */
+    .telemetry-item {
+        display: flex;
+        align-items: center;
+        padding: 12px;
+        border-radius: 12px;
+        background: #ffffff;
+        border: 1px solid #f1f5f9;
+        transition: all 0.2s ease;
+    }
+    .telemetry-item:hover {
+        background: #f8fafc;
+        border-color: #e2e8f0;
+    }
+    .telemetry-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 1.1rem;
         margin-right: 12px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        flex-shrink: 0;
     }
-    .stat-label { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.5px; color: #64748b; font-weight: 600; margin-bottom: 0px;}
-    .stat-value { font-size: 0.95rem; font-weight: 600; color: #0f172a; word-break: break-all;}
 
-    /* Animations */
-    @keyframes fadeInUp {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
+    /* Header Area */
+    .page-header {
+        background: #ffffff;
+        border-radius: 20px;
+        padding: 24px 32px;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02);
+        border: 1px solid #f1f5f9;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        position: relative;
+        z-index: 1050;
     }
-    .animate-fade-in {
-        animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-        opacity: 0;
-    }
-    .delay-1 { animation-delay: 0.1s; }
-    .delay-2 { animation-delay: 0.2s; }
-    .delay-3 { animation-delay: 0.3s; }
 
-    /* Custom Table Scroll */
-    .table-container {
-        max-height: 400px;
-        overflow-y: auto;
+    /* Status Pill */
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 14px;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
     }
-    .table-container::-webkit-scrollbar { width: 6px; }
-    .table-container::-webkit-scrollbar-track { background: transparent; }
-    .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    .status-pill.success { background: #dcfce7; color: #166534; }
+    .status-pill.primary { background: #e0e7ff; color: #3730a3; }
+    .status-pill.warning { background: #fef3c7; color: #92400e; }
+    .status-pill.danger { background: #fee2e2; color: #991b1b; }
+    .status-pill.secondary { background: #f1f5f9; color: #334155; }
 
-    /* Timeline Modern */
-    .timeline-modern {
-        border-left: 3px solid #e2e8f0;
-        margin-left: 20px;
-        padding-left: 30px;
+    /* Timeline Refined */
+    .timeline-elegant {
+        border-left: 2px solid #e2e8f0;
+        margin-left: 16px;
+        padding-left: 24px;
     }
     .timeline-node {
         position: relative;
-        margin-bottom: 30px;
+        margin-bottom: 24px;
     }
     .timeline-node::before {
         content: '';
         position: absolute;
-        left: -40.5px;
-        top: 0;
-        width: 18px;
-        height: 18px;
+        left: -31px;
+        top: 4px;
+        width: 12px;
+        height: 12px;
         border-radius: 50%;
-        background: #3b82f6;
-        border: 4px solid white;
-        box-shadow: 0 0 0 2px #3b82f6;
+        background: #cbd5e1;
+        border: 2px solid #ffffff;
+        box-shadow: 0 0 0 1px #e2e8f0;
     }
-    .timeline-node:first-child::before {
-        background: #10b981;
-        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-        0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-        70% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
-        100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    .timeline-node.current::before {
+        background: #22c55e;
+        box-shadow: 0 0 0 2px #dcfce7;
     }
 
-    /* Assignee Card */
-    .assignee-card {
-        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
-        border-left: 4px solid #4f46e5;
+    /* Table Refined */
+    .elegant-table-container {
+        max-height: 400px;
+        overflow-y: auto;
     }
+    .elegant-table-container::-webkit-scrollbar { width: 6px; }
+    .elegant-table-container::-webkit-scrollbar-track { background: transparent; }
+    .elegant-table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    
+    .elegant-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .elegant-table th {
+        background: #f8fafc;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #64748b;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 12px 16px;
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+    .elegant-table td {
+        padding: 12px 16px;
+        font-size: 0.85rem;
+        color: #334155;
+        border-bottom: 1px solid #f1f5f9;
+    }
+    .elegant-table tr:hover td { background: #f8fafc; }
+    .elegant-table tr:last-child td { border-bottom: none; }
+
+    /* Animations */
+    @keyframes fadeUp {
+        from { opacity: 0; transform: translateY(16px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    .fade-up {
+        animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        opacity: 0;
+    }
+    .d-1 { animation-delay: 0.05s; }
+    .d-2 { animation-delay: 0.1s; }
+    .d-3 { animation-delay: 0.15s; }
 </style>
 
 <div class="container-fluid py-4 asset-dashboard">
     <!-- Header Area -->
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-end mb-4 pb-3 border-bottom animate-fade-in">
-        <div>
-            <div class="d-flex align-items-center mb-2">
-                <div class="badge gradient-dark px-3 py-2 rounded-pill me-3 shadow-sm text-uppercase letter-spacing-1" id="assetBadge">Loading...</div>
-                <span class="text-muted fw-medium" id="assetSubtitle">Fetching hardware profile</span>
+    <div class="page-header fade-up">
+        <div class="d-flex align-items-center gap-3">
+            <div id="mainIcon" class="icon-soft icon-soft-primary" style="width: 56px; height: 56px; font-size: 1.5rem;">
+                <i class="fas fa-laptop"></i>
             </div>
-            <h1 class="display-6 fw-bold mb-0 brand-font" id="assetTitle">
-                <i class="fas fa-circle-notch fa-spin text-primary me-2"></i> Loading Data...
-            </h1>
+            <div>
+                <div class="d-flex align-items-center mb-1">
+                    <span class="text-label me-3" id="assetBadge">Loading...</span>
+                    <span class="text-muted" style="font-size:0.8rem" id="assetSubtitle">Fetching hardware profile</span>
+                </div>
+                <h1 class="h3 fw-bold mb-0 brand-font text-dark" id="assetTitle">
+                    <i class="fas fa-circle-notch fa-spin text-primary me-2"></i> Loading Data...
+                </h1>
+            </div>
         </div>
-        <div class="mt-3 mt-md-0 d-flex gap-2" id="headerActions">
-            <a href="/users_list" class="btn btn-light rounded-pill px-4 fw-semibold border shadow-sm hover-lift">
-                <i class="fas fa-arrow-left me-2"></i> Inventory
-            </a>
-            <button class="btn btn-primary rounded-pill px-4 fw-semibold shadow hover-lift" onclick="location.reload()">
-                <i class="fas fa-sync-alt me-2"></i> Refresh Data
-            </button>
+        <div class="d-flex align-items-center gap-3 mt-3 mt-md-0">
+            <div id="statusIndicator"></div>
+            <div id="headerActions" class="d-flex gap-2 ms-3 border-start ps-3 border-light">
+                <a href="/users_list" class="btn btn-light rounded-pill px-4 fw-semibold border shadow-sm">
+                    <i class="fas fa-arrow-left me-2"></i> Inventory
+                </a>
+                <button class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm" onclick="location.reload()">
+                    <i class="fas fa-sync-alt me-2"></i> Refresh
+                </button>
+            </div>
         </div>
     </div>
 
@@ -159,35 +218,25 @@
     <div class="row g-4" id="dashboardContent" style="display: none;">
         
         <!-- LEFT COLUMN: Identity & Owner -->
-        <div class="col-xl-4 animate-fade-in delay-1">
+        <div class="col-xl-4 fade-up d-1">
             <!-- Asset Passport -->
-            <div class="glass-card p-4 mb-4">
-                <div class="d-flex justify-content-between align-items-start mb-4">
-                    <div class="stat-icon gradient-primary rounded-circle" style="width: 60px; height: 60px; font-size: 1.5rem;" id="mainIcon">
-                        <i class="fas fa-laptop"></i>
-                    </div>
-                    <div class="text-end">
-                        <div class="stat-label">System Status</div>
-                        <div id="statusIndicator"></div>
-                    </div>
-                </div>
-                
-                <h4 class="fw-bold mb-1 brand-font text-dark" id="modelDisplay">-</h4>
-                <p class="text-muted mb-4"><i class="fas fa-building me-2"></i><span id="vendorDisplay">-</span></p>
+            <div class="premium-card p-4 mb-4">
+                <h5 class="fw-bold mb-1 brand-font text-dark" id="modelDisplay">-</h5>
+                <p class="text-muted mb-4 pb-3 border-bottom border-light" style="font-size:0.9rem"><i class="fas fa-building me-2"></i><span id="vendorDisplay">-</span></p>
                 
                 <div class="mb-4">
-                    <div class="stat-label mb-1">Serial Number</div>
-                    <div class="fs-6 fw-bold text-dark font-monospace" id="snDisplay">-</div>
+                    <div class="text-label mb-1">Serial Number</div>
+                    <div class="text-value font-monospace" id="snDisplay">-</div>
                 </div>
 
                 <div class="mb-4" id="hostnameContainer" style="display: none;">
-                    <div class="stat-label mb-1">Hostname / Device Name</div>
-                    <div class="fs-6 fw-bold text-dark font-monospace" id="hostnameDisplay">-</div>
+                    <div class="text-label mb-1">Hostname / Device Name</div>
+                    <div class="text-value font-monospace" id="hostnameDisplay">-</div>
                 </div>
 
-                <div class="d-flex justify-content-between align-items-center mb-2">
-                    <span class="text-muted fw-semibold small text-uppercase">Last Network Ping</span>
-                    <span class="badge bg-secondary rounded-pill" id="lastSeenDisplay">-</span>
+                <div class="d-flex justify-content-between align-items-center mt-2 pt-3 border-top border-light">
+                    <span class="text-label mb-0">Last Network Ping</span>
+                    <span class="status-pill secondary" id="lastSeenDisplay">-</span>
                 </div>
             </div>
 
@@ -199,22 +248,22 @@
         </div>
 
         <!-- RIGHT COLUMN: Telemetry & Logs -->
-        <div class="col-xl-8 animate-fade-in delay-2">
+        <div class="col-xl-8 fade-up d-2">
             
             <!-- Telemetry Row -->
-            <div class="row g-2 mb-4" id="telemetryRow">
+            <div class="row g-3 mb-4" id="telemetryRow">
                 <!-- Populated via JS -->
             </div>
 
             <!-- Lifecycle Timeline Card -->
-            <div class="glass-card p-4 assignee-card">
-                <div class="d-flex align-items-center mb-4 border-bottom pb-3">
-                    <div class="bg-white text-info rounded-circle d-flex justify-content-center align-items-center shadow-sm border me-3" style="width: 40px; height: 40px; font-size: 1rem;">
+            <div class="premium-card p-4">
+                <div class="d-flex align-items-center mb-4">
+                    <div class="icon-soft icon-soft-info me-3" style="width: 40px; height: 40px;">
                         <i class="fas fa-project-diagram"></i>
                     </div>
                     <h5 class="mb-0 fw-bold brand-font text-dark">Asset Lifecycle & Handoffs</h5>
                 </div>
-                <div class="timeline-modern mt-3" id="historyTimeline">
+                <div class="timeline-elegant mt-3" id="historyTimeline">
                     <!-- Populated via JS -->
                 </div>
             </div>
@@ -222,23 +271,28 @@
         </div>
 
         <!-- BOTTOM ROW: Software & Printers -->
-        <div class="col-12 animate-fade-in delay-3">
+        <div class="col-12 fade-up d-3">
             
             <!-- Print Infrastructure Card -->
-            <div class="glass-card p-0 overflow-hidden d-none mb-4" id="printersCard">
-                <div class="d-flex justify-content-between align-items-center p-4 border-bottom bg-white">
-                    <h5 class="mb-0 fw-bold brand-font"><i class="fas fa-print text-primary me-2"></i> Print Infrastructure</h5>
+            <div class="premium-card overflow-hidden d-none mb-4" id="printersCard">
+                <div class="d-flex justify-content-between align-items-center p-4 border-bottom border-light">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-soft icon-soft-primary me-3" style="width:36px;height:36px">
+                            <i class="fas fa-print"></i>
+                        </div>
+                        <h5 class="mb-0 fw-bold brand-font">Print Infrastructure</h5>
+                    </div>
                     <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm" id="printerCount">0 Printers</span>
                 </div>
-                <div class="table-container bg-white" style="max-height: 350px;">
-                    <table class="table table-hover align-middle mb-0 border-0">
-                        <thead class="table-light sticky-top" style="z-index: 1;">
+                <div class="elegant-table-container">
+                    <table class="elegant-table">
+                        <thead>
                             <tr>
-                                <th class="ps-4 fw-semibold text-muted text-uppercase small">Printer Name</th>
-                                <th class="fw-semibold text-muted text-uppercase small">Driver</th>
-                                <th class="fw-semibold text-muted text-uppercase small">Port</th>
-                                <th class="fw-semibold text-muted text-uppercase small">Network</th>
-                                <th class="pe-4 fw-semibold text-muted text-uppercase small">Type</th>
+                                <th class="ps-4">Printer Name</th>
+                                <th>Driver</th>
+                                <th>Port</th>
+                                <th>Network</th>
+                                <th class="pe-4">Type</th>
                             </tr>
                         </thead>
                         <tbody id="printerTableBody">
@@ -248,9 +302,14 @@
             </div>
 
             <!-- Software Inventory Card -->
-            <div class="glass-card p-0 overflow-hidden d-none" id="softwareCard">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center p-4 border-bottom bg-white gap-3">
-                    <h5 class="mb-0 fw-bold brand-font"><i class="fas fa-layer-group text-primary me-2"></i> Software Architecture</h5>
+            <div class="premium-card overflow-hidden d-none" id="softwareCard">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center p-4 border-bottom border-light gap-3">
+                    <div class="d-flex align-items-center">
+                        <div class="icon-soft icon-soft-primary me-3" style="width:36px;height:36px">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <h5 class="mb-0 fw-bold brand-font">Software Architecture</h5>
+                    </div>
                     <div class="d-flex align-items-center gap-3">
                         <div class="position-relative">
                             <i class="fas fa-search position-absolute text-muted" style="top: 50%; left: 15px; transform: translateY(-50%);"></i>
@@ -259,15 +318,15 @@
                         <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm text-nowrap" id="softwareCount">0 Apps</span>
                     </div>
                 </div>
-                <div class="table-container bg-white" style="max-height: 500px;">
-                    <table class="table table-hover align-middle mb-0 border-0">
-                        <thead class="table-light sticky-top" style="z-index: 1;">
+                <div class="elegant-table-container" style="max-height: 500px;">
+                    <table class="elegant-table">
+                        <thead>
                             <tr>
-                                <th class="ps-4 fw-semibold text-muted text-uppercase small">Application</th>
-                                <th class="fw-semibold text-muted text-uppercase small">Version</th>
-                                <th class="fw-semibold text-muted text-uppercase small">State</th>
-                                <th class="fw-semibold text-muted text-uppercase small">Detected</th>
-                                <th class="pe-4 fw-semibold text-muted text-uppercase small">Removed</th>
+                                <th class="ps-4">Application</th>
+                                <th>Version</th>
+                                <th>State</th>
+                                <th>Detected</th>
+                                <th class="pe-4">Removed</th>
                             </tr>
                         </thead>
                         <tbody id="softwareTableBody">
@@ -278,6 +337,25 @@
             </div>
         </div>
 
+    </div>
+</div>
+
+<!-- Status Confirmation Modal -->
+<div class="modal fade" id="statusConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow" style="border-radius: 16px;">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold brand-font"><i class="fas fa-exclamation-circle text-warning me-2"></i> Confirm Status Change</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0 text-secondary">Are you sure you want to change this asset's status to <strong id="modalTargetStatus" class="text-dark"></strong>?</p>
+            </div>
+            <div class="modal-footer border-0 pt-0">
+                <button type="button" class="btn btn-light rounded-pill px-4 fw-semibold border shadow-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary rounded-pill px-4 fw-semibold shadow-sm" id="confirmStatusBtn">Yes, Change Status</button>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -338,7 +416,7 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
         
         if (assetType === 'printer' && asset.ip_address) {
-            const btnHtml = `<a href="http://${asset.ip_address}" target="_blank" class="btn btn-dark rounded-pill px-4 fw-semibold shadow hover-lift"><i class="fas fa-globe me-2"></i> Open Web UI</a>`;
+            const btnHtml = `<a href="http://${asset.ip_address}" target="_blank" class="btn btn-light rounded-pill px-4 fw-semibold border shadow-sm"><i class="fas fa-globe me-2"></i> Web UI</a>`;
             document.getElementById('headerActions').insertAdjacentHTML('afterbegin', btnHtml);
         }
         
@@ -349,14 +427,15 @@ document.addEventListener('DOMContentLoaded', async function() {
             const lastSeenDate = new Date(asset.last_seen_at);
             const diffDays = Math.ceil(Math.abs(new Date() - lastSeenDate) / (1000 * 60 * 60 * 24));
             
-            lastSeenEl.classList.remove('bg-secondary');
+            lastSeenEl.classList.remove('secondary', 'bg-secondary', 'bg-success', 'bg-danger');
+            lastSeenEl.style.backgroundColor = '';
+            
             if (diffDays <= 14) {
-                lastSeenEl.classList.add('bg-success');
+                lastSeenEl.classList.add('success');
             } else if (diffDays < 28) {
-                lastSeenEl.classList.add('text-white');
-                lastSeenEl.style.backgroundColor = '#b7791f'; // Brown/Orange
+                lastSeenEl.classList.add('warning');
             } else {
-                lastSeenEl.classList.add('bg-danger');
+                lastSeenEl.classList.add('danger');
                 lastSeenEl.innerHTML = `<i class="fas fa-exclamation-triangle me-1"></i> ${formatDate(asset.last_seen_at)}`;
             }
         }
@@ -383,26 +462,35 @@ document.addEventListener('DOMContentLoaded', async function() {
         }
 
         document.getElementById('statusIndicator').innerHTML = `
-            <span class="badge rounded-pill bg-${statusColor} fs-6 px-3 py-2 shadow-sm">
-                <i class="fas ${statusIcon} me-1"></i> ${asset.status || 'Unknown'}
-            </span>
+            <div class="dropdown d-inline-block">
+                <div class="status-pill ${statusColor === 'warning text-dark' ? 'warning' : statusColor} cursor-pointer" 
+                     data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer; transition: opacity 0.2s;" onmouseover="this.style.opacity=0.8" onmouseout="this.style.opacity=1" title="Click to change status">
+                    <i class="fas ${statusIcon} me-2"></i> ${asset.status || 'Unknown'} <i class="fas fa-chevron-down ms-2 small opacity-50"></i>
+                </div>
+                <ul class="dropdown-menu shadow-sm border-0" style="border-radius: 12px; font-size: 0.85rem; min-width: 180px;">
+                    <li><h6 class="dropdown-header text-uppercase" style="font-size: 0.7rem; font-weight: 600; color: #94a3b8;">Change Status</h6></li>
+                    <li><a class="dropdown-item py-2 d-flex align-items-center" href="#" onclick="confirmStatusChange(event, 'Available')"><i class="fas fa-check-circle text-success me-2" style="width: 16px;"></i> Available</a></li>
+                    <li><a class="dropdown-item py-2 d-flex align-items-center" href="#" onclick="confirmStatusChange(event, 'Assigned')"><i class="fas fa-user-lock text-primary me-2" style="width: 16px;"></i> Assigned</a></li>
+                    <li><a class="dropdown-item py-2 d-flex align-items-center" href="#" onclick="confirmStatusChange(event, 'Maintenance')"><i class="fas fa-tools text-warning me-2" style="width: 16px;"></i> Maintenance</a></li>
+                    <li><a class="dropdown-item py-2 d-flex align-items-center" href="#" onclick="confirmStatusChange(event, 'Broken')"><i class="fas fa-times-circle text-danger me-2" style="width: 16px;"></i> Broken</a></li>
+                    <li><a class="dropdown-item py-2 d-flex align-items-center" href="#" onclick="confirmStatusChange(event, 'Retired')"><i class="fas fa-ban text-danger me-2" style="width: 16px;"></i> Retired</a></li>
+                    <li><a class="dropdown-item py-2 d-flex align-items-center" href="#" onclick="confirmStatusChange(event, 'Returned to Supplier')"><i class="fas fa-truck-loading text-secondary me-2" style="width: 16px;"></i> Returned to Supplier</a></li>
+                </ul>
+            </div>
         `;
 
         // 2. Assignee Widget
         const assigneeDiv = document.getElementById('assigneeWidget');
         if (asset.current_assignee) {
             assigneeDiv.innerHTML = `
-                <div class="glass-card p-4 assignee-card position-relative overflow-hidden">
-                    <div class="position-absolute top-0 end-0 opacity-10 p-3" style="font-size: 5rem; transform: rotate(-15deg); color: #4f46e5;">
-                        <i class="fas fa-id-badge"></i>
-                    </div>
-                    <div class="stat-label mb-2 position-relative z-index-1">Currently Deployed To</div>
-                    <div class="d-flex align-items-center position-relative z-index-1">
-                        <div class="bg-white text-primary rounded-circle d-flex justify-content-center align-items-center shadow-sm border" style="width: 50px; height: 50px; font-size: 1.2rem;">
-                            <i class="fas fa-user-tie"></i>
+                <div class="premium-card p-4">
+                    <div class="text-label mb-3">Currently Deployed To</div>
+                    <div class="d-flex align-items-center">
+                        <div class="icon-soft icon-soft-primary" style="width: 48px; height: 48px; font-size: 1.2rem;">
+                            <i class="fas fa-user"></i>
                         </div>
                         <div class="ms-3">
-                            <h4 class="mb-0 fw-bold"><a href="/admin/users/${asset.current_assignee.id}" class="text-decoration-none text-dark">${asset.current_assignee.name}</a></h4>
+                            <h5 class="mb-0 fw-bold"><a href="/admin/users/${asset.current_assignee.id}" class="text-decoration-none text-dark">${asset.current_assignee.name}</a></h5>
                             ${asset.current_assignee.email ? `<small class="text-muted"><i class="fas fa-envelope me-1"></i>${asset.current_assignee.email}</small>` : ''}
                         </div>
                     </div>
@@ -410,12 +498,14 @@ document.addEventListener('DOMContentLoaded', async function() {
             `;
         } else if (isAvail) {
             assigneeDiv.innerHTML = `
-                <div class="glass-card p-4 border-start border-success border-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #ffffff 100%);">
+                <div class="premium-card p-4">
                     <div class="d-flex align-items-center">
-                        <div class="text-success" style="font-size: 2.5rem;"><i class="fas fa-box-open"></i></div>
+                        <div class="icon-soft icon-soft-success" style="width: 48px; height: 48px; font-size: 1.2rem;">
+                            <i class="fas fa-box-open"></i>
+                        </div>
                         <div class="ms-3">
                             <h5 class="mb-0 fw-bold text-success">In Stock</h5>
-                            <p class="mb-0 text-muted small">Asset is stored in inventory and ready to be deployed.</p>
+                            <p class="mb-0 text-muted small">Asset is stored and ready to be deployed.</p>
                         </div>
                     </div>
                 </div>
@@ -426,15 +516,17 @@ document.addEventListener('DOMContentLoaded', async function() {
         const monitorsDiv = document.getElementById('monitorsWidget');
         if (asset.connected_monitors && asset.connected_monitors.length > 0) {
             let monitorsHtml = `
-                <div class="glass-card p-4">
+                <div class="premium-card p-4">
                     <h6 class="fw-bold brand-font mb-3"><i class="fas fa-desktop text-success me-2"></i> Connected Monitors</h6>
                     <ul class="list-group list-group-flush bg-transparent">
             `;
             asset.connected_monitors.forEach(mon => {
                 monitorsHtml += `
                     <li class="list-group-item bg-transparent px-0 border-light d-flex align-items-center">
-                        <i class="fas fa-desktop fs-4 text-muted me-3"></i>
-                        <div>
+                        <div class="icon-soft icon-soft-dark" style="width: 32px; height: 32px; font-size: 0.9rem;">
+                            <i class="fas fa-desktop"></i>
+                        </div>
+                        <div class="ms-3">
                             <div class="fw-bold"><a href="/hardware/monitor/${mon.id}" class="text-decoration-none text-dark">${mon.model || 'Unknown Model'}</a></div>
                             <small class="text-muted">S/N: ${mon.serial_number} &bull; ${mon.vendor || 'Unknown'}</small>
                         </div>
@@ -448,12 +540,14 @@ document.addEventListener('DOMContentLoaded', async function() {
         // 2c. Connected Host PC Widget (For Monitors)
         if (assetType === 'monitor' && asset.connected_pc) {
             let pcHtml = `
-                <div class="glass-card p-4 mt-4 border-start border-primary border-4">
+                <div class="premium-card p-4 mt-4 border-start border-primary border-4">
                     <h6 class="fw-bold brand-font mb-3"><i class="fas fa-laptop-house text-primary me-2"></i> Connected Host PC</h6>
                     <ul class="list-group list-group-flush bg-transparent">
                         <li class="list-group-item bg-transparent px-0 border-0 d-flex align-items-center">
-                            <i class="fas fa-laptop fs-4 text-muted me-3"></i>
-                            <div>
+                            <div class="icon-soft icon-soft-primary" style="width: 32px; height: 32px; font-size: 0.9rem;">
+                                <i class="fas fa-laptop"></i>
+                            </div>
+                            <div class="ms-3">
                                 <div class="fw-bold"><a href="/hardware/pc/${asset.connected_pc.id}" class="text-decoration-none text-dark">${asset.connected_pc.model || 'Unknown Model'}</a></div>
                                 <small class="text-muted">S/N: ${asset.connected_pc.serial_number} &bull; ${asset.connected_pc.vendor || 'Unknown'}</small>
                             </div>
@@ -469,11 +563,11 @@ document.addEventListener('DOMContentLoaded', async function() {
         let telemetryHtml = '';
         const buildWidget = (icon, colorClass, label, value) => `
             <div class="col-sm-6 col-md-4">
-                <div class="stat-widget">
-                    <div class="stat-icon gradient-${colorClass}"><i class="fas ${icon}"></i></div>
+                <div class="telemetry-item">
+                    <div class="telemetry-icon icon-soft icon-soft-${colorClass}"><i class="fas ${icon}"></i></div>
                     <div class="overflow-hidden">
-                        <div class="stat-label">${label}</div>
-                        <div class="stat-value text-break" style="font-size: 0.85rem;">${value || '<span class="text-muted fw-normal">N/A</span>'}</div>
+                        <div class="text-label">${label}</div>
+                        <div class="text-value text-break" style="font-size: 0.9rem;">${value || '<span class="text-muted fw-normal">N/A</span>'}</div>
                     </div>
                 </div>
             </div>
@@ -506,11 +600,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (asset.mac_address) {
                 telemetryHtml += `
                 <div class="col-sm-6 col-md-4">
-                    <div class="stat-widget">
-                        <div class="stat-icon gradient-info"><i class="fas fa-route"></i></div>
+                    <div class="telemetry-item">
+                        <div class="telemetry-icon icon-soft icon-soft-info"><i class="fas fa-route"></i></div>
                         <div class="overflow-hidden">
-                            <div class="stat-label">Switch Port</div>
-                            <div class="stat-value text-break" style="font-size: 0.85rem;" id="netLocWidgetContent">
+                            <div class="text-label">Switch Port</div>
+                            <div class="text-value text-break" style="font-size: 0.9rem;" id="netLocWidgetContent">
                                 <i class="fas fa-circle-notch fa-spin text-info me-1"></i> Locating...
                             </div>
                         </div>
@@ -531,11 +625,11 @@ document.addEventListener('DOMContentLoaded', async function() {
             if (asset.mac_address) {
                 telemetryHtml += `
                 <div class="col-sm-6 col-md-4">
-                    <div class="stat-widget">
-                        <div class="stat-icon gradient-info"><i class="fas fa-route"></i></div>
+                    <div class="telemetry-item">
+                        <div class="telemetry-icon icon-soft icon-soft-info"><i class="fas fa-route"></i></div>
                         <div class="overflow-hidden">
-                            <div class="stat-label">Switch Port</div>
-                            <div class="stat-value text-break" style="font-size: 0.85rem;" id="netLocWidgetContent">
+                            <div class="text-label">Switch Port</div>
+                            <div class="text-value text-break" style="font-size: 0.9rem;" id="netLocWidgetContent">
                                 <i class="fas fa-circle-notch fa-spin text-info me-1"></i> Locating...
                             </div>
                         </div>
@@ -674,24 +768,75 @@ document.addEventListener('DOMContentLoaded', async function() {
         timeline.innerHTML = data.map((entry, index) => {
             const isCurrent = index === 0 && !entry.returned_date;
             return `
-                <div class="timeline-node">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h6 class="fw-bold mb-0 ${isCurrent ? 'text-primary' : 'text-dark'}">
+                <div class="timeline-node ${isCurrent ? 'current' : ''}">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <h6 class="fw-bold mb-0 text-dark" style="font-size: 0.95rem;">
                             Assigned to ${entry.new_user_name || 'Unknown'}
-                            ${isCurrent ? '<span class="badge bg-primary ms-2 shadow-sm">Current</span>' : ''}
+                            ${isCurrent ? '<span class="status-pill success ms-2" style="font-size:0.65rem; padding:4px 10px;">Current</span>' : ''}
                         </h6>
                         <span class="text-muted small fw-semibold"><i class="fas fa-calendar-alt me-1"></i> ${formatDate(entry.assigned_date)}</span>
                     </div>
-                    <div class="text-muted small mb-2">
+                    <div class="text-muted mb-2" style="font-size: 0.85rem;">
                         <i class="fas fa-exchange-alt me-1"></i> Transferred from <strong>${entry.previous_user_name || 'Inventory Stock'}</strong>
                     </div>
-                    ${entry.notes ? `<div class="bg-light p-2 rounded small text-secondary border border-light mt-2"><i class="fas fa-comment text-warning me-1"></i> ${entry.notes}</div>` : ''}
-                    ${entry.returned_date ? `<div class="text-danger small mt-2 fw-medium"><i class="fas fa-undo-alt me-1"></i> Returned to stock on ${formatDate(entry.returned_date)}</div>` : ''}
+                    ${entry.notes ? `<div class="bg-light p-2 rounded text-muted border border-light mt-2" style="font-size: 0.85rem;"><i class="fas fa-comment text-warning me-1"></i> ${entry.notes}</div>` : ''}
+                    ${entry.returned_date ? `<div class="text-danger mt-2 fw-medium" style="font-size: 0.85rem;"><i class="fas fa-undo-alt me-1"></i> Returned to stock on ${formatDate(entry.returned_date)}</div>` : ''}
                 </div>
             `;
         }).join('');
     } catch(e) {
         document.getElementById('historyTimeline').innerHTML = `<div class="text-danger">Failed to load history.</div>`;
+    }
+});
+
+// Status Update Logic
+let pendingStatusChange = null;
+let statusModalInstance = null;
+
+function confirmStatusChange(event, newStatus) {
+    event.preventDefault();
+    pendingStatusChange = newStatus;
+    document.getElementById('modalTargetStatus').innerText = newStatus;
+    
+    if (!statusModalInstance) {
+        statusModalInstance = new bootstrap.Modal(document.getElementById('statusConfirmModal'));
+    }
+    statusModalInstance.show();
+}
+
+document.getElementById('confirmStatusBtn').addEventListener('click', async function() {
+    if (!pendingStatusChange) return;
+    
+    const pathParts = window.location.pathname.split('/');
+    const assetType = pathParts[2];
+    const assetId = pathParts[3];
+    
+    const btn = this;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = `<i class="fas fa-circle-notch fa-spin me-2"></i> Updating...`;
+    btn.disabled = true;
+    
+    try {
+        const res = await fetch(`/api/hardware/stock/${assetType}/${assetId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: pendingStatusChange })
+        });
+        
+        if (!res.ok) {
+            const err = await res.json();
+            alert('Error updating status: ' + (err.detail || 'Unknown error'));
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+            return;
+        }
+        
+        location.reload();
+    } catch (err) {
+        alert('Network error updating status.');
+        console.error(err);
+        btn.innerHTML = originalText;
+        btn.disabled = false;
     }
 });
 </script>

@@ -3,109 +3,437 @@
 {% block title %}User Profile - KOSTAL ITSM{% endblock %}
 
 {% block content %}
-<div class="py-4">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h2 mb-1" id="userNameTitle">Loading User...</h1>
-            <p class="text-muted" id="userEmailSubtitle"></p>
-        </div>
-        <div>
-            <button class="btn btn-primary" onclick="openAssignModal()">
-                <i class="fas fa-plus-circle"></i> Assign Hardware
-            </button>
-        </div>
-    </div>
+<style>
+    :root {
+        --color-bg: #fbfcfd;
+        --color-surface: #ffffff;
+        --color-border: #e5e7eb;
+        --color-border-hover: #d1d5db;
+        --color-text-primary: #111827;
+        --color-text-secondary: #6b7280;
+        --color-brand: #0d6efd;
+        --color-brand-hover: #0b5ed7;
+        --color-danger: #dc2626;
+        --color-danger-bg: #fef2f2;
+    }
 
-    <div class="row g-4">
-        <!-- User Details Card -->
-        <div class="col-md-4">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-header bg-body-tertiary border-0 pt-4 pb-0">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-id-card me-2 text-primary"></i> Profile Information</h5>
+    body {
+        background-color: var(--color-bg);
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        color: var(--color-text-primary);
+    }
+
+    /* Layout */
+    .app-container {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+
+    /* Typography */
+    .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+    .text-base { font-size: 1rem; line-height: 1.5rem; }
+    .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+    .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+    .font-medium { font-weight: 500; }
+    .font-semibold { font-weight: 600; }
+    .font-bold { font-weight: 700; }
+    
+    .label-caps {
+        text-transform: uppercase;
+        font-size: 0.6875rem;
+        font-weight: 700;
+        letter-spacing: 0.05em;
+        color: var(--color-text-secondary);
+        margin-bottom: 0.35rem;
+    }
+
+    /* Sidebar / Profile Card */
+    .profile-sidebar {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 2rem;
+        position: sticky;
+        top: 2rem;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+    }
+    
+    .avatar-wrapper {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: var(--color-brand);
+        border: 4px solid #e0e7ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2.5rem;
+        color: white;
+        margin-bottom: 1.5rem;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(13, 110, 253, 0.2);
+    }
+    .avatar-wrapper img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Minimalist Badges */
+    .badge-minimal {
+        display: inline-flex;
+        align-items: center;
+        padding: 0.25rem 0.6rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        color: var(--color-text-primary);
+        gap: 0.375rem;
+    }
+    .badge-minimal.active {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #166534;
+    }
+    .badge-minimal.inactive {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #991b1b;
+    }
+    .badge-minimal .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: currentColor;
+    }
+
+    /* Tabs */
+    .tab-nav {
+        display: flex;
+        gap: 2rem;
+        border-bottom: 1px solid var(--color-border);
+        margin-bottom: 2rem;
+    }
+    .tab-item {
+        padding: 0.75rem 0;
+        color: var(--color-text-secondary);
+        font-weight: 500;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+        margin-bottom: -1px;
+    }
+    .tab-item:hover {
+        color: var(--color-text-primary);
+    }
+    .tab-item.active {
+        color: var(--color-brand);
+        border-bottom-color: var(--color-brand);
+        font-weight: 600;
+    }
+    .tab-pane {
+        display: none;
+    }
+    .tab-pane.active {
+        display: block;
+        animation: fadeIn 0.2s ease-in-out;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(2px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Minimal Hardware List */
+    .hw-list-item {
+        background: var(--color-surface);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 1.25rem;
+        display: flex;
+        align-items: center;
+        transition: all 0.2s;
+        margin-bottom: 0.75rem;
+    }
+    .hw-list-item:hover {
+        border-color: var(--color-border-hover);
+        box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);
+    }
+    .hw-icon-container {
+        width: 44px;
+        height: 44px;
+        border-radius: 8px;
+        background: #e0e7ff;
+        border: 1px solid #c7d2fe;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-brand);
+        font-size: 1.1rem;
+        flex-shrink: 0;
+        margin-right: 1.25rem;
+    }
+    .hw-action {
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .hw-list-item:hover .hw-action {
+        opacity: 1;
+    }
+
+    /* Buttons */
+    .btn-brand {
+        background: var(--color-brand);
+        color: white;
+        border: 1px solid var(--color-brand);
+        border-radius: 6px;
+        padding: 0.5rem 1.25rem;
+        font-weight: 500;
+        font-size: 0.875rem;
+        transition: all 0.2s;
+    }
+    .btn-brand:hover {
+        background: var(--color-brand-hover);
+        border-color: var(--color-brand-hover);
+        color: white;
+    }
+    .btn-outline-danger {
+        background: transparent;
+        color: var(--color-danger);
+        border: 1px solid var(--color-border);
+        border-radius: 6px;
+        padding: 0.375rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .btn-outline-danger:hover {
+        background: var(--color-danger-bg);
+        border-color: #fca5a5;
+        color: var(--color-danger);
+    }
+
+    /* Clean Table */
+    .clean-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .clean-table th {
+        text-transform: uppercase;
+        font-size: 0.6875rem;
+        font-weight: 600;
+        letter-spacing: 0.05em;
+        color: var(--color-text-secondary);
+        padding: 1rem 0;
+        border-bottom: 1px solid var(--color-border);
+        text-align: left;
+    }
+    .clean-table td {
+        padding: 1.25rem 0;
+        border-bottom: 1px solid var(--color-border);
+        color: var(--color-text-primary);
+        font-size: 0.875rem;
+    }
+    .hover-link {
+        color: var(--color-brand);
+        text-decoration: none;
+        transition: all 0.2s;
+    }
+    .hover-link:hover {
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        color: var(--color-brand-hover);
+    }
+    
+    /* Modals */
+    .premium-modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0,0,0,0.05);
+        overflow: hidden;
+    }
+    .premium-modal-header {
+        border: none;
+        padding: 2rem 2rem 0.5rem 2rem;
+    }
+    .premium-modal-body {
+        padding: 1rem 2rem 2rem 2rem;
+    }
+    .premium-modal-footer {
+        border-top: 1px solid #f1f5f9;
+        background-color: #f8fafc;
+        padding: 1.25rem 2rem;
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.75rem;
+    }
+    .modal-icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: #e0e7ff; /* Indigo-100 */
+        color: var(--color-brand);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+        margin-bottom: 1.25rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    .modal-title-custom {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #0f172a;
+        margin-bottom: 0.25rem;
+    }
+    .premium-input {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        padding: 0.625rem 0.75rem;
+        font-size: 0.875rem;
+        color: #0f172a;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        transition: all 0.2s;
+        width: 100%;
+    }
+    .premium-input:focus {
+        border-color: #0f172a;
+        box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.1);
+        outline: none;
+    }
+    .btn-ghost {
+        background: transparent;
+        color: #475569;
+        border: none;
+        font-weight: 500;
+        padding: 0.5rem 1.25rem;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+    .btn-ghost:hover {
+        background: #f1f5f9;
+        color: #0f172a;
+    }
+    .btn-premium-solid {
+        background: #0f172a;
+        color: white;
+        border: none;
+        font-weight: 500;
+        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+        transition: all 0.2s;
+    }
+    .btn-premium-solid:hover {
+        background: #1e293b;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+    .btn-premium-danger {
+        background: #dc2626;
+        color: white;
+        border: none;
+        font-weight: 500;
+        padding: 0.5rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(220,38,38,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+        transition: all 0.2s;
+    }
+    .btn-premium-danger:hover {
+        background: #b91c1c;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 6px rgba(220,38,38,0.2);
+    }
+
+</style>
+
+<div class="app-container">
+    <div class="row g-5">
+        <!-- Sticky Sidebar Profile -->
+        <div class="col-lg-4">
+            <div class="profile-sidebar">
+                <div id="userProfileImageContainer" class="avatar-wrapper">
+                    <i class="fas fa-user"></i>
                 </div>
-                <div class="card-body">
-                    <div class="text-center mb-4" id="userProfileImageContainer">
-                        <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 80px; height: 80px; font-size: 2rem;">
-                            <i class="fas fa-user"></i>
-                        </div>
+                
+                <h1 class="text-xl font-bold mb-1" id="userNameTitle">Loading User...</h1>
+                <p class="text-sm text-muted mb-4" id="userEmailSubtitle">-</p>
+                
+                <div class="d-flex flex-wrap gap-2 mb-4 pb-4 border-bottom">
+                    <span id="userStatus" class="badge-minimal"><div class="dot"></div>Loading</span>
+                    <span id="platformAccess" class="badge-minimal"><i class="fas fa-shield-alt"></i>Loading</span>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="label-caps">Department</div>
+                    <div class="text-base font-medium" id="userDepartment">-</div>
+                </div>
+                
+                <div class="mb-4">
+                    <div class="label-caps">Phone</div>
+                    <div class="text-base font-medium" id="userPhone">-</div>
+                </div>
+
+                <div class="mb-4 pb-4 border-bottom">
+                    <div class="label-caps">Username</div>
+                    <code class="bg-light px-2 py-1 rounded text-dark font-medium border d-inline-block mt-1" id="userUsername">-</code>
+                </div>
+
+                <div class="pt-2">
+                    <button class="btn-brand w-100 d-flex justify-content-center align-items-center gap-2 py-2" onclick="openAssignModal()">
+                        <i class="fas fa-plus"></i> Assign Hardware
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="col-lg-8">
+            <!-- Tabs Navigation -->
+            <div class="tab-nav">
+                <div class="tab-item active" onclick="switchTab('hardware')" id="tabNav-hardware">Assigned Equipment <span class="badge bg-light text-dark border ms-1" id="activeCountTab">0</span></div>
+                <div class="tab-item" onclick="switchTab('history')" id="tabNav-history">Assignment History</div>
+            </div>
+
+            <!-- Hardware Tab -->
+            <div id="tab-hardware" class="tab-pane active">
+                <div id="currentHardwareList">
+                    <div class="py-5 text-center text-muted">
+                        <div class="spinner-border spinner-border-sm mb-2" role="status"></div>
+                        <div class="text-sm">Loading equipment...</div>
                     </div>
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                            <span class="text-muted small">Status</span>
-                            <span id="userStatus" class="badge bg-secondary">Unknown</span>
-                        </li>
-                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                            <span class="text-muted small">Platform Access</span>
-                            <span id="platformAccess" class="badge bg-secondary">Unknown</span>
-                        </li>
-                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                            <span class="text-muted small">Department</span>
-                            <span id="userDepartment" class="fw-semibold">-</span>
-                        </li>
-                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                            <span class="text-muted small"><i class="fas fa-phone-alt me-1 opacity-50"></i>Phone</span>
-                            <span id="userPhone" class="fw-semibold">-</span>
-                        </li>
-                        <li class="list-group-item px-0 d-flex justify-content-between align-items-center">
-                            <span class="text-muted small">Username</span>
-                            <code id="userUsername" class="text-body bg-body-tertiary px-2 py-1 rounded">-</code>
-                        </li>
-                    </ul>
                 </div>
             </div>
-        </div>
 
-        <!-- Currently Assigned -->
-        <div class="col-md-8">
-            <div class="card h-100 shadow-sm border-0">
-                <div class="card-header bg-body-tertiary border-0 pt-4 pb-0 d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0 fw-bold"><i class="fas fa-laptop me-2 text-success"></i> Currently Assigned</h5>
-                    <span class="badge bg-success" id="activeCount">0 Devices</span>
-                </div>
-                <div class="card-body">
-                    <div class="row g-3" id="currentHardwareList">
-                        <div class="col-12 text-center py-4 text-muted">
-                            <div class="spinner-border spinner-border-sm me-2"></div> Loading equipment...
-                        </div>
+            <!-- History Tab -->
+            <div id="tab-history" class="tab-pane">
+                <div class="d-flex justify-content-end mb-4">
+                    <div class="input-group input-group-sm" style="max-width: 250px;">
+                        <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" id="historySearch" class="form-control border-start-0 ps-0 shadow-none minimal" placeholder="Search records...">
                     </div>
                 </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Assignment History -->
-    <div class="card shadow-sm border-0 mt-4">
-        <div class="card-header bg-body-tertiary border-0 pt-4 pb-0 d-flex justify-content-between align-items-end">
-            <h5 class="mb-2 fw-bold"><i class="fas fa-history me-2 text-info"></i> Equipment History</h5>
-            <div class="mb-2" style="width: 250px;">
-                <div class="input-group input-group-sm border rounded-pill overflow-hidden bg-white">
-                    <span class="input-group-text bg-white border-0 text-muted ps-3"><i class="fas fa-search"></i></span>
-                    <input type="text" id="historySearch" class="form-control border-0 shadow-none" placeholder="Search history...">
+                
+                <div class="table-responsive">
+                    <table class="clean-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%">Date</th>
+                                <th style="width: 15%">Action</th>
+                                <th style="width: 25%">Asset</th>
+                                <th style="width: 25%">Serial</th>
+                                <th style="width: 20%">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyList">
+                            <tr>
+                                <td colspan="5" class="text-center py-5 text-muted">Loading history...</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-        </div>
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover table-borderless mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4">Date</th>
-                            <th>Action</th>
-                            <th>Device Type</th>
-                            <th>Model</th>
-                            <th>Serial Number</th>
-                            <th>Notes</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyList">
-                        <tr>
-                            <td colspan="6" class="text-center py-4 text-muted">
-                                Loading history...
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
             </div>
         </div>
     </div>
@@ -114,30 +442,37 @@
 <!-- Assign Modal -->
 <div class="modal fade" id="assignModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content premium-modal-content">
             <form id="assignForm">
-                <div class="modal-header border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold">Assign New Hardware</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body px-4 pt-3">
-                    <div class="alert alert-info py-2" style="font-size: 0.9rem;">
-                        <i class="fas fa-info-circle me-1"></i> Only items currently marked as "Available" in stock are shown here.
+                <div class="premium-modal-header d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="modal-icon-wrapper">
+                            <i class="fas fa-link"></i>
+                        </div>
+                        <h5 class="modal-title-custom">Assign Hardware</h5>
+                        <p class="text-sm text-muted mb-0">Select a device from available stock to assign to this user.</p>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small text-muted text-uppercase">Select Device</label>
-                        <select class="form-select" id="stockSelect" required>
+                    <button type="button" class="btn-close mt-1" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="premium-modal-body">
+                    <div class="mb-4">
+                        <div class="label-caps mb-2">Select Device</div>
+                        <div class="position-relative mb-2">
+                            <i class="fas fa-search position-absolute text-muted" style="left: 14px; top: 13px;"></i>
+                            <input type="text" id="stockSearchInput" class="form-control premium-input ps-5" placeholder="Search by model or serial..." autocomplete="off">
+                        </div>
+                        <select class="form-select premium-input" id="stockSelect" required>
                             <option value="">Loading available stock...</option>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small text-muted text-uppercase">Assignment Notes</label>
-                        <textarea class="form-control" id="assignNotes" rows="2" placeholder="Optional details..."></textarea>
+                    <div>
+                        <div class="label-caps mb-2">Assignment Notes</div>
+                        <textarea class="form-control premium-input" id="assignNotes" rows="2" placeholder="Optional details or context..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer border-top-0 px-4 pb-4">
-                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary rounded-pill px-4" id="saveBtn">Assign Equipment</button>
+                <div class="premium-modal-footer">
+                    <button type="button" class="btn-ghost" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-premium-solid" id="saveBtn">Confirm Assignment</button>
                 </div>
             </form>
         </div>
@@ -147,26 +482,29 @@
 <!-- Return Modal -->
 <div class="modal fade" id="returnModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content border-0 shadow-lg rounded-4">
+        <div class="modal-content premium-modal-content">
             <form id="returnForm">
                 <input type="hidden" id="returnAssetType">
                 <input type="hidden" id="returnAssetId">
-                <div class="modal-header border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold">Return Hardware</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body px-4 pt-3">
-                    <div class="alert alert-warning py-2" style="font-size: 0.9rem;">
-                        <i class="fas fa-exclamation-triangle me-1"></i> You are returning <span id="returnAssetDisplay" class="fw-bold"></span> to available stock.
+                <div class="premium-modal-header d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="modal-icon-wrapper" style="background: #fee2e2; color: #dc2626;">
+                            <i class="fas fa-undo"></i>
+                        </div>
+                        <h5 class="modal-title-custom">Return Asset</h5>
+                        <p class="text-sm text-muted mb-0">Return <strong id="returnAssetDisplay"></strong> to available stock.</p>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold small text-muted text-uppercase">Return Notes</label>
-                        <textarea class="form-control" id="returnNotes" rows="2" placeholder="Condition, reason for return, etc..."></textarea>
+                    <button type="button" class="btn-close mt-1" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="premium-modal-body">
+                    <div>
+                        <div class="label-caps mb-2">Return Notes</div>
+                        <textarea class="form-control premium-input" id="returnNotes" rows="3" placeholder="Condition, reason for return, missing cables..."></textarea>
                     </div>
                 </div>
-                <div class="modal-footer border-top-0 px-4 pb-4">
-                    <button type="button" class="btn btn-light rounded-pill" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger rounded-pill px-4" id="submitReturnBtn">Confirm Return</button>
+                <div class="premium-modal-footer" style="justify-content: space-between;">
+                    <button type="button" class="btn-ghost" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn-premium-danger" id="submitReturnBtn">Confirm Return</button>
                 </div>
             </form>
         </div>
@@ -175,6 +513,14 @@
 
 <script>
 const USER_ID = {{ user_id }};
+
+function switchTab(tabId) {
+    document.querySelectorAll('.tab-pane').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
+    
+    document.getElementById('tab-' + tabId).classList.add('active');
+    document.getElementById('tabNav-' + tabId).classList.add('active');
+}
 
 document.addEventListener('DOMContentLoaded', () => {
     loadUserProfile();
@@ -189,23 +535,27 @@ async function loadUserProfile() {
         
         document.getElementById('userNameTitle').textContent = user.full_name;
         document.getElementById('userEmailSubtitle').textContent = user.email || 'No email provided';
-        document.getElementById('userDepartment').textContent = user.department || '-';
-        document.getElementById('userPhone').textContent = user.phone || '-';
+        document.getElementById('userDepartment').textContent = user.department || 'N/A';
+        document.getElementById('userPhone').textContent = user.phone || 'N/A';
         document.getElementById('userUsername').textContent = user.username;
         
         if (user.profile_image) {
             document.getElementById('userProfileImageContainer').innerHTML = `
-                <img src="${user.profile_image}" alt="Profile Image" class="rounded-circle shadow-sm" style="width: 80px; height: 80px; object-fit: cover; border: 2px solid white;">
+                <img src="${user.profile_image}" alt="Profile">
             `;
+        } else {
+            const initial = (user.full_name && user.full_name !== 'None') ? user.full_name.charAt(0).toUpperCase() : user.username.charAt(0).toUpperCase();
+            document.getElementById('userProfileImageContainer').innerHTML = initial;
         }
 
         const statusBadge = document.getElementById('userStatus');
-        statusBadge.textContent = user.ad_active !== false ? 'Working (Active)' : 'Not Working (Disabled)';
-        statusBadge.className = `badge bg-${user.ad_active !== false ? 'success' : 'danger'}`;
+        const isActive = user.ad_active !== false;
+        statusBadge.innerHTML = `<div class="dot"></div> ${isActive ? 'Active' : 'Disabled'}`;
+        statusBadge.className = `badge-minimal ${isActive ? 'active' : 'inactive'}`;
         
         const accessBadge = document.getElementById('platformAccess');
-        accessBadge.textContent = user.is_active ? 'Granted' : 'Denied';
-        accessBadge.className = `badge bg-${user.is_active ? 'success' : 'secondary'}`;
+        accessBadge.innerHTML = `<i class="fas fa-shield-alt"></i> ${user.is_active ? 'Granted' : 'Denied'}`;
+        accessBadge.className = `badge-minimal ${user.is_active ? 'active' : 'inactive'}`;
         
     } catch (e) {
         document.getElementById('userNameTitle').textContent = "Error loading user";
@@ -238,60 +588,70 @@ async function loadHardware() {
         const res = await fetch(`/api/admin/users/${USER_ID}/hardware`);
         const data = await res.json();
         
-        // Render Current
         const curContainer = document.getElementById('currentHardwareList');
-        document.getElementById('activeCount').textContent = `${data.current.length} Devices`;
+        document.getElementById('activeCountTab').textContent = data.current.length;
         
         if (data.current.length === 0) {
             curContainer.innerHTML = `
-                <div class="col-12 text-center py-5 text-muted">
-                    <i class="fas fa-inbox fa-3x mb-3 opacity-25"></i>
-                    <p class="mb-0">No equipment currently assigned.</p>
+                <div class="py-5 text-center" style="border: 1px dashed var(--color-border); border-radius: 12px;">
+                    <i class="fas fa-inbox fa-2x mb-3 text-muted opacity-50"></i>
+                    <h5 class="font-medium text-muted">No equipment assigned</h5>
                 </div>`;
         } else {
             curContainer.innerHTML = data.current.map(hw => `
-                <div class="col-md-6">
-                    <div class="p-3 border rounded-3 bg-body shadow-sm position-relative">
-                        <div class="d-flex align-items-center mb-2">
-                            <div class="bg-body-tertiary rounded-circle p-3 me-3 text-primary">
-                                <i class="fas ${getIconForType(hw.type)} fa-lg"></i>
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="fw-bold text-body">${hw.model || 'Unknown Model'}</div>
-                                <div class="text-muted small">${hw.serial_number}</div>
-                                <div class="badge bg-body-tertiary text-body mt-1 border">${getLabelForType(hw.type)}</div>
-                            </div>
+                <div class="hw-list-item">
+                    <div class="hw-icon-container">
+                        <i class="fas ${getIconForType(hw.type)}"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <a href="/hardware/${hw.type}/${hw.id}" class="hover-link">
+                            <div class="font-semibold text-base mb-1">${hw.model || 'Unknown Model'}</div>
+                        </a>
+                        <div class="text-sm text-muted">
+                            <a href="/hardware/${hw.type}/${hw.id}" class="text-decoration-none text-muted me-3 hover-link" style="opacity: 0.8;">
+                                <i class="fas fa-barcode me-1 opacity-50"></i><span>${hw.serial_number}</span>
+                            </a>
+                            <span class="badge bg-light text-dark border">${getLabelForType(hw.type)}</span>
                         </div>
-                        <button class="btn btn-sm btn-outline-danger w-100 rounded-pill mt-2" onclick="openReturnModal('${hw.type}', ${hw.id}, '${hw.serial_number}')">
-                            <i class="fas fa-undo me-1"></i> Return to Stock
+                    </div>
+                    <div class="hw-action ms-3">
+                        <button class="btn-outline-danger" onclick="openReturnModal('${hw.type}', ${hw.id}, '${hw.serial_number}')">
+                            Return
                         </button>
                     </div>
                 </div>
             `).join('');
         }
         
-        // Render History
         const histContainer = document.getElementById('historyList');
         if (data.history.length === 0) {
             histContainer.innerHTML = `
-                <tr><td colspan="6" class="text-center py-5 text-muted">No assignment history found.</td></tr>
+                <tr>
+                    <td colspan="5" class="text-center py-5 text-muted">
+                        No assignment history records found.
+                    </td>
+                </tr>
             `;
         } else {
             histContainer.innerHTML = data.history.map(h => {
                 const isAssigned = h.action === "Assigned";
                 const dateStr = h.date ? new Date(h.date).toLocaleDateString() + ' ' + new Date(h.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) : '-';
+                const actionClass = isAssigned ? 'active' : 'inactive';
                 return `
-                <tr class="align-middle">
-                    <td class="ps-4 text-muted small">${dateStr}</td>
-                    <td><span class="badge bg-${isAssigned ? 'success' : 'secondary'} bg-opacity-25 text-${isAssigned ? 'success' : 'secondary'} border border-${isAssigned ? 'success' : 'secondary'} px-2">${h.action}</span></td>
-                    <td><i class="fas ${getIconForType(h.hw_type)} me-2 text-muted"></i> ${getLabelForType(h.hw_type)}</td>
+                <tr>
+                    <td class="text-muted text-sm font-medium">${dateStr}</td>
+                    <td><span class="badge-minimal ${actionClass}">${h.action}</span></td>
                     <td>
-                        ${h.hw_model ? `<a href="/hardware/${h.hw_type}/${h.hw_id}" class="text-decoration-none fw-semibold text-primary hover-underline">${h.hw_model}</a>` : '-'}
+                        <div class="d-flex align-items-center">
+                            <i class="fas ${getIconForType(h.hw_type)} me-2 text-muted"></i>
+                            <span class="font-medium">${getLabelForType(h.hw_type)}</span>
+                        </div>
+                        ${h.hw_model ? `<a href="/hardware/${h.hw_type}/${h.hw_id}" class="hover-link"><div class="text-xs mt-1 fw-bold">${h.hw_model}</div></a>` : ''}
                     </td>
                     <td>
-                        ${h.hw_serial ? `<a href="/hardware/${h.hw_type}/${h.hw_id}" class="text-decoration-none"><code class="bg-body-tertiary text-body px-2 py-1 rounded border hover-underline">${h.hw_serial}</code></a>` : '-'}
+                        ${h.hw_serial ? `<a href="/hardware/${h.hw_type}/${h.hw_id}" class="text-decoration-none"><code class="bg-light px-2 py-1 rounded text-dark border" style="transition: all 0.2s;" onmouseover="this.style.backgroundColor='#e0e7ff'" onmouseout="this.style.backgroundColor='#f8f9fa'">${h.hw_serial}</code></a>` : '-'}
                     </td>
-                    <td class="text-muted small">${h.notes || '-'}</td>
+                    <td class="text-muted text-sm">${h.notes || '-'}</td>
                 </tr>
                 `;
             }).join('');
@@ -299,53 +659,94 @@ async function loadHardware() {
         
     } catch (e) {
         console.error(e);
-        document.getElementById('currentHardwareList').innerHTML = `<div class="col-12 text-danger text-center">Error loading hardware</div>`;
+        document.getElementById('currentHardwareList').innerHTML = `<div class="text-danger font-medium py-4">Error loading hardware</div>`;
     }
 }
 
-// Assignment Logic
+let availableStockGroups = {};
+
+function renderStockSelect(searchTerm = "") {
+    const select = document.getElementById('stockSelect');
+    let html = '';
+    let matchCount = 0;
+    
+    for (const [type, items] of Object.entries(availableStockGroups)) {
+        const filtered = items.filter(item => {
+            const term = searchTerm.toLowerCase();
+            const sn = (item.serial_number || "").toLowerCase();
+            const model = (item.model || "").toLowerCase();
+            return sn.includes(term) || model.includes(term);
+        });
+        
+        if (filtered.length > 0) {
+            html += `<optgroup label="${getLabelForType(type)}">`;
+            filtered.forEach(item => {
+                html += `<option value="${type}|${item.id}">${item.serial_number} - ${item.model || 'Unknown Model'}</option>`;
+                matchCount++;
+            });
+            html += `</optgroup>`;
+        }
+    }
+    
+    if (matchCount === 0) {
+        if (searchTerm) {
+            html = '<option value="" disabled>No devices match your search...</option>';
+        } else {
+            html = '<option value="" disabled>No available stock found</option>';
+        }
+    }
+    select.innerHTML = html;
+}
+
 async function openAssignModal() {
     const select = document.getElementById('stockSelect');
     select.innerHTML = '<option value="">Loading available stock...</option>';
     document.getElementById('assignNotes').value = '';
+    const searchInput = document.getElementById('stockSearchInput');
+    if (searchInput) searchInput.value = '';
+    availableStockGroups = {};
     
     new bootstrap.Modal(document.getElementById('assignModal')).show();
     
     try {
-        // Fetch all available stock
         const res = await fetch('/api/hardware/stock/all');
         const stockData = await res.json();
         
-        const available = (stockData.items || []).filter(item => item.status.toLowerCase() === 'available');
+        const available = (stockData.items || []).filter(item => {
+            if (item.status.toLowerCase() !== 'available') return false;
+            if (item.asset_type === 'pc') {
+                const sn = (item.serial_number || "").toUpperCase();
+                const model = (item.model || "").toUpperCase();
+                const vendor = (item.vendor || "").toUpperCase();
+                if (sn.startsWith("IP-") || vendor.includes("CISCO") || model.includes("SWITCH")) {
+                    return false;
+                }
+            }
+            return true;
+        });
         
         if (available.length === 0) {
             select.innerHTML = '<option value="">No available stock found</option>';
             return;
         }
         
-        // Group by type for better UI
-        const grouped = available.reduce((acc, item) => {
+        availableStockGroups = available.reduce((acc, item) => {
             if(!acc[item.asset_type]) acc[item.asset_type] = [];
             acc[item.asset_type].push(item);
             return acc;
         }, {});
         
-        let html = '<option value="">Select a device to assign...</option>';
-        for (const [type, items] of Object.entries(grouped)) {
-            html += `<optgroup label="${getLabelForType(type)}">`;
-            items.forEach(item => {
-                html += `<option value="${type}|${item.id}">${item.serial_number} - ${item.model || 'Unknown Model'}</option>`;
-            });
-            html += `</optgroup>`;
-        }
+        renderStockSelect();
         
-        select.innerHTML = html;
-        
-    } catch (e) {
+        } catch (e) {
         select.innerHTML = '<option value="">Error loading stock</option>';
         console.error(e);
     }
 }
+
+document.getElementById('stockSearchInput')?.addEventListener('input', function(e) {
+    renderStockSelect(this.value);
+});
 
 document.getElementById('assignForm').addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -357,7 +758,7 @@ document.getElementById('assignForm').addEventListener('submit', async (e) => {
     
     const btn = document.getElementById('saveBtn');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Assigning...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Processing...';
     
     try {
         const payload = {
@@ -379,13 +780,13 @@ document.getElementById('assignForm').addEventListener('submit', async (e) => {
         }
         
         bootstrap.Modal.getInstance(document.getElementById('assignModal')).hide();
-        loadHardware(); // Refresh
+        loadHardware();
         
     } catch(err) {
         alert(err.message);
     } finally {
         btn.disabled = false;
-        btn.innerHTML = 'Assign Equipment';
+        btn.innerHTML = 'Confirm Assignment';
     }
 });
 
@@ -401,7 +802,7 @@ document.getElementById('returnForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const btn = document.getElementById('submitReturnBtn');
     btn.disabled = true;
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Returning...';
     
     try {
         const payload = {
@@ -422,7 +823,7 @@ document.getElementById('returnForm').addEventListener('submit', async (e) => {
         }
         
         bootstrap.Modal.getInstance(document.getElementById('returnModal')).hide();
-        loadHardware(); // Refresh
+        loadHardware();
         
     } catch(err) {
         alert(err.message);
@@ -432,17 +833,15 @@ document.getElementById('returnForm').addEventListener('submit', async (e) => {
     }
 });
 
-// Search functionality for Equipment History
 document.getElementById('historySearch')?.addEventListener('keyup', function() {
     const term = this.value.toLowerCase();
-    const rows = document.querySelectorAll('#historyList tr.align-middle');
+    const rows = document.querySelectorAll('#historyList tr');
     
     rows.forEach(row => {
+        if (row.querySelector('td[colspan]')) return;
         const text = row.textContent.toLowerCase();
         row.style.display = text.includes(term) ? '' : 'none';
     });
 });
 </script>
 {% endblock %}
-
-

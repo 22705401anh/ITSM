@@ -5,44 +5,49 @@
 {% block content %}
 <div class="py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h2">Users Management</h1>
-        <div class="d-flex gap-2">
-            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importADModal">
-                <i class="fas fa-cloud-download-alt"></i> Import from AD
+        <div>
+            <h1 class="h3 mb-1 fw-bold text-dark">Users Management</h1>
+            <p class="text-muted mb-0">Manage system access and authentication</p>
+        </div>
+        <div class="d-flex gap-3">
+            <button class="btn btn-success rounded-pill px-4 shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#importADModal" style="transition: transform 0.2s;">
+                <i class="fas fa-cloud-download-alt"></i> <span>Import from AD</span>
             </button>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addUserModal">
-                <i class="fas fa-user-plus"></i> Add Local User
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm d-flex align-items-center gap-2" data-bs-toggle="modal" data-bs-target="#addUserModal" style="transition: transform 0.2s;">
+                <i class="fas fa-user-plus"></i> <span>Add Local User</span>
             </button>
         </div>
     </div>
 
-    <div class="card">
-        <div class="card-header d-flex justify-content-between align-items-center">
-            <h5 class="mb-0">All Users</h5>
-            <div class="input-group" style="max-width: 350px;">
-                <span class="input-group-text bg-transparent border-end-0">
-                    <i class="fas fa-search text-muted"></i>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white border-bottom p-4 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0 fw-bold">All Users</h5>
+            <div class="input-group bg-light rounded-pill p-1" style="max-width: 350px;">
+                <span class="input-group-text bg-transparent border-0 text-muted ps-3">
+                    <i class="fas fa-search"></i>
                 </span>
-                <input type="text" id="userSearchInput" class="form-control border-start-0"
-                       placeholder="Search by name, email, or username..." 
+                <input type="text" id="userSearchInput" class="form-control bg-transparent border-0 shadow-none"
+                       placeholder="Search users..." 
                        onkeyup="filterUsers()">
             </div>
         </div>
         <div class="card-body p-0">
             <div class="table-responsive">
-            <table class="table table-striped table-hover align-middle mb-0">
-                <thead class="table-light">
+            <table class="table table-hover align-middle mb-0 border-top">
+                <thead class="bg-light">
                     <tr>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Full Name</th>
-                        <th>Type</th>
-                        <th class="text-end">Actions</th>
+                        <th class="text-uppercase text-secondary fw-semibold border-0 py-3 ps-4" style="font-size: 0.75rem; letter-spacing: 0.5px;">User</th>
+                        <th class="text-uppercase text-secondary fw-semibold border-0 py-3" style="font-size: 0.75rem; letter-spacing: 0.5px;">Email</th>
+                        <th class="text-uppercase text-secondary fw-semibold border-0 py-3" style="font-size: 0.75rem; letter-spacing: 0.5px;">Authentication</th>
+                        <th class="text-end text-uppercase text-secondary fw-semibold border-0 py-3 pe-4" style="font-size: 0.75rem; letter-spacing: 0.5px;">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="usersTable">
                     <tr>
-                        <td colspan="6" class="text-center text-muted py-4">Loading users...</td>
+                        <td colspan="4" class="text-center text-muted py-5">
+                            <div class="spinner-border text-primary mb-3" role="status"></div>
+                            <div>Loading users...</div>
+                        </td>
                     </tr>
                 </tbody>
             </table>
@@ -53,10 +58,10 @@
 
 <!-- Add Local User Modal -->
 <div class="modal fade" id="addUserModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Add Local User</h5>
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-bottom-0 pb-0">
+                <h5 class="modal-title fw-bold">Add Local User</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <form id="addUserForm">
@@ -89,10 +94,10 @@
 
 <!-- Import from AD Modal -->
 <div class="modal fade" id="importADModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-success text-white">
-                <h5 class="modal-title"><i class="fas fa-cloud-download-alt me-2"></i>Import User from Active Directory</h5>
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+            <div class="modal-header bg-success text-white border-bottom-0 p-4">
+                <h5 class="modal-title fw-bold"><i class="fas fa-cloud-download-alt me-2"></i>Import User from Active Directory</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
@@ -151,27 +156,46 @@ async function loadUsers() {
         
         const tbody = document.getElementById('usersTable');
         if (users.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No users found.</td></tr>';
+            tbody.innerHTML = `<tr>
+                <td colspan="4" class="text-center text-muted py-5">
+                    <i class="fas fa-users fa-3x mb-3 text-secondary opacity-50"></i>
+                    <h5>No users found</h5>
+                </td>
+            </tr>`;
             return;
         }
         
-        tbody.innerHTML = users.map(u => `
-            <tr class="align-middle">
-                <td><span class="fw-bold">${u.username}</span></td>
-                <td>${u.email}</td>
-                <td>${u.full_name}</td>
-                <td>
-                    ${u.auth_type === 'ldap' 
-                        ? '<span class="badge bg-info"><i class="fas fa-network-wired me-1"></i>AD / LDAP</span>' 
-                        : '<span class="badge bg-secondary"><i class="fas fa-database me-1"></i>Local</span>'}
+        tbody.innerHTML = users.map(u => {
+            const initial = (u.full_name && u.full_name !== 'None') ? u.full_name.charAt(0).toUpperCase() : u.username.charAt(0).toUpperCase();
+            const badgeHTML = u.auth_type === 'ldap' 
+                ? '<span class="badge bg-info-subtle text-info border border-info-subtle rounded-pill px-3 py-2"><i class="fas fa-network-wired me-1"></i>AD / LDAP</span>' 
+                : '<span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-2"><i class="fas fa-database me-1"></i>Local</span>';
+            const emailHTML = (u.email && u.email !== 'None') ? u.email : '<span class="text-muted fst-italic">No email</span>';
+
+            return `
+            <tr class="align-middle" style="transition: all 0.2s;">
+                <td class="ps-4">
+                    <div class="d-flex align-items-center">
+                        <div class="avatar bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-3 shadow-sm" 
+                             style="width: 42px; height: 42px; min-width: 42px; font-weight: 600; font-size: 1.1rem;">
+                            ${initial}
+                        </div>
+                        <div>
+                            <div class="fw-bold text-dark">${u.username}</div>
+                            <div class="small text-muted">${(u.full_name && u.full_name !== 'None') ? u.full_name : 'No Name'}</div>
+                        </div>
+                    </div>
                 </td>
-                <td class="text-end text-nowrap">
-                    <a href="/admin/users/${u.id}" class="btn btn-sm btn-outline-info" title="View Profile">
-                        <i class="fas fa-id-card"></i>
+                <td class="text-secondary">${emailHTML}</td>
+                <td>${badgeHTML}</td>
+                <td class="text-end text-nowrap pe-4">
+                    <a href="/admin/users/${u.id}" class="btn btn-sm btn-light text-primary rounded-circle shadow-sm d-inline-flex align-items-center justify-content-center" style="width: 34px; height: 34px;" title="View Profile">
+                        <i class="fas fa-arrow-right"></i>
                     </a>
                 </td>
             </tr>
-        `).join('');
+            `;
+        }).join('');
     } catch (e) {
         document.getElementById('usersTable').innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading users.</td></tr>';
         console.error(e);
@@ -185,11 +209,10 @@ function filterUsers() {
 
     rows.forEach(row => {
         if (row.querySelector('td[colspan]')) return;
-        const username = (row.cells[0]?.textContent || '').toLowerCase();
+        const userCol = (row.cells[0]?.textContent || '').toLowerCase();
         const email = (row.cells[1]?.textContent || '').toLowerCase();
-        const fullName = (row.cells[2]?.textContent || '').toLowerCase();
 
-        const matches = !query || username.includes(query) || email.includes(query) || fullName.includes(query);
+        const matches = !query || userCol.includes(query) || email.includes(query);
         row.style.display = matches ? '' : 'none';
         if (matches) visibleCount++;
     });
@@ -201,9 +224,10 @@ function filterUsers() {
         const tbody = document.getElementById('usersTable');
         const noResultsRow = document.createElement('tr');
         noResultsRow.id = 'noSearchResults';
-        noResultsRow.innerHTML = `<td colspan="6" class="text-center text-muted py-4">
-            <i class="fas fa-search fa-2x mb-2 opacity-50 d-block"></i>
-            No users found matching "<strong>${query}</strong>"
+        noResultsRow.innerHTML = `<td colspan="4" class="text-center text-muted py-5">
+            <i class="fas fa-search fa-3x mb-3 text-secondary opacity-50"></i>
+            <h5>No matching users</h5>
+            <p class="mb-0">No users found matching "<strong>${query}</strong>"</p>
         </td>`;
         tbody.appendChild(noResultsRow);
     }
